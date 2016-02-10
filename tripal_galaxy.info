@@ -1,1 +1,8 @@
-name = Tripal Galaxy
+<?php
+
+name = Tripal_Galaxy
+description = "Integrating Galaxy into Tripal."
+package = Pro Drupal Development
+core = 7.x
+files[] = tripal_galaxy.module
+files[] = tripal_galaxy.install
