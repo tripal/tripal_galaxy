@@ -103,7 +103,7 @@ function tripal_galaxy_uninstall() {
 function tripal_galaxy_schema() {
 
 
-};
+}
 
 /**
  * Creates a materialized view that stores the type & number of galaxys per organism
@@ -114,6 +114,7 @@ function tripal_galaxy_add_mviews() {
 
 
 }
+
 /**
  * Add cvs related to publications
  *
@@ -122,6 +123,7 @@ function tripal_galaxy_add_mviews() {
 function tripal_galaxy_add_dbs() {
 
 }
+
 /**
  * Add cvs related to publications
  *
@@ -133,9 +135,7 @@ function tripal_galaxy_add_cvs() {
   // controlled vocabularies, cv terms are sort of like the branches of 
   // cv.  
   
-  tripal_insert_cv(
-    'galaxy_type',
-  );
+  tripal_insert_cv('galaxy_type');
 
 
 }
@@ -278,8 +278,6 @@ function tripal_galaxy_add_galaxy_jobs_table(){
 	);
 		chado_create_custom_table('galaxyprop', $schema, TRUE);
 }
-
-
 
 	
 
