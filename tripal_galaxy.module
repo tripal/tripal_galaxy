@@ -1,5 +1,5 @@
 
-
+<?php
 /**
  * @file
  * This file contains all Drupal hooks for the module other than any
@@ -8,7 +8,7 @@
  *
  */
 
-require('api/tripal_galaxy.api.inc');
+//require('api/tripal_galaxy.api.inc');
 require('theme/tripal_galaxy.theme.inc');
 require('includes/tripal_galaxy.admin.inc');
 //require('includes/tripal_galaxy.chado_node.inc');

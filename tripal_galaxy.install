@@ -1,4 +1,7 @@
 <?php
+//require('api/tripal_galaxy.api.inc');
+
+
 /**
  * @galaxy
  * Installation of the galaxy module
@@ -58,7 +61,7 @@ function tripal_galaxy_requirements($phase) {
 function tripal_galaxy_install() {
 
   // create the module's data directory
-  tripal_create_galaxys_dir('tripal_galaxy');
+  tripal_create_files_dir('tripal_galaxy');
 
   // EXPLANATION: Here is a good place to add any materialized views,
   tripal_galaxy_add_mviews();
@@ -178,11 +181,11 @@ function tripal_galaxy_add_galaxy_table() {
 			'fields' => array(
 				'galaxy_id' => array(
 					'type' => 'serial',
-					'not null' => TRUE
+					'not_null' => TRUE
 					),
-				'uid' => array(
+/* 				'uid' => array(
 					'type' => 'integer',
-					),
+					), */
 				'label' => array(
 					'type' => 'text',
 					),
@@ -209,27 +212,31 @@ function tripal_galaxy_add_galaxy_table() {
 
 function tripal_galaxy_add_wf_table(){
 	$schema = array(
-			'table' => 'wf',
-			'fields' => array(
+			'table' => 'galaxy_wf',
+			'fields' => array (
+					
 				'galaxy_wf_id' => array(
 					'type' => 'integer',
-					'not null' => TRUE
+					'not_null' => TRUE
 					),
+					
 				'workflow_id' => array(
-					'type' => 'integer'
+					'type' => 'integer',
 					),
-				'label_text' => array(
-					'type' => 'text'
-					),
+					
+/* 				'label' => array(
+					'type' =>'text',
+					), */
 			),
+			
 			'primary key' => array(
 				0 => 'galaxy_wf_id',
 			),
 			
 			'foreign keys' => array(
-			  'galaxy_id' => array(
+			  'galaxy' => array(
 			     'table' => 'galaxy',
-			     'columns' => array('galaxy_id'=>'galaxy_id'),
+			     'columns' => array('galaxy'=>'galaxy_id'),
 			 )),
 	);
 	
@@ -242,7 +249,7 @@ function tripal_galaxy_add_galaxy_wf_job_table(){
 			'fields' => array(
 				'galaxy_wf_job_id' => array(
 					'type' => 'serial',
-					'not null' => TRUE
+					'not_null' => TRUE
 					),
 			),
 			'primary key' => array(
@@ -251,13 +258,14 @@ function tripal_galaxy_add_galaxy_wf_job_table(){
 			'foreign keys' => array(
 			  'galaxy_id' => array(
 			     'table' => 'galaxy',
-			     'columns' => array('galaxy_id'=>'galaxy_id'),
+			     'columns' => array('galaxy_id'=>'galaxy_id'))
+			),
 			     
-			  'galaxy_jobs_id'=> array(
+			  'galaxy_jobs'=> array(
 			  		'galaxy_jobs_id'=>array(
 			  		'table' => 'galaxy_jobs',
-			  		'columns' => array('galaxy_jobs_id'=>'galaxt_jobs_id'),
-			 )),
+			  		'columns' => array('galaxy_jobs_id'=>'galaxt_jobs_id'))
+			  ),
 	);
 	
 	chado_create_custom_table('galaxy_source', $schema, TRUE);
@@ -269,14 +277,14 @@ function tripal_galaxy_add_galaxy_jobs_table(){
 			'fields' => array(
 				'galaxy_job_id' => array(
 					'type' => 'serial',
-					'not null' => TRUE
+					'not_null' => TRUE
 					),
 			),
 			'primary key' => array(
 				0 => 'galaxy_job_id'
 			),
 	);
-		chado_create_custom_table('galaxyprop', $schema, TRUE);
+		chado_create_custom_table('galaxy_jobs', $schema, TRUE);
 }
 
 	
