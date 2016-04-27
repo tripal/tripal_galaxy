@@ -69,14 +69,14 @@ function tripal_galaxy_install() {
   // add any external databases used by the galaxy module.
   tripal_galaxy_add_dbs();
 
-  // add any controlled vocabularies used by the galaxy module. 
+  // add any controlled vocabularies used by the galaxy module.
   tripal_galaxy_add_cvs();
 
 
   // add any controlled vocabulary terms
   tripal_galaxy_add_cvterms();
 
-	// use the tripal_set_default_cv() function to specify
+  // use the tripal_set_default_cv() function to specify
   // the Sequence Ontology (sequence) as the default vocabulary.
   tripal_set_default_cv('galaxy', 'type_id', 'galaxy_type');
 
@@ -104,7 +104,12 @@ function tripal_galaxy_uninstall() {
  * @ingroup tripal_galaxy
  */
 function tripal_galaxy_schema() {
+  $schema = array();
 
+  tripal_galaxy_add_galaxy_table($schema);
+  tripal_galaxy_add_wf_table($schema);
+  tripal_galaxy_add_galaxy_wf_job_table($schema);
+  tripal_galaxy_add_galaxy_jobs_table($schema);
 
 }
 
@@ -135,9 +140,9 @@ function tripal_galaxy_add_dbs() {
 function tripal_galaxy_add_cvs() {
 
   // EXPLANATION: use the tripal_insert_cv() function to add any
-  // controlled vocabularies, cv terms are sort of like the branches of 
-  // cv.  
-  
+  // controlled vocabularies, cv terms are sort of like the branches of
+  // cv.
+
   tripal_insert_cv('galaxy_type');
 
 
@@ -159,13 +164,10 @@ function tripal_galaxy_add_cvterms() {
  */
 function tripal_galaxy_add_custom_tables() {
 
-  tripal_galaxy_add_galaxy_table();
-  tripal_galaxy_add_wf_table();
-  tripal_galaxy_add_galaxy_wf_job_table();
-  tripal_galaxy_add_galaxy_jobs_table();
+
 }
 
-	
+
 
 
 /**
@@ -173,121 +175,121 @@ function tripal_galaxy_add_custom_tables() {
  *
  * @ingroup tripal_galaxy
  */
-function tripal_galaxy_add_galaxy_table() {
-	// EXPLANATION: use the Drupal Schema API to describe the custom table. Then
-	// add the table using the chado_create_custom_table() function.
-	$schema = array(
-			'table' => 'galaxy',
-			'fields' => array(
-				'galaxy_id' => array(
-					'type' => 'serial',
-					'not_null' => TRUE
-					),
-/* 				'uid' => array(
-					'type' => 'integer',
-					), */
-				'label' => array(
-					'type' => 'text',
-					),
-				'url' => array(
-					'type' => 'text'
-					),
-				'save_auth' => array(
-					'type' => 'text',
-					),
-				'username' => array(
-					'type' =>'text',
-					),
-				'api_key' => array(
-					'type' => 'text',
-					),
-			),
-			'primary key' => array(
-			 	0 => 'galaxy_id',
-			),
-	);
-	
-		chado_create_custom_table('galaxy', $schema, TRUE);
+function tripal_galaxy_add_galaxy_table(&$schema) {
+  $schema['tripal_galaxy'] = array(
+    'table' => 'tripal_galaxy',
+    'fields' => array(
+      'galaxy_id' => array(
+        'type' => 'serial',
+        'not_null' => TRUE
+      ),
+      'label' => array(
+        'type' => 'varchar',
+        'length ' => 255
+      ),
+      'uid' => array(
+        'type' => 'int',
+      ),
+      'label' => array(
+        'type' => 'text',
+      ),
+      'url' => array(
+        'type' => 'text'
+      ),
+      'save_auth' => array(
+        'type' => 'int',
+        'size' => 'tiny'
+      ),
+      'username' => array(
+        'type' =>'text',
+      ),
+      'api_key' => array(
+        'type' => 'text',
+      ),
+    ),
+    'primary key' => array(
+       0 => 'galaxy_id',
+    ),
+  );
 }
 
-function tripal_galaxy_add_wf_table(){
-	$schema = array(
-			'table' => 'galaxy_wf',
-			'fields' => array (
-					
-				'galaxy_wf_id' => array(
-					'type' => 'integer',
-					'not_null' => TRUE
-					),
-					
-				'workflow_id' => array(
-					'type' => 'integer',
-					),
-					
-/* 				'label' => array(
-					'type' =>'text',
-					), */
-			),
-			
-			'primary key' => array(
-				0 => 'galaxy_wf_id',
-			),
-			
-			'foreign keys' => array(
-			  'galaxy' => array(
-			     'table' => 'galaxy',
-			     'columns' => array('galaxy'=>'galaxy_id'),
-			 )),
-	);
-	
-		chado_create_custom_table('galaxy_wf', $schema, TRUE);
+function tripal_galaxy_add_wf_table(&$schema){
+  $schema = array(
+      'table' => 'galaxy_wf',
+      'fields' => array (
+
+        'galaxy_wf_id' => array(
+          'type' => 'integer',
+          'not_null' => TRUE
+          ),
+
+        'workflow_id' => array(
+          'type' => 'integer',
+          ),
+
+/*         'label' => array(
+          'type' =>'text',
+          ), */
+      ),
+
+      'primary key' => array(
+        0 => 'galaxy_wf_id',
+      ),
+
+      'foreign keys' => array(
+        'galaxy' => array(
+           'table' => 'galaxy',
+           'columns' => array('galaxy'=>'galaxy_id'),
+       )),
+  );
+
 }
 
-function tripal_galaxy_add_galaxy_wf_job_table(){
-	$schema = array(
-			'table' => 'galaxy_wf_job',
-			'fields' => array(
-				'galaxy_wf_job_id' => array(
-					'type' => 'serial',
-					'not_null' => TRUE
-					),
-			),
-			'primary key' => array(
-				0 => 'galaxy_wf_job_id'
-			),
-			'foreign keys' => array(
-			  'galaxy_id' => array(
-			     'table' => 'galaxy',
-			     'columns' => array('galaxy_id'=>'galaxy_id'))
-			),
-			     
-			  'galaxy_jobs'=> array(
-			  		'galaxy_jobs_id'=>array(
-			  		'table' => 'galaxy_jobs',
-			  		'columns' => array('galaxy_jobs_id'=>'galaxt_jobs_id'))
-			  ),
-	);
-	
-	chado_create_custom_table('galaxy_source', $schema, TRUE);
+function tripal_galaxy_add_galaxy_wf_job_table(&$schema){
+  $schema['tripal_galaxy_wf'] = array(
+    'table' => 'tripal_galaxy_wf',
+    'fields' => array(
+      'galaxy_wf_job_id' => array(
+        'type' => 'serial',
+        'not_null' => TRUE
+      ),
+    ),
+    'primary key' => array(
+      0 => 'galaxy_wf_job_id'
+    ),
+    'foreign keys' => array(
+      'galaxy_id' => array(
+         'table' => 'galaxy',
+         'columns' => array('galaxy_id'=>'galaxy_id')
+      )
+    ),
+    'galaxy_jobs'=> array(
+      'galaxy_jobs_id'=>array(
+      'table' => 'galaxy_jobs',
+      'columns' => array('galaxy_jobs_id'=>'galaxt_jobs_id'))
+    ),
+  );
 }
 
-function tripal_galaxy_add_galaxy_jobs_table(){
-	$schema = array(
-			'table' => 'galaxy_jobs',
-			'fields' => array(
-				'galaxy_job_id' => array(
-					'type' => 'serial',
-					'not_null' => TRUE
-					),
-			),
-			'primary key' => array(
-				0 => 'galaxy_job_id'
-			),
-	);
-		chado_create_custom_table('galaxy_jobs', $schema, TRUE);
+function tripal_galaxy_add_galaxy_jobs_table(&$schema){
+  $schema['tripal_galaxy_wf_jobs'] = array(
+    'table' => 'tripal_galaxy_wf_jobs',
+    'fields' => array(
+      'galaxy_job_id' => array(
+        'type' => 'serial',
+        'not_null' => TRUE
+      ),
+      'galaxy_wf_id' => array(
+
+      ),
+    ),
+    'primary key' => array(
+      0 => 'galaxy_job_id'
+    ),
+  );
 }
 
-	
+
 
 /**
  * This is the required update for tripal_galaxy.
