@@ -109,7 +109,7 @@ function tripal_galaxy_schema() {
   tripal_galaxy_add_galaxy_table($schema);
   tripal_galaxy_add_wf_table($schema);
   tripal_galaxy_add_galaxy_wf_job_table($schema);
-  tripal_galaxy_add_galaxy_jobs_table($schema);
+  //tripal_galaxy_add_galaxy_jobs_table($schema);
 
 }
 
@@ -167,9 +167,6 @@ function tripal_galaxy_add_custom_tables() {
 
 }
 
-
-
-
 /**
  * Adds the 'galaxy' custom table to Chado.
  *
@@ -182,29 +179,33 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
       'galaxy_id' => array(
         'type' => 'serial',
         'not_null' => TRUE
-      ),
+      ),    		
       'label' => array(
         'type' => 'varchar',
-        'length ' => 255
-      ),
+        'length ' => 255,
+        'not_null' => TRUE
+      ),    		
+      'url' => array(
+        'type' => 'text',
+      	'not_null' => TRUE
+       ),    		
       'uid' => array(
         'type' => 'int',
-      ),
-      'label' => array(
-        'type' => 'text',
-      ),
-      'url' => array(
-        'type' => 'text'
+      	'not_null' => TRUE
       ),
       'save_auth' => array(
         'type' => 'int',
-        'size' => 'tiny'
+        'size' => 'tiny',
+      	'default' => 1,
+      	'not_null' => TRUE
       ),
       'username' => array(
-        'type' =>'text',
+      	'type' => 'varchar',
+      	'length ' => 128
       ),
       'api_key' => array(
-        'type' => 'text',
+      	'type' => 'varchar',
+      	'length ' => 1024
       ),
     ),
     'primary key' => array(
@@ -214,82 +215,56 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
 }
 
 function tripal_galaxy_add_wf_table(&$schema){
-  $schema = array(
-      'table' => 'galaxy_wf',
+  $schema['tripal_galaxy_wf'] = array(
+      'table' => 'tripal_galaxy_wf',
       'fields' => array (
-
         'galaxy_wf_id' => array(
-          'type' => 'integer',
+          'type' => 'serial',
           'not_null' => TRUE
           ),
-
+      	'galaxy_id' => array(
+      	   'type' => 'integer',
+      	   'not_null' => TRUE	
+      	),
         'workflow_id' => array(
-          'type' => 'integer',
-          ),
-
-/*         'label' => array(
-          'type' =>'text',
-          ), */
-      ),
-
+          'type' => 'varchar',
+          'length' => 1024,
+          'not_null' => TRUE
+         ),
+      	'label' => array(
+      	  'type' => 'varchar',
+      	  'length ' => 255,
+      	  'not_null'=> TRUE
+      	 ),
+      ),	
       'primary key' => array(
         0 => 'galaxy_wf_id',
       ),
-
-      'foreign keys' => array(
-        'galaxy' => array(
-           'table' => 'galaxy',
-           'columns' => array('galaxy'=>'galaxy_id'),
-       )),
   );
 
 }
 
 function tripal_galaxy_add_galaxy_wf_job_table(&$schema){
-  $schema['tripal_galaxy_wf'] = array(
-    'table' => 'tripal_galaxy_wf',
+  $schema['tripal_galaxy_wf_job'] = array(
+    'table' => 'tripal_galaxy_wf_job',
     'fields' => array(
       'galaxy_wf_job_id' => array(
         'type' => 'serial',
         'not_null' => TRUE
       ),
+      'galaxy_wf_id' => array(
+      'type' => 'int',
+      ),
+      'job_id' => array(
+      'type' => 'int',
+      'not_null' => TRUE
+      ),
     ),
     'primary key' => array(
       0 => 'galaxy_wf_job_id'
     ),
-    'foreign keys' => array(
-      'galaxy_id' => array(
-         'table' => 'galaxy',
-         'columns' => array('galaxy_id'=>'galaxy_id')
-      )
-    ),
-    'galaxy_jobs'=> array(
-      'galaxy_jobs_id'=>array(
-      'table' => 'galaxy_jobs',
-      'columns' => array('galaxy_jobs_id'=>'galaxt_jobs_id'))
-    ),
   );
 }
-
-function tripal_galaxy_add_galaxy_jobs_table(&$schema){
-  $schema['tripal_galaxy_wf_jobs'] = array(
-    'table' => 'tripal_galaxy_wf_jobs',
-    'fields' => array(
-      'galaxy_job_id' => array(
-        'type' => 'serial',
-        'not_null' => TRUE
-      ),
-      'galaxy_wf_id' => array(
-
-      ),
-    ),
-    'primary key' => array(
-      0 => 'galaxy_job_id'
-    ),
-  );
-}
-
-
 
 /**
  * This is the required update for tripal_galaxy.
