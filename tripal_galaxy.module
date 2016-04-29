@@ -24,8 +24,17 @@ require('includes/tripal_galaxy.admin.inc');
  * 
  * @ingroup tripal_file
  */
-function tripal_file_permission() {
-// TODO: 
+function tripal_galaxy_permission() {
+  return array(
+    'use galaxy' => array(
+	  'title' => t('Execute Published Galaxy Workflows'),
+	  'description' => t('Allows a user to submit a published workflow for execution on a remote Galaxy Instance'),
+	 ),
+  	'administer galaxy' => array(
+  	  'title' => t('Administer Galaxy'),
+  	  'description' => t('Allows a user to submit a published workflow for execution on a remote Galaxy Instance'),
+  	), 
+  );
 
 }
 
@@ -46,60 +55,84 @@ $items = array();
 
   // EXPLANATION:  all extension modules should have an administrative menu item
   // with the path set to 'admin/tripal/extension/[module name]'. 
-  $items['admin/tripal/extension/tripal_galaxy'] = array(
-    'title' => 'galaxy',
-    'description' => 'galaxy module for running galaxy workflows and other galaxy related features',
-    'page callback' => 'tripal_galaxy_admin_galaxy_listing',
-    'access arguments' => array('administer tripal galaxy'),
+  $items['admin/tripal/extension/galaxy'] = array(
+    'title' => 'Settings',
+    'description' => 'Integrate workflows from a remote Galaxy instance with this Tripal site',
+    'page callback' => 'tripal_galaxy_admin_home',
+    'access arguments' => array('administer galaxy'),
     'type' => MENU_NORMAL_ITEM,
   );
-
-  // EXPLANATION: all extension modules should provide help documentation to 
-  // describe the functionality of the module and any installation or setup
-  // [module name]/theme/tripal__help.tpl.php . 
-  $items['admin/tripal/extension/tripal_galaxy/help'] = array(
-    'title' => 'Help',
-    'description' => 'Basic Description of Tripal Library Module Functionality',
-    'page callback' => 'theme',
-    'page arguments' => array('tripal_galaxy_help'),
-    'access arguments' => array('administer tripal galaxy'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 10
-  );
-
-
-  // EXPLANATION: all extension modules should provide a configuration page. 
-  // Even if your module does not need configuration the menu item and page
-  // should be created. This helps users recognize that the module is installed
-  // and working.  The configuration page can simply state that no 
-  // configuration settings are available.  Typically a form is provided for the 
-  // module's configuration settings. Therefore the 'page callback' uses the
-  // drupal_get_form() function and the 'page argument' indicates the form
-  // to call is named 'tripal_eample_admin'.  The function that describes
-  // to form is in the includes/tripal_galaxy.admin.inc 
-  $items['admin/tripal/extension/tripal_galaxy/configuration'] = array(
-    'title' => 'Settings',
-    'description' => 'Configure the Tripal Library module',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_admin'),
-    'access arguments' => array('administer tripal galaxy'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 5
+  
+  // Configuration
+  $items['admin/tripal/extension/galaxy/configuration'] = array(
+  	'description' => 'Configure Galaxy integrations',
+  	'page callback' => 'drupal_get_form',
+    'page arguments' => 'tripal_galaxy_admin_configuration_form',
+  	'access arguments' => array('administer galaxy'),
+  	'type' => MENU_CALLBACK,
+  	'file' => 'includes/tripal_galaxy.admin.inc',
+  	'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
   
-  // EXPLANATION: If your module defines a new chado node type and that node
-  // type directly links to a record in Chado, then you can use the Tripal API
-  // to quickly provide syncing functionality.  See the API documentation here
-  // for more information on how that is setup:
-  // http://api.tripal.info/api/tripal/tripal_core%21api%21tripal_core.chado_nodes.api.inc/function/chado_node_sync_form/2.x
-  $items['admin/tripal/extension/tripal_galaxy/sync'] = array(
-    'title' => ' Sync',
-    'description' => 'Create pages on this site for galaxy stored in Chado',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('chado_node_sync_form', 'tripal_galaxy', 'chado_galaxy'),
-    'access arguments' => array('administer tripal galaxy'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 2
+  //Publish
+  $items['admin/tripal/extension/galaxy/publish'] = array(
+  		'title' => 'Publish',
+  		'description' => 'Publish workflows from a remote Galaxy instance on this site for use by site users',
+  		'page callback' => 'drupal_get_form',
+  		'page arguments' => 'tripal_galaxy_admin_publish_form',
+  		'access arguments' => array('administer galaxy'),
+  		'type' => MENU_LOCAL_TASK,
+  		'file' => 'includes/tripal_galaxy.admin.inc',
+  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+  
+  // Usage
+  $items['admin/tripal/extension/galaxy/usage'] = array(
+  		'title' => 'Usage',
+  		'description' => 'Explore Galaxy usage details.',
+  		'page callback' => 'drupal_get_form',
+  		'page arguments' => 'tripal_galaxy_admin_usage_form',
+  		'access arguments' => array('administer galaxy'),
+  		'type' => MENU_LOCAL_TASK,
+  		'file' => 'includes/tripal_galaxy.admin.inc',
+  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+  
+  // Submitted
+  $items['admin/tripal/extension/galaxy/submitted'] = array(
+  		'title' => 'Submitted',
+  		'description' => 'View Submitted workflows',
+  		// Are we sure about this?
+  		'page callback' => 'tripal_galaxy_admin_submitted_list',
+  		'access arguments' => array('administer galaxy'),
+  		'type' => MENU_LOCAL_TASK,
+  		'file' => 'includes/tripal_galaxy.admin.inc',
+  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+  
+  // Workflow
+  $items['workflows'] = array(
+  		'title' => 'Available Workflows',
+  		'description' => 'A list of available analytical workflows for this site',
+  		// Are we sure about this?
+  		'page callback' => 'tripal_galaxy_admin_submitted_list',
+  		'access arguments' => array('administer galaxy'),
+  		'type' => MENU_LOCAL_TASK,
+  		'file' => 'includes/tripal_galaxy.user.inc',
+  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+  
+  // Galaxy
+  $items['user/galaxy'] = array(
+  		'title' => 'Galaxy',
+  		'description' => 'Configure Galaxy Server',
+  		// Are we sure about this?
+  		'page callback' => 'drupal_get_form',
+  		'page arguments' => 'tripal_galaxy_user_configuration_form',
+  		'access arguments' => array('use galaxy'),
+  		'type' => MENU_LOCAL_TASK,
+  		'file' => 'includes/tripal_galaxy.user.inc',
+  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
   
   return $items;

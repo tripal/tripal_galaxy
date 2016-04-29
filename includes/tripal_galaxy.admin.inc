@@ -4,6 +4,66 @@
  * This file contains the functions used for administration of the module
  *
  */
+// TODO: A function that returns a themeable array for the landing page for the Galaxy administrative pages.
+function tripal_galaxy_admin_home() {
+
+}
+
+// TODO: Generates the form for configuring one or more default Galaxy instances.
+function tripal_galaxy_admin_configuration_form() {
+	
+}
+
+// TODO: Validates the tripal_galaxy_admin_configuration_form
+function tripal_galaxy_admin_configuration_form_validate(){
+
+}
+
+//TODO: Is executed when the submit button is clicked in the tripal_galaxy_admin_configuration_form.
+function tripal_galaxy_admin_configuration_form_submit() {
+
+}
+
+//TODO: Generates the form that lists the available workflows in the 
+// default Galaxy instances and allows the site admin to select which ones 
+// should be published on the site for end-users to use.
+function tripal_galaxy_admin_publish_form(){
+
+}
+
+//TODO: Validates the tripal_galaxy_admin_publish_form()
+function tripal_galaxy_admin_publish_form_valiate(){
+
+}
+
+//TODO: Is executed when the submit button is clicked in the tripal_galaxy_admin_publish_form()
+function tripal_galaxy_admin_publish_form_submit(){
+
+}
+
+//TODO: Generates a table that provides a listing of the Galaxy workflow usage statistics  
+// This is a form because it should provide filters (i.e to filter rows by user, etc.).
+function tripal_galaxy_admin_usage_form(){
+
+}
+
+//TODO: Validates the tripal galaxy usage from.
+function tripal_galaxy_admin_usage_form_validate(){
+	
+}
+
+//TODO: Submits the admin usage form.
+function tripal_galaxy_admin_usage_form_submit(){
+	
+}
+
+//TODO: Generates a table that provides a listing of the Galaxy workflows that have been executed 
+// and submitted by the user for the data to be incorporated into the site.  
+// The table should provide links to download and view the results.
+function tripal_galaxy_admin_submitted_list(){
+
+}
+
 
 function tripal_galaxy_admin_file_listing() {
   $output = '';
