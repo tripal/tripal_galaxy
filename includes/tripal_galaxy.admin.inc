@@ -6,7 +6,43 @@
  */
 // TODO: A function that returns a themeable array for the landing page for the Galaxy administrative pages.
 function tripal_galaxy_admin_home() {
-
+   $rows = array(
+   	  array(
+   	   'data' => array(
+   	     "Galaxy 1", array('data'=> "The galaxy instance"),
+   		   'class'=>array('funky'),
+   		  )
+   		)
+   	);
+	
+   $header = "Find your table here!";
+   $variables = array();
+   $variables['rows'] = $rows;
+   $variables['header'] = $header;
+   $table = theme_table($variables);
+	
+	
+   $page = array();
+   
+  '#show_messages' => TRUE,
+  '#theme' => 'page',
+  '#type' => 'page',
+  'content' => array(
+    'system_main' => array(...),
+	  'another_block' => array(...),
+	    '#sorted' => TRUE,
+    ),
+	'sidebar_first' => array(
+			...
+	),
+	'footer' => array(
+			...
+	),
+	...
+	);
+  
+  
+  
 }
 
 // TODO: Generates the form for configuring one or more default Galaxy instances.
@@ -120,7 +156,7 @@ function tripal_galaxy_admin() {
   $details = array(
     'module' => 'tripal_galaxy',       // the name of the MODULE implementing the content type
 
-    'unique_option' => '[galaxy.galaxy_id]'
+    'unique_option' => '[tripal_galaxy.galaxy_id]'
   );
   // This call adds the configuration form to your current form
   // This sub-form handles it's own validation & submit

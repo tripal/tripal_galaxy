@@ -110,7 +110,7 @@ $items = array();
   		'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
   
-  // Workflow
+  // Workflow 
   $items['workflows'] = array(
   		'title' => 'Available Workflows',
   		'description' => 'A list of available analytical workflows for this site',
