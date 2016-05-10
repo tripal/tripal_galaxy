@@ -184,11 +184,24 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
         'type' => 'varchar',
         'length ' => 255,
         'not_null' => TRUE
-      ),    		
+      ),
+    		
+      'servername' => array(
+        'type' => 'varchar',
+    	'length ' => 255,
+    	'not_null' => TRUE
+       ),
+    		
       'url' => array(
         'type' => 'text',
       	'not_null' => TRUE
-       ),    		
+       ),  
+    		
+      'description' => array(
+        'type' => 'text',
+    	'not_null' => FALSE,
+       ),
+    		
       'uid' => array(
         'type' => 'int',
       	'not_null' => TRUE
@@ -199,6 +212,7 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
       	'default' => 1,
       	'not_null' => TRUE
       ),
+
       'username' => array(
       	'type' => 'varchar',
       	'length ' => 128
@@ -211,6 +225,9 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
     'primary key' => array(
        0 => 'galaxy_id',
     ),
+  	'unique keys' => array(
+  	   'servername_unq1' => array('servername'),
+  	)
   );
 }
 

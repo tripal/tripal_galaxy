@@ -56,22 +56,34 @@ $items = array();
   // EXPLANATION:  all extension modules should have an administrative menu item
   // with the path set to 'admin/tripal/extension/[module name]'. 
   $items['admin/tripal/extension/galaxy'] = array(
-    'title' => 'Settings',
+    'title' => 'Manage Galxy Instances',
     'description' => 'Integrate workflows from a remote Galaxy instance with this Tripal site',
     'page callback' => 'tripal_galaxy_admin_home',
     'access arguments' => array('administer galaxy'),
     'type' => MENU_NORMAL_ITEM,
   );
   
-  // Configuration
-  $items['admin/tripal/extension/galaxy/configuration'] = array(
-  	'description' => 'Configure Galaxy integrations',
+  // Edit Galaxy
+  $items['admin/tripal/extension/galaxy/edit/%'] = array(
+  	'description' => 'Edit a galaxy instance',
   	'page callback' => 'drupal_get_form',
-    'page arguments' => 'tripal_galaxy_admin_configuration_form',
+    'page arguments' => array('tripal_galaxy_admin_configuration_form',5),
   	'access arguments' => array('administer galaxy'),
   	'type' => MENU_CALLBACK,
   	'file' => 'includes/tripal_galaxy.admin.inc',
   	'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+  
+  // Add Galaxy
+  $items['admin/tripal/extension/galaxy/add'] = array(
+  		'description' => 'add a galaxy instance',
+  		'title'=> 'Add Galaxy Instance',
+  		'page callback' => 'drupal_get_form',
+  		'page arguments' => array('tripal_galaxy_admin_configuration_form'),
+  		'access arguments' => array('administer galaxy'),
+  		'type' => MENU_LOCAL_ACTION,
+  		'file' => 'includes/tripal_galaxy.admin.inc',
+  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
   
   //Publish
