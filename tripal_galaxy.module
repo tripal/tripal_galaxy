@@ -86,12 +86,12 @@ $items = array();
   		'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
   
-  //Publish
-  $items['admin/tripal/extension/galaxy/publish'] = array(
-  		'title' => 'Publish',
-  		'description' => 'Publish workflows from a remote Galaxy instance on this site for use by site users',
+  // Available
+  $items['admin/tripal/extension/galaxy/wf_available'] = array(
+  		'title' => 'Add workflows to site',
+  		'description' => 'Make workflows from a remote Galaxy instance available on this site for use by site users',
   		'page callback' => 'drupal_get_form',
-  		'page arguments' => 'tripal_galaxy_admin_publish_form',
+  		'page arguments' => array('tripal_galaxy_admin_wf_available_form'),
   		'access arguments' => array('administer galaxy'),
   		'type' => MENU_LOCAL_TASK,
   		'file' => 'includes/tripal_galaxy.admin.inc',
@@ -170,6 +170,22 @@ function tripal_galaxy_views_api() {
 }
 
 
+/**
+ *  We need to let drupal know about our theme functions and their arguments.
+ *  We create theme functions to allow users of the module to customize the
+ *  look and feel of the output generated in this module
+ *
+ * @ingroup tripal_galaxy
+ */
+function tripal_galaxy_theme($existing, $type, $theme, $path) {
+	
+   $items = array(
+ 	'tripal_galaxy_admin_wf_available_form_rows' => array(
+ 	  'render element' => 'form',
+    ),
+  );
+  return $items;
+}
 
 
 /**

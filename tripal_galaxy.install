@@ -254,6 +254,11 @@ function tripal_galaxy_add_wf_table(&$schema){
       	  'length ' => 255,
       	  'not_null'=> TRUE,
       	 ),
+      	'workflow_name' => array(
+        	'type' => 'varchar',
+      		'length ' => 255,
+      		'not_null'=> TRUE,
+      	),
       ),	
   		
       'primary key' => array(

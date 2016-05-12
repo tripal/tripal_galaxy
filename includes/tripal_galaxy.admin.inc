@@ -13,39 +13,39 @@
  */
 function tripal_galaxy_admin_home() {
 
-  $sql = 'SELECT * FROM tripal_galaxy';	
+  $sql = 'SELECT * FROM tripal_galaxy';  
   $results = db_query($sql);
   $results = $results->fetchAll();
   if($results== NULL || count($results) <= 0  ){
-  	return "No Galaxy Instances to display!";
+    return "No Galaxy Instances to display!";
   }
 
    $headers = array('Galaxy Server', 'Description', 'Options');
-	
+  
    $rows = array();
    // Populate the rows of the table
    foreach ($results as $result){
      $rows[] = array(
-	   $result->servername,
+     $result->servername,
        $result->description,
-        l( 'edit','/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id),  	
-	  );
+        l( 'edit','/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id),    
+    );
    }
    
-	$table = array(
-		  'header' => $headers,
-		  'rows' => $rows,
-		  'attributes' => array(
-		    'id' => 'tripal_galaxy-table-properties',
-			'class' => 'tripal-data-table'
-			),
-		   'sticky' => FALSE,
-			  'caption' => '',
-				'colgroups' => array(),
-				'empty' => '',
-		);
-	
-	return theme_table($table);
+  $table = array(
+      'header' => $headers,
+      'rows' => $rows,
+      'attributes' => array(
+        'id' => 'tripal_galaxy-table-properties',
+      'class' => 'tripal-data-table'
+      ),
+       'sticky' => FALSE,
+        'caption' => '',
+        'colgroups' => array(),
+        'empty' => '',
+    );
+  
+  return theme_table($table);
 }
 
 /**
@@ -65,22 +65,22 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
   // If a galaxy id is set, feel free to declare all the default values with the appropriate
   // Galaxy instance
   if($galaxy_id !== NULL){
- 	$sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
-   	$galaxy_instance = db_query($sql, array(':galaxy_id' => $galaxy_id));
-   	$galaxy_instance = $galaxy_instance->fetchObject();
-  	
-   	if($galaxy_instance != NULL){
-   		$default_api_key = $galaxy_instance->api_key;
-   		$default_description = $galaxy_instance->description;
-   		$default_server_name = $galaxy_instance->servername;
-   		$default_user_name = $galaxy_instance->username;
-   		$default_url = $galaxy_instance->url;
-   	}
+   $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
+     $galaxy_instance = db_query($sql, array(':galaxy_id' => $galaxy_id));
+     $galaxy_instance = $galaxy_instance->fetchObject();
+    
+     if($galaxy_instance != NULL){
+       $default_api_key = $galaxy_instance->api_key;
+       $default_description = $galaxy_instance->description;
+       $default_server_name = $galaxy_instance->servername;
+       $default_user_name = $galaxy_instance->username;
+       $default_url = $galaxy_instance->url;
+     }
   }
   
   $form['galaxy_id'] = array(
-  	'#type' => 'value',
-  	'#value' => $galaxy_id,
+    '#type' => 'value',
+    '#value' => $galaxy_id,
   );
   
   // Server Name
@@ -89,67 +89,67 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
     '#type' => 'textfield',
     '#size' => 50,
     '#default_value'=> $default_server_name,
-  	'#description'=>'Please provide the name of the remote Galaxy Server',
+    '#description'=>'Please provide the name of the remote Galaxy Server',
     '#required' => TRUE,
   );
   
   // Description
   $form['description'] = array(
-  		'#title' => t('Description'),
-  		'#type' => 'textarea',
-  		'#default_value'=> $default_description,
-  		'#description'=> 'Provide any additional details about this server.',
-  		'#required' => FALSE,
+      '#title' => t('Description'),
+      '#type' => 'textarea',
+      '#default_value'=> $default_description,
+      '#description'=> 'Provide any additional details about this server.',
+      '#required' => FALSE,
   );
   
   // URL
   $form['url'] = array(
-  		'#title' => t('URL'),
-  		'#type' => 'textfield',
-  		'#size' => 50,
-  		'#default_value'=> $default_url,
-  		'#description'=> 'The URL for the remote Galaxy server.',
-  		'#required' => TRUE,
+      '#title' => t('URL'),
+      '#type' => 'textfield',
+      '#size' => 50,
+      '#default_value'=> $default_url,
+      '#description'=> 'The URL for the remote Galaxy server.',
+      '#required' => TRUE,
   );
   
   // User Name
   $form['username'] = array(
-  		'#title' => t('User Name'),
-  		'#type' => 'textfield',
-  		'#size' => 50,
-  		'#default_value'=> $default_user_name,
-  		'#description'=> 'The user name for the Galaxy server.  
-  		  This username is used to launch all jobs by default. 
-  		  If this field is left blank then it is expected that the user
-  		  has an account on the Galaxy server and will provide their username 
-  		  when executing workflows.',
-  		'#required' => FALSE,
+      '#title' => t('User Name'),
+      '#type' => 'textfield',
+      '#size' => 50,
+      '#default_value'=> $default_user_name,
+      '#description'=> 'The user name for the Galaxy server.  
+        This username is used to launch all jobs by default. 
+        If this field is left blank then it is expected that the user
+        has an account on the Galaxy server and will provide their username 
+        when executing workflows.',
+      '#required' => FALSE,
   );
   
   // API Key
   $form['api_key'] = array(
-  		'#title' => t('API Key'),
-  		'#type' => 'textfield',
-  		'#size' => 50,
-  		'#default_value'=> $default_api_key,
-  		'#description'=> "The API key for the user name specified above. 
-  		  If this field is left blank then it is expected that the user 
-  		  will provide their own API key when submitting a job.",
-  		'#required' => FALSE,
+      '#title' => t('API Key'),
+      '#type' => 'textfield',
+      '#size' => 50,
+      '#default_value'=> $default_api_key,
+      '#description'=> "The API key for the user name specified above. 
+        If this field is left blank then it is expected that the user 
+        will provide their own API key when submitting a job.",
+      '#required' => FALSE,
   );
 
   // Default submit
   $form['submit'] = array(
-  		'#type'=> 'submit',
-  		'#name' => 'submit',
-  		'#value' => t('Submit'),
+      '#type'=> 'submit',
+      '#name' => 'submit',
+      '#value' => t('Submit'),
   );
   
   // Delete
   $form['delete'] = array(
-  		'#type'=> 'submit',
-  		'#name' => 'delete',
-  		'#value' => t('Delete'),
+      '#type'=> 'submit',
+      '#name' => 'delete',
+      '#value' => t('Delete'),
   );
 
   
@@ -158,36 +158,36 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
 
 /**
  * Custom Validate for hook_form
- * 		
+ *     
  * @param $form
  * @param $form_state
  * @return boolean
  *   Return true if the form is valid for deletion, false otherwise
  */
 function tripal_galaxy_admin_configuration_form_delete_validate($form, &$form_state){
-	if ($form_state['clicked_button']['#name'] == 'delete') {
-		// Check if a servername already exists, and that we're not editing a pre-existing
-		// Instance
-		if($form['tripal_galaxy_editing'] == FALSE){
-			$sql = "SELECT * FROM {tripal_galaxy} WHERE servername=" . $form['tripal_galaxy_server_name']['#value'];
-		
-			$results = db_result(db_query($sql));
-		
-			if( $results != FALSE && $results != NULL){
-				form_set_error('servername', t('A galaxy instance with that servername already exists'));
-				return FALSE;
-			}
-		}	
-	}
-	else {
-		// Check to make sure servername exists
-		$sql = "SELECT * FROM {tripal_galaxy} WHERE servername=" . $form['tripal_galaxy_server_name']['#value'];
-		$results = db_result(db_query($sql));
-		if($results == NULL || $results == FALSE ){
-			form_set_error('servername', t('A galaxy instance with that servername does not exist'));
-	
-		}
-	}
+  if ($form_state['clicked_button']['#name'] == 'delete') {
+    // Check if a servername already exists, and that we're not editing a pre-existing
+    // Instance
+    if($form['tripal_galaxy_editing'] == FALSE){
+      $sql = "SELECT * FROM {tripal_galaxy} WHERE servername=" . $form['tripal_galaxy_server_name']['#value'];
+    
+      $results = db_result(db_query($sql));
+    
+      if( $results != FALSE && $results != NULL){
+        form_set_error('servername', t('A galaxy instance with that servername already exists'));
+        return FALSE;
+      }
+    }  
+  }
+  else {
+    // Check to make sure servername exists
+    $sql = "SELECT * FROM {tripal_galaxy} WHERE servername=" . $form['tripal_galaxy_server_name']['#value'];
+    $results = db_result(db_query($sql));
+    if($results == NULL || $results == FALSE ){
+      form_set_error('servername', t('A galaxy instance with that servername does not exist'));
+  
+    }
+  }
 
 }
 
@@ -200,63 +200,217 @@ function tripal_galaxy_admin_configuration_form_delete_validate($form, &$form_st
  */
 function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
     $data = array (
-  	 'servername' => $form_state['values']['servername'],    
-  	 'description' => $form_state['values']['description'],
-  	 'url' => $form_state['values']['url'],
-  	 'username' => $form_state['values']['username'],
-  	 'api_key' => $form_state['values']['api_key'],
+     'servername' => $form_state['values']['servername'],    
+     'description' => $form_state['values']['description'],
+     'url' => $form_state['values']['url'],
+     'username' => $form_state['values']['username'],
+     'api_key' => $form_state['values']['api_key'],
     );
    
    if ($form_state['clicked_button']['#name'] == 'delete') {
-   	 $galaxy_instance = db_query("DELETE FROM {tripal_galaxy} WHERE servername = %d", $form['tripal_galaxy_server_name']['#value']);
-   	
-   	 // Set error if appripriate
-   	 if($galaxy_instance === FALSE || $galaxy_instance == NULL) {
-   	   drupal_set_message(t('Error deletingrecord'), 'error');
-   	 } 
-   	 else { // Redirect
-   	   drupal_set_message(t('Galaxy instance has been deleted'));
-   	   drupal_goto("/admin/tripal/extension/galaxy");
-   	 }
+      $galaxy_instance = db_query("DELETE FROM {tripal_galaxy} WHERE servername = %d", $form['tripal_galaxy_server_name']['#value']);
+     
+      // Set error if appripriate
+      if($galaxy_instance === FALSE || $galaxy_instance == NULL) {
+        drupal_set_message(t('Error deletingrecord'), 'error');
+      } 
+      else { // Redirect
+        drupal_set_message(t('Galaxy instance has been deleted'));
+        drupal_goto("/admin/tripal/extension/galaxy");
+      }
    }
    else {
-   	 // If there is a galaxy ID this will be an edit
-   	 if ($form_state['values']['galaxy_id']) {
-   	 	$data['galaxy_id'] = $form_state['values']['galaxy_id'];
-   	 	$galaxy_instance = drupal_write_record('tripal_galaxy', $data, 'galaxy_id');
-   	 	
-   	 }
-   	 // Otherwise it's an edit
-   	 else {
-   	 	$galaxy_instance = drupal_write_record('tripal_galaxy', $data);
-   	 }
+      // If there is a galaxy ID this will be an edit
+      if ($form_state['values']['galaxy_id']) {
+        $data['galaxy_id'] = $form_state['values']['galaxy_id'];
+        $galaxy_instance = drupal_write_record('tripal_galaxy', $data, 'galaxy_id');
+        
+      }
+      // Otherwise it's an edit
+      else {
+        $galaxy_instance = drupal_write_record('tripal_galaxy', $data);
+      }
      // Insert the new Galaxy Instance into Drupal
-	 if(!$galaxy_instance){
-		drupal_set_message(t('problem inserting galaxy instance'), 'error');
-		drupal_goto("/admin/tripal/extension/galaxy");
-		return;
-	 }
-	 drupal_set_message(t('Galaxy instance haghstrs been recorded' . var_dump($galaxy_instance)));
-	 drupal_goto("/admin/tripal/extension/galaxy");
+   if(!$galaxy_instance){
+    drupal_set_message(t('problem inserting galaxy instance'), 'error');
+    drupal_goto("/admin/tripal/extension/galaxy");
+    return;
+   }
+   drupal_set_message(t('Galaxy instance haghstrs been recorded' . var_dump($galaxy_instance)));
+   drupal_goto("/admin/tripal/extension/galaxy");
    }   
-	
+  
 }
 
-//TODO: Generates the form that lists the available workflows in the 
-// default Galaxy instances and allows the site admin to select which ones 
-// should be published on the site for end-users to use.
-function tripal_galaxy_admin_publish_form(){
 
+
+/** 
+ * Generates the form that lists the available workflows in the 
+ *   default Galaxy instances and allows the site admin to select which ones 
+ *   should be published on the site for end-users to use.
+ * 
+ * @param $form
+ * @param $form_state
+ */
+function tripal_galaxy_admin_wf_available_form($form, &$form_state){
+
+  // TODO: once the PHP bindings are up and running, replace this test workflow with information from 
+  //  the actual galaxy server
+  $workflows = array(
+    'test_wf_1' => array(
+       'description' => 'TODO: pull actual workflows from the server',
+       'available' => TRUE,
+       'workflow_name' => "Not actually pulled from any server1" 
+    ),
+      
+    'test_wf_2' => array(
+      'description' => 'TODO: pull actual workflows from the server',
+    'available' => FALSE,
+    'workflow_name' => "Not actually pulled from any server2"
+     ),
+  );
+  
+  $galaxy_id = '';
+  if (array_key_exists('values', $form_state)) {
+  	$galaxy_id = $form_state['values']['galaxy_id'];
+  }
+     
+  $results = db_select('tripal_galaxy', 'tg')
+    ->fields('tg', array('galaxy_id', 'servername', 'label'))
+    ->execute();
+  $galaxies[0] = 'Select';
+  while ($galaxy = $results->fetchObject()) {
+  	$galaxies[$galaxy->galaxy_id] = $galaxy->label;
+  }
+  $i = 0;
+  $form['galaxy_id'] = array(
+  	'#type' => 'select',
+    '#options' => $galaxies,
+    '#title' => t('Galaxy Servers'),
+    '#description' => t('Please select a galaxy instance to view it\'s workflows'),
+  	'#ajax' => array(
+      'callback' => 'tripal_galaxy_admin_wf_available_form_ajax_callback',
+      'wrapper' => 'tripal-galaxy-admin-wf-available-form-rows',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),
+  	'#default_value' => $galaxy_id,
+  );
+
+  $form['#prefix'] = '<div id="tripal-galaxy-admin-wf-available-form-rows">';
+  $form['#suffix'] = '</div>';
+  
+  if ($galaxy_id) {
+
+	  foreach($workflows as &$workflow){
+	      //dpm($workflow);  
+	      
+	      // First let's check to see if this workflow exists in our database  
+	      $workflow_exists = 1;
+	      $default_label = "";
+	      $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_name = :workflow_name"; 
+	      $workflow_instance = db_query($sql, array(':workflow_name' => $workflow['workflow_name']));
+	      $workflow_instance = $workflow_instance->fetchObject();
+	      if($workflow_instance == NULL || $workflow_instance == FALSE){
+	        $workflow_exists = 0;
+	      }
+	      else {
+	        $default_label = $workflow_instance->label;
+	      }
+	    
+	    // Workflow name
+	    $form['rows']['row' . $i]['workflow_name'] = array(
+	      '#type' => 'item',
+	    '#markup' => $workflow['workflow_name'],
+	   );
+	  
+	    // Description
+	    $form['rows']['row' . $i]['description'] = array(
+	      '#type' => 'item',
+	      '#markup' => $workflow['description'],
+	    );
+	  
+	    // Is available
+	    $form['rows']['row' . $i]['available'] = array(
+	      //'#title' => t('checkbox'),
+	      '#type' => 'checkbox',
+	      '#default_value' => $workflow_exists,
+	    );
+	  
+	    // Workflow_label
+	    $form['rows']['row' . $i]['label'] = array(
+	      '#type' => 'textfield',
+	      '#size' => 25,
+	      '#default_value'=> $default_label,
+	    );
+	  
+	    $i = $i + 1;
+	  }	  
+	  $form['rows']['#theme'] = 'tripal_galaxy_admin_wf_available_form_rows';
+	  
+	  // Default submit
+	  $form['submit'] = array(
+		  '#type'=> 'submit',
+		  '#name' => 'submit',
+		  '#value' => t('Save'),
+	  );
+  }
+
+  
+  
+  //dpm($form);
+  return $form;
 }
+/**
+ * 
+ */
+function tripal_galaxy_admin_wf_available_form_ajax_callback($form, $form_state){
+  return $form;
+}
+/**
+ * TODO: Where do I place this?
+ * @param $form
+ * @param $form_state
+ */
+function theme_tripal_galaxy_admin_wf_available_form_rows($variables){
+  $form = $variables['form'];
+  $headers = array(
+      //'Sequence<br>Owner',
+      'Workflow Name',
+      'Description',
+      'Available?',
+      'On site Label',
+  );
+  
+  $rows = array();
+  foreach(element_children($form) as $element) {
+    $rows[] = array(
+      drupal_render($form[$element]["workflow_name"]),
+      drupal_render($form[$element]["description"]),
+      drupal_render($form[$element]["available"]),
+      drupal_render($form[$element]["label"]),
+    );
+  }
 
+  // Subset sequences.
+  return theme_table(array(
+    'header'     => $headers,
+    'rows'       => $rows,
+    'attributes' => array(),
+    'sticky'     => TRUE,
+    'caption'    => '',
+    'colgroups'  => array(),
+    'empty'      => 'No Workflows Available',
+  ));
+}
 //TODO: Validates the tripal_galaxy_admin_publish_form()
-function tripal_galaxy_admin_publish_form_valiate(){
+function tripal_galaxy_admin_wf_available_form_valiate(){
 
 }
 
 //TODO: Is executed when the submit button is clicked in the tripal_galaxy_admin_publish_form()
-function tripal_galaxy_admin_publish_form_submit(){
-
+function tripal_galaxy_admin_publish_form_submit($form, &$form_state, $galaxy_id){
+  
 }
 
 //TODO: Generates a table that provides a listing of the Galaxy workflow usage statistics  
@@ -267,12 +421,12 @@ function tripal_galaxy_admin_usage_form(){
 
 //TODO: Validates the tripal galaxy usage from.
 function tripal_galaxy_admin_usage_form_validate(){
-	
+  
 }
 
 //TODO: Submits the admin usage form.
 function tripal_galaxy_admin_usage_form_submit(){
-	
+  
 }
 
 //TODO: Generates a table that provides a listing of the Galaxy workflows that have been executed 
@@ -356,3 +510,4 @@ function tripal_galaxy_admin() {
 function tripal_galaxy_admin_validate($form, &$form_state) {
 
 }
+
