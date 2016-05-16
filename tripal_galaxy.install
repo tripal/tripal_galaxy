@@ -248,7 +248,7 @@ function tripal_galaxy_add_wf_table(&$schema){
           'type' => 'varchar',
           'length' => 1024,
           'not_null' => TRUE,
-         ),
+         ),	
       	'label' => array(
       	  'type' => 'varchar',
       	  'length ' => 255,
@@ -264,6 +264,10 @@ function tripal_galaxy_add_wf_table(&$schema){
       'primary key' => array(
         0 => 'galaxy_wf_id',
       ),
+  		
+  	  'unique keys' => array(
+  	    'workflowname_unq1' => array('workflow_name'),
+  	   )
   );
 
 }
