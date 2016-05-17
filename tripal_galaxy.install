@@ -1,102 +1,8 @@
 <?php
-//require('api/tripal_galaxy.api.inc');
-
-
 /**
  * @galaxy
  * Installation of the galaxy module
  */
-
-/**
- * Implements hook_disable().
- *
- * Perform actions when the module is disabled by the site administrator
- *
- * @ingroup tripal_galaxy
- */
-function tripal_galaxy_disable() {
-
-
-
-}
-
-/**
- * Implements hook_requirements().
- *
- * Performs check to see if all required dependencies are met. Drupal will
- * automatically check for module dependencies but here you can check for
- * other requirements.
- *
- * @ingroup tripal_galaxy
- */
-function tripal_galaxy_requirements($phase) {
-
-
-  $requirements = array();
-  if ($phase == 'install') {
-    // EXPLANATION: It is essential that Chado be installed for almost all
-    // Tripal modules. Therefore, the following code checks to ensure Chado
-    // is installed and available.  If your module does not require that
-    // Chado be installed, you can remove the following check.
-
-    // make sure chado is installed
-    if (!$GLOBALS["chado_is_installed"]) {
-      $requirements ['tripal_galaxy'] = array(
-          'title' => "tripal_galaxy",
-          'value' => "ERROR: Chado must be installed before this module can be enabled",
-          'severity' => REQUIREMENT_ERROR,
-      );
-    }
-  }
-  return $requirements;
-}
-
-/**
- * Implements hook_install().
- *
- * Performs actions when the modules is first installed.
- *
- * @ingroup tripal_galaxy
- */
-function tripal_galaxy_install() {
-
-  // create the module's data directory
-  tripal_create_files_dir('tripal_galaxy');
-
-  // EXPLANATION: Here is a good place to add any materialized views,
-  tripal_galaxy_add_mviews();
-
-  // add any external databases used by the galaxy module.
-  tripal_galaxy_add_dbs();
-
-  // add any controlled vocabularies used by the galaxy module.
-  tripal_galaxy_add_cvs();
-
-
-  // add any controlled vocabulary terms
-  tripal_galaxy_add_cvterms();
-
-  // use the tripal_set_default_cv() function to specify
-  // the Sequence Ontology (sequence) as the default vocabulary.
-  tripal_set_default_cv('galaxy', 'type_id', 'galaxy_type');
-
-
-  // add any custom tables. For this case we will add an 'galaxy' table to the
-  // chado schema
-  tripal_galaxy_add_custom_tables();
-}
-
-
-/**
- * Implements hook_uninstall().
- *
- * Performs actions when the modules is uninstalled.
- *
- * @ingroup tripal_galaxy
- */
-function tripal_galaxy_uninstall() {
-
-}
 
 /**
  * Implementation of hook_schema().
@@ -114,61 +20,7 @@ function tripal_galaxy_schema() {
 }
 
 /**
- * Creates a materialized view that stores the type & number of galaxys per organism
- *
- * @ingroup tripal_galaxy
- */
-function tripal_galaxy_add_mviews() {
-
-
-}
-
-/**
- * Add cvs related to publications
- *
- * @ingroup tripal_galaxy
- */
-function tripal_galaxy_add_dbs() {
-
-}
-
-/**
- * Add cvs related to publications
- *
- * @ingroup tripal_galaxy
- */
-function tripal_galaxy_add_cvs() {
-
-  // EXPLANATION: use the tripal_insert_cv() function to add any
-  // controlled vocabularies, cv terms are sort of like the branches of
-  // cv.
-
-  tripal_insert_cv('galaxy_type');
-
-
-}
-
-/**
- * Adds controlled vocabulary terms needed by this module.
- *
- * @ingroup tripal_galaxy
- */
-function tripal_galaxy_add_cvterms() {
-/* Do we add any terms here? */
-}
-
-/**
- * Add custom tables to Chado that are required by this module
- *
- * @ingroup tripal_galaxy
- */
-function tripal_galaxy_add_custom_tables() {
-
-
-}
-
-/**
- * Adds the 'galaxy' custom table to Chado.
+ * Adds the 'tripal_galaxy' table to Drupal schema.
  *
  * @ingroup tripal_galaxy
  */
@@ -179,33 +31,33 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
       'galaxy_id' => array(
         'type' => 'serial',
         'not_null' => TRUE
-      ),    		
+      ),
       'label' => array(
         'type' => 'varchar',
         'length ' => 255,
         'not_null' => TRUE
-      ),    		
+      ),
       'url' => array(
         'type' => 'text',
-      	'not_null' => TRUE
-       ),    		
+        'not_null' => TRUE
+       ),
       'uid' => array(
         'type' => 'int',
-      	'not_null' => TRUE
+        'not_null' => TRUE
       ),
       'save_auth' => array(
         'type' => 'int',
         'size' => 'tiny',
-      	'default' => 1,
-      	'not_null' => TRUE
+        'default' => 1,
+        'not_null' => TRUE
       ),
       'username' => array(
-      	'type' => 'varchar',
-      	'length ' => 128
+        'type' => 'varchar',
+        'length ' => 128
       ),
       'api_key' => array(
-      	'type' => 'varchar',
-      	'length ' => 1024
+        'type' => 'varchar',
+        'length ' => 1024
       ),
     ),
     'primary key' => array(
@@ -214,36 +66,42 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
   );
 }
 
+/**
+ * Adds the 'tripal_galaxy_wf' table to Drupal schema.
+ */
 function tripal_galaxy_add_wf_table(&$schema){
   $schema['tripal_galaxy_wf'] = array(
-      'table' => 'tripal_galaxy_wf',
-      'fields' => array (
-        'galaxy_wf_id' => array(
-          'type' => 'serial',
-          'not_null' => TRUE
-          ),
-      	'galaxy_id' => array(
-      	   'type' => 'integer',
-      	   'not_null' => TRUE	
-      	),
-        'workflow_id' => array(
-          'type' => 'varchar',
-          'length' => 1024,
-          'not_null' => TRUE
-         ),
-      	'label' => array(
-      	  'type' => 'varchar',
-      	  'length ' => 255,
-      	  'not_null'=> TRUE
-      	 ),
-      ),	
-      'primary key' => array(
-        0 => 'galaxy_wf_id',
+    'table' => 'tripal_galaxy_wf',
+    'fields' => array (
+      'galaxy_wf_id' => array(
+        'type' => 'serial',
+        'not_null' => TRUE
+        ),
+      'galaxy_id' => array(
+         'type' => 'integer',
+         'not_null' => TRUE
       ),
+      'workflow_id' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not_null' => TRUE
+       ),
+      'label' => array(
+        'type' => 'varchar',
+        'length ' => 255,
+        'not_null'=> TRUE
+       ),
+    ),
+    'primary key' => array(
+      0 => 'galaxy_wf_id',
+    ),
   );
 
 }
 
+/**
+ * Adds the 'tripal_galaxy_wf_job' table to Drupal schema.
+ */
 function tripal_galaxy_add_galaxy_wf_job_table(&$schema){
   $schema['tripal_galaxy_wf_job'] = array(
     'table' => 'tripal_galaxy_wf_job',
@@ -253,11 +111,11 @@ function tripal_galaxy_add_galaxy_wf_job_table(&$schema){
         'not_null' => TRUE
       ),
       'galaxy_wf_id' => array(
-      'type' => 'int',
+        'type' => 'int',
       ),
       'job_id' => array(
-      'type' => 'int',
-      'not_null' => TRUE
+        'type' => 'int',
+        'not_null' => TRUE
       ),
     ),
     'primary key' => array(
@@ -266,30 +124,3 @@ function tripal_galaxy_add_galaxy_wf_job_table(&$schema){
   );
 }
 
-/**
- * This is the required update for tripal_galaxy.
- */
-function tripal_galaxy_update_7200() {
-
-  try {
-   // perform database changes
-  }
-  catch (\PDOException $e) {
-    $error = $e->getMessage();
-    throw new DrupalUpdateException('Could not apply updates: '. $error);
-  }
-}
-
-/**
- * Implementation of hook_update_dependencies().  It specifies a list of
- * other modules whose updates must be run prior to this one.
- */
-function tripal_galaxy_update_dependencies() {
-  $dependencies = array();
-
-  $dependencies['tripal_galaxy'][7200] = array(
-    'tripal_cv' => 7200
-  );
-
-  return $dependencies;
-}

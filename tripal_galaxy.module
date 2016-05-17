@@ -19,13 +19,12 @@ require('includes/tripal_galaxy.admin.inc');
 
 /**
  * Implementation of hook_permissions()
- * 
+ *
  * Set the permission types that this module uses.
- * 
+ *
  * @ingroup tripal_file
  */
-function tripal_file_permission() {
-// TODO: 
+function tripal_galaxy_permissions() {
 
 }
 
@@ -35,7 +34,7 @@ function tripal_file_permission() {
 
 /**
  * Implements hook_menu()
- * 
+ *
  * Specifies menu items and URLs used by this module.
  *
  * @ingroup tripal_galaxy
@@ -45,7 +44,7 @@ $items = array();
 
 
   // EXPLANATION:  all extension modules should have an administrative menu item
-  // with the path set to 'admin/tripal/extension/[module name]'. 
+  // with the path set to 'admin/tripal/extension/[module name]'.
   $items['admin/tripal/extension/tripal_galaxy'] = array(
     'title' => 'galaxy',
     'description' => 'galaxy module for running galaxy workflows and other galaxy related features',
@@ -54,9 +53,9 @@ $items = array();
     'type' => MENU_NORMAL_ITEM,
   );
 
-  // EXPLANATION: all extension modules should provide help documentation to 
+  // EXPLANATION: all extension modules should provide help documentation to
   // describe the functionality of the module and any installation or setup
-  // [module name]/theme/tripal__help.tpl.php . 
+  // [module name]/theme/tripal__help.tpl.php .
   $items['admin/tripal/extension/tripal_galaxy/help'] = array(
     'title' => 'Help',
     'description' => 'Basic Description of Tripal Library Module Functionality',
@@ -68,15 +67,15 @@ $items = array();
   );
 
 
-  // EXPLANATION: all extension modules should provide a configuration page. 
+  // EXPLANATION: all extension modules should provide a configuration page.
   // Even if your module does not need configuration the menu item and page
   // should be created. This helps users recognize that the module is installed
-  // and working.  The configuration page can simply state that no 
-  // configuration settings are available.  Typically a form is provided for the 
+  // and working.  The configuration page can simply state that no
+  // configuration settings are available.  Typically a form is provided for the
   // module's configuration settings. Therefore the 'page callback' uses the
   // drupal_get_form() function and the 'page argument' indicates the form
   // to call is named 'tripal_eample_admin'.  The function that describes
-  // to form is in the includes/tripal_galaxy.admin.inc 
+  // to form is in the includes/tripal_galaxy.admin.inc
   $items['admin/tripal/extension/tripal_galaxy/configuration'] = array(
     'title' => 'Settings',
     'description' => 'Configure the Tripal Library module',
@@ -86,7 +85,7 @@ $items = array();
     'type' => MENU_LOCAL_TASK,
     'weight' => 5
   );
-  
+
   // EXPLANATION: If your module defines a new chado node type and that node
   // type directly links to a record in Chado, then you can use the Tripal API
   // to quickly provide syncing functionality.  See the API documentation here
@@ -101,7 +100,7 @@ $items = array();
     'type' => MENU_LOCAL_TASK,
     'weight' => 2
   );
-  
+
   return $items;
 
 }
@@ -111,9 +110,9 @@ $items = array();
 
 /**
  * Implements hook_views_api()
- * 
+ *
  * This hook tells drupal that there is views support for
- * for this module which then automatically includes the tripal_db.views.inc 
+ * for this module which then automatically includes the tripal_db.views.inc
  * where all the views integration code is found.
  *
  * @ingroup tripal_galaxy
@@ -129,16 +128,16 @@ function tripal_galaxy_views_api() {
 
 /**
  * Implements hook_help()
- * 
+ *
  * Adds a help $formpage to the module list
  */
 function tripal_galaxy_help ($path, $arg) {
-  
-  // EXPLANATION: in the tripal_galaxy_menu() function above we created 
-  // a menu item for the help documentation.  The menu item specified 
-  // a function that should be called when the menu item is clicked.  This 
+
+  // EXPLANATION: in the tripal_galaxy_menu() function above we created
+  // a menu item for the help documentation.  The menu item specified
+  // a function that should be called when the menu item is clicked.  This
   // is that function.  But, rather than place HTML code in this function
-  // we want to have our help documentation in a template galaxy.  We 
+  // we want to have our help documentation in a template galaxy.  We
   // specified in the tripal_galaxy.theme() function that we have a template
   // galaxy so now we want to use get the contents of that template galaxy and
   // return it.
