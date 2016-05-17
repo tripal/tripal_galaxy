@@ -15,8 +15,8 @@ function tripal_galaxy_schema() {
   tripal_galaxy_add_galaxy_table($schema);
   tripal_galaxy_add_wf_table($schema);
   tripal_galaxy_add_galaxy_wf_job_table($schema);
-  //tripal_galaxy_add_galaxy_jobs_table($schema);
 
+  return $schema;
 }
 
 /**
@@ -61,7 +61,7 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
       ),
       'description' => array(
         'type' => 'text',
-    	'not_null' => FALSE,
+      'not_null' => FALSE,
        ),
     ),
     'primary key' => array(
@@ -80,34 +80,33 @@ function tripal_galaxy_add_wf_table(&$schema){
       'galaxy_wf_id' => array(
         'type' => 'serial',
         'not_null' => TRUE
-        ),
+      ),
       'galaxy_id' => array(
-         'type' => 'integer',
-         'not_null' => TRUE
+        'type' => 'int',
+        'not_null' => TRUE
       ),
       'workflow_id' => array(
         'type' => 'varchar',
         'length' => 1024,
         'not_null' => TRUE
-       ),
-       'workflow_name' => array(
-         'type' => 'varchar',
-      	 'length ' => 255,
-      	 'not_null'=> TRUE,
-       ),
-       'label' => array(
+      ),
+      'workflow_name' => array(
+        'type' => 'text',
+        'not_null'=> TRUE,
+      ),
+      'label' => array(
         'type' => 'varchar',
-        'length ' => 255,
+        'length ' => 1024,
         'not_null'=> TRUE
-       ),
+      ),
     ),
     'primary key' => array(
       0 => 'galaxy_wf_id',
     ),
     'unique keys' => array(
-  	  'tripal_galaxy_wf_uq1' => array('galaxy_id', 'workflow_id'),
+      'tripal_galaxy_wf_uq1' => array('galaxy_id', 'workflow_id'),
       'tripal_galaxy_wf_uq2' => array('label'),
-  	),
+    ),
   );
 
 }

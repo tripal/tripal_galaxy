@@ -19,21 +19,21 @@ require('includes/tripal_galaxy.admin.inc');
 
 /**
  * Implementation of hook_permissions()
- * 
+ *
  * Set the permission types that this module uses.
- * 
+ *
  * @ingroup tripal_file
  */
 function tripal_galaxy_permission() {
   return array(
     'use galaxy' => array(
-	  'title' => t('Execute Published Galaxy Workflows'),
-	  'description' => t('Allows a user to submit a published workflow for execution on a remote Galaxy Instance'),
-	 ),
-  	'administer galaxy' => array(
-  	  'title' => t('Administer Galaxy'),
-  	  'description' => t('Allows a user to submit a published workflow for execution on a remote Galaxy Instance'),
-  	), 
+    'title' => t('Execute Published Galaxy Workflows'),
+    'description' => t('Allows a user to submit a published workflow for execution on a remote Galaxy Instance'),
+   ),
+    'administer galaxy' => array(
+      'title' => t('Administer Galaxy'),
+      'description' => t('Allows a user to submit a published workflow for execution on a remote Galaxy Instance'),
+    ),
   );
 
 }
@@ -44,7 +44,7 @@ function tripal_galaxy_permission() {
 
 /**
  * Implements hook_menu()
- * 
+ *
  * Specifies menu items and URLs used by this module.
  *
  * @ingroup tripal_galaxy
@@ -54,7 +54,7 @@ $items = array();
 
 
   // EXPLANATION:  all extension modules should have an administrative menu item
-  // with the path set to 'admin/tripal/extension/[module name]'. 
+  // with the path set to 'admin/tripal/extension/[module name]'.
   $items['admin/tripal/extension/galaxy'] = array(
     'title' => 'Manage Galxy Instances',
     'description' => 'Integrate workflows from a remote Galaxy instance with this Tripal site',
@@ -62,91 +62,91 @@ $items = array();
     'access arguments' => array('administer galaxy'),
     'type' => MENU_NORMAL_ITEM,
   );
-  
+
   // Edit Galaxy
   $items['admin/tripal/extension/galaxy/edit/%'] = array(
-  	'description' => 'Edit a galaxy instance',
-  	'page callback' => 'drupal_get_form',
+    'description' => 'Edit a galaxy instance',
+    'page callback' => 'drupal_get_form',
     'page arguments' => array('tripal_galaxy_admin_configuration_form',5),
-  	'access arguments' => array('administer galaxy'),
-  	'type' => MENU_CALLBACK,
-  	'file' => 'includes/tripal_galaxy.admin.inc',
-  	'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'access arguments' => array('administer galaxy'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
-  
+
   // Add Galaxy
   $items['admin/tripal/extension/galaxy/add'] = array(
-  		'description' => 'add a galaxy instance',
-  		'title'=> 'Add Galaxy Instance',
-  		'page callback' => 'drupal_get_form',
-  		'page arguments' => array('tripal_galaxy_admin_configuration_form'),
-  		'access arguments' => array('administer galaxy'),
-  		'type' => MENU_LOCAL_ACTION,
-  		'file' => 'includes/tripal_galaxy.admin.inc',
-  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+      'description' => 'add a galaxy instance',
+      'title'=> 'Add Galaxy Instance',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('tripal_galaxy_admin_configuration_form'),
+      'access arguments' => array('administer galaxy'),
+      'type' => MENU_LOCAL_ACTION,
+      'file' => 'includes/tripal_galaxy.admin.inc',
+      'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
-  
+
   // Available
   $items['admin/tripal/extension/galaxy/wf_available'] = array(
-  		'title' => 'Add workflows to site',
-  		'description' => 'Make workflows from a remote Galaxy instance available on this site for use by site users',
-  		'page callback' => 'drupal_get_form',
-  		'page arguments' => array('tripal_galaxy_admin_wf_available_form'),
-  		'access arguments' => array('administer galaxy'),
-  		'type' => MENU_LOCAL_TASK,
-  		'file' => 'includes/tripal_galaxy.admin.inc',
-  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+      'title' => 'Add workflows to site',
+      'description' => 'Make workflows from a remote Galaxy instance available on this site for use by site users',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('tripal_galaxy_admin_wf_available_form'),
+      'access arguments' => array('administer galaxy'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/tripal_galaxy.admin.inc',
+      'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
-  
+
   // Usage
   $items['admin/tripal/extension/galaxy/usage'] = array(
-  		'title' => 'Usage',
-  		'description' => 'Explore Galaxy usage details.',
-  		'page callback' => 'drupal_get_form',
-  		'page arguments' => 'tripal_galaxy_admin_usage_form',
-  		'access arguments' => array('administer galaxy'),
-  		'type' => MENU_LOCAL_TASK,
-  		'file' => 'includes/tripal_galaxy.admin.inc',
-  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+      'title' => 'Usage',
+      'description' => 'Explore Galaxy usage details.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => 'tripal_galaxy_admin_usage_form',
+      'access arguments' => array('administer galaxy'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/tripal_galaxy.admin.inc',
+      'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
-  
+
   // Submitted
   $items['admin/tripal/extension/galaxy/submitted'] = array(
-  		'title' => 'Submitted',
-  		'description' => 'View Submitted workflows',
-  		// Are we sure about this?
-  		'page callback' => 'tripal_galaxy_admin_submitted_list',
-  		'access arguments' => array('administer galaxy'),
-  		'type' => MENU_LOCAL_TASK,
-  		'file' => 'includes/tripal_galaxy.admin.inc',
-  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+      'title' => 'Submitted',
+      'description' => 'View Submitted workflows',
+      // Are we sure about this?
+      'page callback' => 'tripal_galaxy_admin_submitted_list',
+      'access arguments' => array('administer galaxy'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/tripal_galaxy.admin.inc',
+      'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
-  
-  // Workflow 
+
+  // Workflow
   $items['workflows'] = array(
-  		'title' => 'Available Workflows',
-  		'description' => 'A list of available analytical workflows for this site',
-  		// Are we sure about this?
-  		'page callback' => 'tripal_galaxy_admin_submitted_list',
-  		'access arguments' => array('administer galaxy'),
-  		'type' => MENU_LOCAL_TASK,
-  		'file' => 'includes/tripal_galaxy.user.inc',
-  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+      'title' => 'Available Workflows',
+      'description' => 'A list of available analytical workflows for this site',
+      // Are we sure about this?
+      'page callback' => 'tripal_galaxy_admin_submitted_list',
+      'access arguments' => array('administer galaxy'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/tripal_galaxy.user.inc',
+      'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
-  
+
   // Galaxy
   $items['user/galaxy'] = array(
-  		'title' => 'Galaxy',
-  		'description' => 'Configure Galaxy Server',
-  		// Are we sure about this?
-  		'page callback' => 'drupal_get_form',
-  		'page arguments' => 'tripal_galaxy_user_configuration_form',
-  		'access arguments' => array('use galaxy'),
-  		'type' => MENU_LOCAL_TASK,
-  		'file' => 'includes/tripal_galaxy.user.inc',
-  		'file path' => drupal_get_path('module', 'tripal_galaxy'),
+      'title' => 'Galaxy',
+      'description' => 'Configure Galaxy Server',
+      // Are we sure about this?
+      'page callback' => 'drupal_get_form',
+      'page arguments' => 'tripal_galaxy_user_configuration_form',
+      'access arguments' => array('use galaxy'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/tripal_galaxy.user.inc',
+      'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
-  
+
   return $items;
 
 }
@@ -156,9 +156,9 @@ $items = array();
 
 /**
  * Implements hook_views_api()
- * 
+ *
  * This hook tells drupal that there is views support for
- * for this module which then automatically includes the tripal_db.views.inc 
+ * for this module which then automatically includes the tripal_db.views.inc
  * where all the views integration code is found.
  *
  * @ingroup tripal_galaxy
@@ -178,10 +178,10 @@ function tripal_galaxy_views_api() {
  * @ingroup tripal_galaxy
  */
 function tripal_galaxy_theme($existing, $type, $theme, $path) {
-	
+
    $items = array(
- 	'tripal_galaxy_admin_wf_available_form_rows' => array(
- 	  'render element' => 'form',
+   'tripal_galaxy_admin_wf_available_form_rows' => array(
+     'render element' => 'form',
     ),
   );
   return $items;
@@ -190,16 +190,16 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
 
 /**
  * Implements hook_help()
- * 
+ *
  * Adds a help $formpage to the module list
  */
 function tripal_galaxy_help ($path, $arg) {
-  
-  // EXPLANATION: in the tripal_galaxy_menu() function above we created 
-  // a menu item for the help documentation.  The menu item specified 
-  // a function that should be called when the menu item is clicked.  This 
+
+  // EXPLANATION: in the tripal_galaxy_menu() function above we created
+  // a menu item for the help documentation.  The menu item specified
+  // a function that should be called when the menu item is clicked.  This
   // is that function.  But, rather than place HTML code in this function
-  // we want to have our help documentation in a template galaxy.  We 
+  // we want to have our help documentation in a template galaxy.  We
   // specified in the tripal_galaxy.theme() function that we have a template
   // galaxy so now we want to use get the contents of that template galaxy and
   // return it.
