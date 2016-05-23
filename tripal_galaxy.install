@@ -59,6 +59,10 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
         'type' => 'varchar',
         'length ' => 1024
       ),
+      'servername'=>array(
+        'type' => 'varchar',
+      	'length ' => 1024  
+      ),
       'description' => array(
         'type' => 'text',
       'not_null' => FALSE,
@@ -67,6 +71,10 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
     'primary key' => array(
        0 => 'galaxy_id',
     ),
+  		
+  	'unique keys' => array(
+  	  'tripal_galaxy_servername' => array('servername'),
+  	),
   );
 }
 
@@ -82,7 +90,8 @@ function tripal_galaxy_add_wf_table(&$schema){
         'not_null' => TRUE
       ),
       'galaxy_id' => array(
-        'type' => 'int',
+        'type' => 'varchar',
+      	'length' => 1024,
         'not_null' => TRUE
       ),
       'workflow_id' => array(

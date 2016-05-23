@@ -11,6 +11,10 @@
  *   Formatted HTML table containing information on all Galaxy Instances
  *
  */
+
+require_once(dirname(__FILE__) . "/../galaxy_api/GalaxyLib-PHP/src/GalaxyInstance.inc");
+require_once(dirname(__FILE__) . "/../galaxy_api/GalaxyLib-PHP/src/Workflows.inc");
+
 function tripal_galaxy_admin_home() {
 
 
@@ -61,13 +65,13 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
   $default_description ="";
   $default_api_key="";
   $default_url ="";
+  
   // If a galaxy id is set, feel free to declare all the default values with the appropriate
   // Galaxy instance
   if($galaxy_id !== NULL){
    $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
      $galaxy_instance = db_query($sql, array(':galaxy_id' => $galaxy_id));
      $galaxy_instance = $galaxy_instance->fetchObject();
-
      if($galaxy_instance != NULL){
        $default_api_key = $galaxy_instance->api_key;
        $default_description = $galaxy_instance->description;
@@ -77,6 +81,7 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
      }
   }
 
+  // The galaxy id
   $form['galaxy_id'] = array(
     '#type' => 'value',
     '#value' => $galaxy_id,
@@ -164,30 +169,18 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
  *   Return true if the form is valid for deletion, false otherwise
  */
 function tripal_galaxy_admin_configuration_form_delete_validate($form, &$form_state){
-  if ($form_state['clicked_button']['#name'] == 'delete') {
-    // Check if a servername already exists, and that we're not editing a pre-existing
-    // Instance
-    if($form['tripal_galaxy_editing'] == FALSE){
-      $sql = "SELECT * FROM {tripal_galaxy} WHERE servername=" . $form['tripal_galaxy_server_name']['#value'];
-
-      $results = db_result(db_query($sql));
-
-      if( $results != FALSE && $results != NULL){
-        form_set_error('servername', t('A galaxy instance with that servername already exists'));
-        return FALSE;
-      }
+	
+	// Check to see if we are deleting an instance. 
+	if ($form_state['clicked_button']['#name'] == 'delete') {
+	  $sql = "SELECT * FROM {tripal_galaxy} WHERE servername=" . $form['tripal_galaxy_server_name']['#value'];
+	  $results = db_result(db_query($sql));
+	  if($results == NULL || $results == FALSE ){
+	  	
+	  	// If there is no entry with this servername return False. 
+	    form_set_error('servername', t('A galaxy instance with that servername does not exist'));
+	    return FALSE;
+	  }
     }
-  }
-  else {
-    // Check to make sure servername exists
-    $sql = "SELECT * FROM {tripal_galaxy} WHERE servername=" . $form['tripal_galaxy_server_name']['#value'];
-    $results = db_result(db_query($sql));
-    if($results == NULL || $results == FALSE ){
-      form_set_error('servername', t('A galaxy instance with that servername does not exist'));
-
-    }
-  }
-
 }
 
 /**
@@ -198,44 +191,51 @@ function tripal_galaxy_admin_configuration_form_delete_validate($form, &$form_st
  * @param $form_state
  */
 function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
-    $data = array (
+    
+    // Initialize the data to be sent to the tripal_galaxy table
+	$data = array (
      'servername' => $form_state['values']['servername'],
      'description' => $form_state['values']['description'],
      'url' => $form_state['values']['url'],
      'username' => $form_state['values']['username'],
      'api_key' => $form_state['values']['api_key'],
     );
-
+   // If we are deleting the given instance, go through the appropriate motions...
    if ($form_state['clicked_button']['#name'] == 'delete') {
-      $galaxy_instance = db_query("DELETE FROM {tripal_galaxy} WHERE servername = %d", $form['tripal_galaxy_server_name']['#value']);
+      $galaxy_instance = db_query("DELETE FROM {tripal_galaxy} WHERE servername = :servername",array(':servername' => $form_state['values']['servername']));
 
       // Set error if appripriate
       if($galaxy_instance === FALSE || $galaxy_instance == NULL) {
-        drupal_set_message(t('Error deletingrecord'), 'error');
+        drupal_set_message(t('Error deleting record'), 'error');
+        return;
       }
-      else { // Redirect
+      else { 
+      	//If there is no error, redirect. 
         drupal_set_message(t('Galaxy instance has been deleted'));
         drupal_goto("/admin/tripal/extension/galaxy");
       }
    }
+   // If we are not deleting, we must be submitting. 
    else {
       // If there is a galaxy ID this will be an edit
       if ($form_state['values']['galaxy_id']) {
         $data['galaxy_id'] = $form_state['values']['galaxy_id'];
         $galaxy_instance = drupal_write_record('tripal_galaxy', $data, 'galaxy_id');
-
       }
-      // Otherwise it's an edit
+      // Otherwise it's a submit
       else {
         $galaxy_instance = drupal_write_record('tripal_galaxy', $data);
       }
-     // Insert the new Galaxy Instance into Drupal
+      
+   // Insert the new Galaxy Instance into Drupal, return where appropriate
    if(!$galaxy_instance){
     drupal_set_message(t('problem inserting galaxy instance'), 'error');
     drupal_goto("/admin/tripal/extension/galaxy");
     return;
    }
-   drupal_set_message(t('Galaxy instance haghstrs been recorded' . var_dump($galaxy_instance)));
+   
+   // Default message.
+   drupal_set_message(t('Galaxy instance has been recorded' . var_dump($galaxy_instance)));
    drupal_goto("/admin/tripal/extension/galaxy");
    }
 
@@ -252,23 +252,9 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
  * @param $form_state
  */
 function tripal_galaxy_admin_wf_available_form($form, &$form_state){
-
-  // TODO: once the PHP bindings are up and running, replace this test workflow with information from
-  //  the actual galaxy server
-  $workflows = array(
-    'test_wf_1' => array(
-       'description' => 'TODO: pull actual workflows from the server',
-       'available' => TRUE,
-       'workflow_name' => "Not actually pulled from any server1"
-    ),
-
-    'test_wf_2' => array(
-      'description' => 'TODO: pull actual workflows from the server',
-    'available' => FALSE,
-    'workflow_name' => "Not actually pulled from any server2"
-     ),
-  );
-
+ 
+  // Grab the galaxy id from the form state and Obtain the default galaxy server
+  // from the database.
   $galaxy_id = '';
   if (array_key_exists('values', $form_state)) {
   	$galaxy_id = $form_state['values']['galaxy_id'];
@@ -282,6 +268,8 @@ function tripal_galaxy_admin_wf_available_form($form, &$form_state){
   	$galaxies[$galaxy->galaxy_id] = $galaxy->servername;
   }
   $i = 0;
+  
+  // Select which galaxy server to choose the workflows from
   $form['galaxy_id'] = array(
   	'#type' => 'select',
     '#options' => $galaxies,
@@ -295,56 +283,91 @@ function tripal_galaxy_admin_wf_available_form($form, &$form_state){
     ),
   	'#default_value' => $galaxy_id,
   );
-
   $form['#prefix'] = '<div id="tripal-galaxy-admin-wf-available-form-rows">';
   $form['#suffix'] = '</div>';
-
+  
+  // If a galaxy instance has been selected, Ajax-complete the form
   if ($galaxy_id) {
+  	
+  	// Grab the appropriate galaxy server table entry
+  	$galaxy_server = db_query("SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id", array(':galaxy_id' => $galaxy_id));
+	$galaxy_server = $galaxy_server->fetchObject();
 
-	  foreach($workflows as &$workflow){
-	      //dpm($workflow);
 
-	      // First let's check to see if this workflow exists in our database
-	      $workflow_exists = 1;
-	      $default_label = "";
-	      $default_available = 0;
-	      $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_name = :workflow_name";
-	      $workflow_instance = db_query($sql, array(':workflow_name' => $workflow['workflow_name']));
-	      $workflow_instance = $workflow_instance->fetchObject();
-	      if($workflow_instance == NULL || $workflow_instance == FALSE){
-	        $workflow_exists = 0;
-	      }
-	      else {
-	        $default_label = $workflow_instance->label;
-	      }
+	// Obtain the hostname and port from the url
+    $matches = array();
+    $regex = "((https|http):\/\/)?"; // SCHEME
+    $regex .= "([a-z0-9-.]*)"; // Host or IP
+    $regex .= "(:)?([0-9]*)?"; // Port	
+    preg_match("/^$regex$/", $galaxy_server->url, $matches);
+    $hostname = $matches[3];
+    $port = $matches[5];
+    
+  	//TODO: HTTP vs HTTPS 
+  	
+    // Create a new galaxy instance using the obtained hostname and port
+ 	// Then Authenticate
+  	$galaxy_instance = new GalaxyInstance($hostname, $port);
+  	$galaxy_instance->setAPIKey($galaxy_server->api_key);
+  	
+  	// Obtain the workflows
+  	$workflows = new Workflows($galaxy_instance);
+  	$workflows = $workflows->index();
 
-	    // Workflow name
-	    $form['rows']['row' . $i]['workflow_name'. $i] = array(
+  	 // Loop through each workflow to add it to the form
+	 foreach($workflows as &$workflow){
+
+	   // First let's check to see if this workflow exists in our database,
+	   // if it does, assign default values as appropriate
+	   $workflow_exists = 1;
+	   $default_label = "";
+	   $default_available = 0;
+	   $sql = "SELECT * FROM {tripal_galaxy_wf} 
+	   		   WHERE workflow_id = :workflow_id 
+	   		   AND galaxy_id = :galaxy_id";
+	   $workflow_instance = db_query($sql, array(
+	     ':workflow_id' => $workflow['id'],
+	   	 ':galaxy_id' => $galaxy_id,	
+	   ));
+	   $workflow_instance = $workflow_instance->fetchObject();
+	   if($workflow_instance == NULL || $workflow_instance == FALSE){
+	     $workflow_exists = 0;
+	   }
+	   else {
+	     $default_label = $workflow_instance->label;
+	   }
+
+	   // Workflow name
+	   $form['rows']['row' . $i]['workflow_name'. $i] = array(
+	   '#type' => 'item',
+	   '#markup' => $workflow['name'],
+	   );
+	    
+	   // Workflow_id
+	   $form['rows']['row' . $i]['workflow_id'. $i] = array(
+	     '#type' => 'item',
+	     '#markup' => $workflow['id'],
+	   );
+	   
+	   // Description
+	   $form['rows']['row' . $i]['description'. $i] = array(
 	    '#type' => 'item',
-	    '#markup' => $workflow['workflow_name'],
+	    '#markup' => "Descriptions are not inherently part of workflows...",
 	   );
 
-	    // Description
-	    $form['rows']['row' . $i]['description'. $i] = array(
-	      '#type' => 'item',
-	      '#markup' => $workflow['description'],
-	    );
+	   // Is available
+	   $form['rows']['row' . $i]['available'. $i] = array(
+	    '#type' => 'checkbox',
+	    '#default_value' => $workflow_exists,
+	   );
 
-	    // Is available
-	    $form['rows']['row' . $i]['available'. $i] = array(
-	      //'#title' => t('checkbox'),
-	      '#type' => 'checkbox',
-	      '#default_value' => $workflow_exists,
-	    );
-
-	    // Workflow_label
-	    $form['rows']['row' . $i]['label'. $i] = array(
-	      '#type' => 'textfield',
-	      '#size' => 25,
-	      '#default_value'=> $default_label,
-	    );
-
-	    $i = $i + 1;
+	   // Workflow_label
+	   $form['rows']['row' . $i]['label'. $i] = array(
+	    '#type' => 'textfield',
+	    '#size' => 25,
+	    '#default_value'=> $default_label,
+	   );
+	   $i = $i + 1;
 	  }
 	  $form['rows']['#theme'] = 'tripal_galaxy_admin_wf_available_form_rows';
 
@@ -355,18 +378,18 @@ function tripal_galaxy_admin_wf_available_form($form, &$form_state){
 		  '#value' => t('Save'),
 	  );
   }
-
-
-
-  //dpm($form);
+  
   return $form;
 }
+
 /**
- *
+ * Ajax Callback
  */
 function tripal_galaxy_admin_wf_available_form_ajax_callback(&$form, $form_state){
+  // Return the whole form.
   return $form;
 }
+
 /**
  * TODO: Where do I place this?
  * @param $form
@@ -374,22 +397,26 @@ function tripal_galaxy_admin_wf_available_form_ajax_callback(&$form, $form_state
  */
 function theme_tripal_galaxy_admin_wf_available_form_rows($variables){
   $form = $variables['form'];
+  
+  // The apparopriate headers for this form's table.
   $headers = array(
-      //'Sequence<br>Owner',
-      'Workflow Name',
-      'Description',
-      'Available?',
-      'On site Label',
+    'Workflow Name',
+    'Description',
+    'Available?',
+    'On site Label',
+  	'Id',
   );
-
+  
+  // Theme the rows of this form's table.
   $rows = array();
   $i =0;
   foreach(element_children($form) as $element) {
-    $rows[] = array(
+   $rows[] = array(
       drupal_render($form[$element]["workflow_name". $i]),
       drupal_render($form[$element]["description". $i]),
       drupal_render($form[$element]["available". $i]),
       drupal_render($form[$element]["label". $i]),
+   	  drupal_render($form[$element]["workflow_id". $i]),
     );
     $i = $i + 1;
   }
@@ -406,46 +433,97 @@ function theme_tripal_galaxy_admin_wf_available_form_rows($variables){
   ));
 }
 
-//TODO: Validates the tripal_galaxy_admin_publish_form()
-function tripal_galaxy_admin_wf_available_form_valiate(){
-
+/**
+ * Override's Drupal's Hook_form_validate
+ *   Checks to make sure an entry with this label doesn't already exist  
+ */
+function tripal_galaxy_admin_wf_available_form_validate($form, &$form_state){
+  $i =0;
+	
+  // Go through all of the row entries.
+  while($i < count($form_state['values'])/4){
+		 
+    // If index i is out of range, break
+	if(! array_key_exists('available' . $i, $form_state['values'])){
+	  return;
+	}
+		
+	// If the form entry is not selected to add to database,
+	// Continue to the next form entry
+	if($form_state['values']['available' . $i] == 0){
+	  $i = $i+1;
+	  continue;
+	}
+		
+	// Select the workflow at the given index i, if available.
+	$workflow_exists = FALSE;
+	$sql = "SELECT * FROM {tripal_galaxy_wf} WHERE label = :label";
+	$workflow_instance = db_query($sql, array(
+      ':label' => $form_state['values']['label'. $i],
+	));
+	$workflow_instance = $workflow_instance->fetchObject();
+	
+	// If the selected workflow doesn't have the same id as the workflow
+	// in the form, then a duplicate label is present. 
+	if($workflow_instance != NULL && $workflow_instance != FALSE){
+	  if($workflow_instance->workflow_id != $form_state['complete form']['rows']['row' . $i]['workflow_id' . $i]['#markup']){
+	    form_set_error('label', t('A workflow with that label already exists'));
+		return FALSE;
+	  }
+	}
+		
+    $i = $i+1;
+  } 
+	
+	return;
 }
 
 /**
-	Implements Drupal's Hook_form_submit
+    Implements Drupal's Hook_form_submit
 		possible conditions:
-		  - Workflow already exists on site and needs to be updated
-		  - Workflow does not exist on site and needs to be inserted
+		  - Workflow already exists on site and needs to be updated.
+		  - Workflow does not exist on site and needs to be inserted.
  */
 function tripal_galaxy_admin_wf_available_form_submit($form, &$form_state){
-	dpm($form);
-	dpm($form_state);
-
 	$i =0;
-	while($i < count($form_state['values'])/3 ){
+	dpm($form_state);
+	// Go through all of the row entries. 
+	while($i < count($form_state['values'])/4){
+	  
 	  // If index i is out of range, break
 	  if(! array_key_exists('available' . $i, $form_state['values'])){
 	    break;
 	  }
+	  
+	  // Select the workflow at the given index i, if available. Note that label
+	  // is a unique key.
 	  $workflow_exists = FALSE;
-	  // Select the workflow at a given location, if available.
-	  $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_name = :workflow_name";
-	  $workflow_instance = db_query($sql, array(':workflow_name' => $form_state['complete form']['rows']['row' . $i]['workflow_name' . $i]['#markup']));
+	  $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_id = :workflow_id AND galaxy_id = :galaxy_id";
+	  $workflow_instance = db_query($sql, 
+	  		array(
+	  		  ':workflow_id' => $form_state['complete form']['rows']['row' . $i]['workflow_id' . $i]['#markup'],
+	  		  ':galaxy_id' => $form_state['values']['galaxy_id'],
+	  		));
 	  $workflow_instance = $workflow_instance->fetchObject();
-
 	  if($workflow_instance != NULL && $workflow_instance != FALSE){
 	  	$workflow_exists = TRUE;
 	  }
+	  
+	  dpm("Does the workflow exist?");
+	  dpm($workflow_exists);
 	  // If this workflow is selected to be added to the site...
-	  if($form_state['values']['available'. $i]== 1){
+	  if($form_state['values']['available'. $i] == 1){
 
 	  	// If this workflow already exists on the database...
 	  	if($workflow_exists){
+	  		dpm($workflow_instance);
+	  		
 	  		// If a field is different from our databse record, re-write the record
 	  		if( $workflow_instance->label != $form_state['values']['label'. $i] ||
 	  			$workflow_instance->workflow_name != $form_state['complete form']['rows']['row' . $i]['workflow_name' . $i]['#markup']
-	  		 ){
-	  			$data = array(
+	  		 ){ 
+	  			
+	  			$data = array(		   
 	  			  'galaxy_wf_id'=> $workflow_instance->galaxy_wf_id,
 	  			  'workflow_name'=> $form_state['complete form']['rows']['row' . $i]['workflow_name' . $i]['#markup'],
 	  			  'label' => $form_state['values']['label'. $i],
@@ -454,19 +532,26 @@ function tripal_galaxy_admin_wf_available_form_submit($form, &$form_state){
 	  			);
 	  			$workflow = drupal_write_record('tripal_galaxy_wf', $data, 'galaxy_wf_id');
 	  		}
-	  	}else{ // If workflow doesn't exist
+	  		
+	  	// If workflow doesn't exist, add the new one to the database!
+	  	}else{ 
 	  		$data = array(
 	  		  'workflow_name'=> $form_state['complete form']['rows']['row' . $i]['workflow_name' . $i]['#markup'],
+	  		  'workflow_id' => $form_state['complete form']['rows']['row' . $i]['workflow_id' . $i]['#markup'],
+	  		  'galaxy_id' => $form_state['values']['galaxy_id'],
 	  		  'label' => $form_state['values']['label'. $i],
 	  		  'available' => $form_state['values']['available'. $i],
 	  		  'description' => $form_state['complete form']['rows']['row' . $i]['description' . $i]['#markup'],
 	  		);
 	  		$workflow = drupal_write_record('tripal_galaxy_wf', $data);
 	  	}
-	  }else{ // If the workflow is unselected
+	  	
+	  // If the workflow is unselected
+	  }else{
+	  	
 	  	// If the workflow exists, delete the instance.
 	  	if($workflow_exists){
-	  		$deleted = db_query("DELETE FROM {tripal_galaxy_wf} WHERE galaxy_wf_id = :wf_id", array('wf_id'=>$workflow_instance->galaxy_wf_id));
+	  		$deleted = db_query("DELETE FROM {tripal_galaxy_wf} WHERE galaxy_wf_id = :wf_id", array(':wf_id'=>$workflow_instance->galaxy_wf_id));
 	  	}
 	  }
 
