@@ -148,13 +148,22 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
       '#name' => 'submit',
       '#value' => t('Submit'),
   );
-
+  
+  // Test Connection
+  $form['test_connect'] = array(
+    '#type'=> 'submit',
+  	'#name' => 'test_connect',
+  	'#value' => t('Test Connection'),
+  );
+  
+  
   // Delete
   $form['delete'] = array(
       '#type'=> 'submit',
       '#name' => 'delete',
       '#value' => t('Delete'),
   );
+  
 
 
   return $form;
@@ -200,6 +209,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
      'username' => $form_state['values']['username'],
      'api_key' => $form_state['values']['api_key'],
     );
+	
    // If we are deleting the given instance, go through the appropriate motions...
    if ($form_state['clicked_button']['#name'] == 'delete') {
       $galaxy_instance = db_query("DELETE FROM {tripal_galaxy} WHERE servername = :servername",array(':servername' => $form_state['values']['servername']));
@@ -215,14 +225,14 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
         drupal_goto("/admin/tripal/extension/galaxy");
       }
    }
-   // If we are not deleting, we must be submitting. 
-   else {
+   // If we are not deleting, are we submitting? 
+   else if ($form_state['clicked_button']['#name'] == 'submit'){
       // If there is a galaxy ID this will be an edit
       if ($form_state['values']['galaxy_id']) {
         $data['galaxy_id'] = $form_state['values']['galaxy_id'];
         $galaxy_instance = drupal_write_record('tripal_galaxy', $data, 'galaxy_id');
       }
-      // Otherwise it's a submit
+      // Otherwise it's an insert
       else {
         $galaxy_instance = drupal_write_record('tripal_galaxy', $data);
       }
@@ -230,7 +240,6 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
    // Insert the new Galaxy Instance into Drupal, return where appropriate
    if(!$galaxy_instance){
     drupal_set_message(t('problem inserting galaxy instance'), 'error');
-    drupal_goto("/admin/tripal/extension/galaxy");
     return;
    }
    
@@ -238,6 +247,32 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
    drupal_set_message(t('Galaxy instance has been recorded' . var_dump($galaxy_instance)));
    drupal_goto("/admin/tripal/extension/galaxy");
    }
+   
+   // Else if we are testing the connection 
+   else {
+   	// Obtain the hostname and port from the url
+   	$matches = array();
+   	$regex = "((https|http):\/\/)?"; // SCHEME
+   	$regex .= "([a-z0-9-.]*)"; // Host or IP
+   	$regex .= "(:)?([0-9]*)?"; // Port
+   	preg_match("/^$regex$/", $data['url'], $matches);
+   	$hostname = $matches[3];
+   	$port = $matches[5];
+     	 
+   	// Create a new galaxy instance using the obtained hostname and port
+   	// Then Authenticate
+   	$galaxy_instance = new GalaxyInstance($hostname, $port);
+   	$galaxy_instance->setAPIKey($data['api_key']);
+   	
+   	// Tell the user wether the connection was successful based on
+   	// getVersion()
+   	if($galaxy_instance->getVersion() ==NULL ){
+   	  drupal_set_message(t('No Connection'), 'error');
+   	}else {
+   	  drupal_set_message(t('Connection successful'));
+   	}
+   	
+  }
 
 }
 
