@@ -69,7 +69,7 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
   // If a galaxy id is set, feel free to declare all the default values with the appropriate
   // Galaxy instance
   if($galaxy_id !== NULL){
-   $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
+     $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
      $galaxy_instance = db_query($sql, array(':galaxy_id' => $galaxy_id));
      $galaxy_instance = $galaxy_instance->fetchObject();
      if($galaxy_instance != NULL){
@@ -286,7 +286,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
  * @param $form
  * @param $form_state
  */
-function tripal_galaxy_admin_wf_available_form($form, &$form_state){
+function tripal_galaxy_admin_add_wf_form($form, &$form_state){
  
   // Grab the galaxy id from the form state and Obtain the default galaxy server
   // from the database.
@@ -311,7 +311,7 @@ function tripal_galaxy_admin_wf_available_form($form, &$form_state){
     '#title' => t('Galaxy Servers'),
     '#description' => t('Please select a galaxy instance to view it\'s workflows'),
   	'#ajax' => array(
-      'callback' => 'tripal_galaxy_admin_wf_available_form_ajax_callback',
+      'callback' => 'tripal_galaxy_admin_add_wf_form_ajax_callback',
       'wrapper' => 'tripal-galaxy-admin-wf-available-form-rows',
       'method' => 'replace',
       'effect' => 'fade',
@@ -328,7 +328,6 @@ function tripal_galaxy_admin_wf_available_form($form, &$form_state){
   	$galaxy_server = db_query("SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id", array(':galaxy_id' => $galaxy_id));
 	$galaxy_server = $galaxy_server->fetchObject();
 
-
 	// Obtain the hostname and port from the url
     $matches = array();
     $regex = "((https|http):\/\/)?"; // SCHEME
@@ -344,6 +343,11 @@ function tripal_galaxy_admin_wf_available_form($form, &$form_state){
  	// Then Authenticate
   	$galaxy_instance = new GalaxyInstance($hostname, $port);
   	$galaxy_instance->setAPIKey($galaxy_server->api_key);
+  	
+  	// Check to make sure the connection is good.
+  	if($galaxy_instance->getVersion() == NULL){  
+      drupal_set_message('Cannot connect to Galaxy Instance', 'error');
+  	}
   	
   	// Obtain the workflows
   	$workflows = new Workflows($galaxy_instance);
@@ -404,7 +408,7 @@ function tripal_galaxy_admin_wf_available_form($form, &$form_state){
 	   );
 	   $i = $i + 1;
 	  }
-	  $form['rows']['#theme'] = 'tripal_galaxy_admin_wf_available_form_rows';
+	  $form['rows']['#theme'] = 'tripal_galaxy_admin_add_wf_form_rows';
 
 	  // Default submit
 	  $form['submit'] = array(
@@ -420,17 +424,17 @@ function tripal_galaxy_admin_wf_available_form($form, &$form_state){
 /**
  * Ajax Callback
  */
-function tripal_galaxy_admin_wf_available_form_ajax_callback(&$form, $form_state){
+function tripal_galaxy_admin_add_wf_form_ajax_callback(&$form, $form_state){
   // Return the whole form.
   return $form;
 }
 
 /**
- * TODO: Where do I place this?
+ * The themable fuinction for the available form
  * @param $form
  * @param $form_state
  */
-function theme_tripal_galaxy_admin_wf_available_form_rows($variables){
+function theme_tripal_galaxy_admin_add_wf_form_rows($variables){
   $form = $variables['form'];
   
   // The apparopriate headers for this form's table.
@@ -439,14 +443,14 @@ function theme_tripal_galaxy_admin_wf_available_form_rows($variables){
     'Description',
     'Available?',
     'On site Label',
-  	'Id',
+  	'Workflow Id',
   );
   
   // Theme the rows of this form's table.
   $rows = array();
   $i =0;
   foreach(element_children($form) as $element) {
-   $rows[] = array(
+    $rows[] = array(
       drupal_render($form[$element]["workflow_name". $i]),
       drupal_render($form[$element]["description". $i]),
       drupal_render($form[$element]["available". $i]),
@@ -472,7 +476,7 @@ function theme_tripal_galaxy_admin_wf_available_form_rows($variables){
  * Override's Drupal's Hook_form_validate
  *   Checks to make sure an entry with this label doesn't already exist  
  */
-function tripal_galaxy_admin_wf_available_form_validate($form, &$form_state){
+function tripal_galaxy_admin_add_wf_form_validate($form, &$form_state){
   $i =0;
 	
   // Go through all of the row entries.
@@ -519,9 +523,9 @@ function tripal_galaxy_admin_wf_available_form_validate($form, &$form_state){
 		  - Workflow already exists on site and needs to be updated.
 		  - Workflow does not exist on site and needs to be inserted.
  */
-function tripal_galaxy_admin_wf_available_form_submit($form, &$form_state){
+function tripal_galaxy_admin_add_wf_form_submit($form, &$form_state){
 	$i =0;
-	dpm($form_state);
+
 	// Go through all of the row entries. 
 	while($i < count($form_state['values'])/4){
 	  
@@ -544,8 +548,6 @@ function tripal_galaxy_admin_wf_available_form_submit($form, &$form_state){
 	  	$workflow_exists = TRUE;
 	  }
 	  
-	  dpm("Does the workflow exist?");
-	  dpm($workflow_exists);
 	  // If this workflow is selected to be added to the site...
 	  if($form_state['values']['available'. $i] == 1){
 
