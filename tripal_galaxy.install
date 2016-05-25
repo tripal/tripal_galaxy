@@ -103,6 +103,9 @@ function tripal_galaxy_add_wf_table(&$schema){
         'type' => 'text',
         'not_null'=> TRUE,
       ),
+      'description' => array(
+        'type' => 'text',
+      ),
       'label' => array(
         'type' => 'varchar',
         'length ' => 1024,
