@@ -91,7 +91,10 @@ function tripal_galaxy_menu() {
   $items['admin/tripal/extension/galaxy/available_wf'] = array (
     'title' => 'Workflows',
     'description' => 'Make workflows from a remote Galaxy instance available on this site for use by site users',
-    'page callback' => 'tripal_galaxy_admin_available_wf',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'tripal_galaxy_admin_available_wf_form',
+    ),
     'access arguments' => array (
       'administer galaxy' 
     ),
@@ -202,7 +205,12 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
   $items = array (
     'tripal_galaxy_admin_add_wf_form_rows' => array (
       'render element' => 'form' 
-    ) 
+    ),
+    
+    'tripal_galaxy_admin_available_wf_form_rows' => array(
+      'render element' => 'form'
+    )
+    
   );
   return $items;
 }
