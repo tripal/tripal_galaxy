@@ -9,8 +9,6 @@
  */
 
 require ('theme/tripal_galaxy.theme.inc');
-require ('includes/tripal_galaxy.admin.inc');
-
 
 /**
  * Implementation of hook_init()
@@ -89,26 +87,21 @@ function tripal_galaxy_menu() {
   // EXPLANATION: all extension modules should have an administrative menu item
   // with the path set to 'admin/tripal/extension/[module name]'.
   $items['admin/tripal/extension/galaxy'] = array (
-    'title' => 'Manage Galxy Instances',
+    'title' => 'Manage Galaxy Instances',
     'description' => 'Integrate workflows from a remote Galaxy instance with this Tripal site',
     'page callback' => 'tripal_galaxy_admin_home',
-    'access arguments' => array (
-      'administer galaxy'
-    ),
-    'type' => MENU_NORMAL_ITEM
+    'access arguments' => array('administer galaxy'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path ('module', 'tripal_galaxy')
   );
 
   // Edit Galaxy
   $items['admin/tripal/extension/galaxy/edit/%'] = array (
     'description' => 'Edit a galaxy instance',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array (
-      'tripal_galaxy_admin_configuration_form',
-      5
-    ),
-    'access arguments' => array (
-      'administer galaxy'
-    ),
+    'page arguments' => array ('tripal_galaxy_admin_configuration_form'),
+    'access arguments' => array ('administer galaxy'),
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
