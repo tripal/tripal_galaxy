@@ -4,53 +4,12 @@
 ;
 name = Tripal galaxy
 description = A module to run workflows.
-
-;
-; The version of Drupal with which this module is compatible.
-;
 core = 7.x
-
-;
-; The computer-readable name for this module
-;
 project = tripal_galaxy
-
-;
-; In order for this module to appear in the 'Tripal Extensions' section when
-; viewing the module administrative page, the package must be set to 
-; 'Tripal Extensions'
-; 
 package = Tripal Extensions
-
-;
-; Follow these instructions when specifying the version:
-; https:;drupal.org/node/1015226
-; 
-version = 7.x-2.0-rc1
-
-;
-; Stylesheets containing CSS that should always be available for the
-; module should be specified here.  
-;
+version = 7.x-2.x
 stylesheets[all][] = theme/css/tripal_galaxy.css
-
-;
-; Javascript files that should always be available for the
-; module should be specified here.  
-;
 scripts[]          = theme/js/tripal_galaxy.js
 
-; 
-; Add additional dependencies for other modules using the module project name.
-; These modules must be enabled before this module can be enabled
-;
 dependencies[] = tripal_core
-dependencies[] = tripal_views
-dependencies[] = tripal_db
-dependencies[] = tripal_cv
-
-; Information added by Drupal.org packaging script on 2014-09-05
-version = "7.x-2.0-rc1"
-core = "7.x"
-project = "tripal"
-datestamp = "1409934433"
+dependencies[] = libraries
