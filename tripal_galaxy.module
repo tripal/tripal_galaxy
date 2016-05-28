@@ -23,7 +23,7 @@ function tripal_galaxy_init() {
     if (!$library) {
       drupal_set_message(t('The GalaxyLib-PHP library is not installed. The Galaxy module requires it.'), 'warning');
     }
-  }
+  } 
 }
 
 

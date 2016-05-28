@@ -186,7 +186,7 @@ function tripal_galaxy_admin_configuration_form_delete_validate($form, &$form_st
  */
 function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
 
-  // Initialize the data to be sent to the tripal_galaxy table
+   // Initialize the data to be sent to the tripal_galaxy table
   $data = array('servername' => $form_state['values']['servername'],
     'description' => $form_state['values']['description'], 'url' => $form_state['values']['url'],
     'username' => $form_state['values']['username'], 'api_key' => $form_state['values']['api_key']);
@@ -239,14 +239,14 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
     $http_regex = "((https|http):\/\/)?";
     $host_regex = "([a-z0-9-.]*)";
     $port_regex = "(:)?([0-9]*)?";
-    $regex = http_regex . $host_regex . $port_regex;
+    $regex = $http_regex . $host_regex . $port_regex;
     preg_match("/^$regex$/", $data['url'], $matches);
     $hostname = $matches[3];
     $port = $matches[5];
 
     // Create a new galaxy instance using the obtained hostname and port
     // Then Authenticate
-    libraries_load('GalaxyLib-PHP');
+    $library = libraries_load('GalaxyLib-PHP');
     $galaxy_instance = new GalaxyInstance($hostname, $port);
     $galaxy_instance->setAPIKey($data['api_key']);
 
@@ -258,7 +258,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
     else {
       drupal_set_message(t('Connection successful'));
     }
-  }
+  } 
 }
 
 /**
@@ -272,8 +272,9 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
  *          $form_state
  */
 function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
-
-  // Grab the galaxy id from the form state and Obtain the default galaxy server
+  $form['#tree'] = TRUE;
+  
+   // Grab the galaxy id from the form state and Obtain the default galaxy server
   // from the database.
   $galaxy_id = '';
   if (array_key_exists('values', $form_state)) {
@@ -365,55 +366,43 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
       }
 
       // Workflow name
-      $form['rows']['row' . $i]['workflow_name' . $i] = array(
+      $form ['rows'][$i]['workflow_name-' . $i]  = array(
         '#type' => 'item',
         '#markup' => $workflow['name']
 
       );
 
       // Workflow_id
-      $form['rows']['row' . $i]['workflow_id' . $i] = array(
+      $form['rows'][$i]['workflow_id-' . $i] = array(
         '#type' => 'item',
         '#markup' => $workflow['id']
 
       );
 
-      // Description
-      $form['rows']['row' . $i]['description' . $i] = array(
-        '#type' => 'textfield',
-        '#size' => 25,
-        '#default_value' => $default_description
-      );
-
       // Is added to site
       if ($workflow_exists == 1) {
-        $form['rows']['row' . $i]['available' . $i] = array(
+        $form['rows'][$i]['available-' . $i] = array(
           '#type' => 'checkbox',
           '#default_value' => 1,
           '#disabled' => TRUE
         );
-        $form['contains_wf' . $i] = array(
+        $form['contains_wf-' . $i] = array(
           '#type' => 'value',
           '#value' => TRUE
         );
       }
       else {
-        $form['rows']['row' . $i]['available' . $i] = array(
+        $form['rows'][$i]['available-' . $i] = array(
           '#type' => 'checkbox',
           '#default_value' => $workflow_exists
         );
-        $form['contains_wf' . $i] = array(
+        $form['contains_wf-' . $i] = array(
           '#type' => 'value',
           '#value' => FALSE
         );
       }
 
-      // Workflow_label
-      $form['rows']['row' . $i]['label' . $i] = array(
-        '#type' => 'textfield',
-        '#size' => 25,
-        '#default_value' => $default_label
-      );
+      
       $i = $i + 1;
     }
 
@@ -427,7 +416,7 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
     );
   }
 
-  return $form;
+  return $form; 
 }
 
 /**
@@ -446,23 +435,33 @@ function tripal_galaxy_admin_add_wf_form_ajax_callback(&$form, $form_state) {
  */
 function theme_tripal_galaxy_admin_add_wf_form_rows($variables) {
   $form = $variables['form'];
-
+  dpm($form);
   // The apparopriate headers for this form's table.
   $headers = array('Add Workflow', 'Workflow Name', 'Workflow Id');
 
   // Theme the rows of this form's table.
   $rows = array();
   $i = 0;
-  foreach (element_children($form) as $element) {
-    $rows[] = array(drupal_render($form[$element]["available" . $i]),
-      drupal_render($form[$element]["workflow_name" . $i]), drupal_render($form[$element]["workflow_id" . $i]));
-    $i = $i + 1;
+  foreach (element_children($form) as $i) {
+    $row = $form[$i];
+    $rows[] = array(
+      drupal_render($row["available-" . $i]),
+      drupal_render($row["workflow_name-" . $i]), 
+      drupal_render($row["workflow_id-" . $i]));
+    $i++;
   }
 
+  
   // Subset sequences.
   return theme_table(
-      array('header' => $headers, 'rows' => $rows, 'attributes' => array(), 'sticky' => TRUE, 'caption' => '',
-        'colgroups' => array(), 'empty' => 'No Workflows Available'));
+      array(
+        'header' => $headers, 
+        'rows' => $rows, 
+        'attributes' => array(),
+        'sticky' => TRUE, 
+        'caption' => '',
+        'colgroups' => array(), 
+        'empty' => 'No Workflows Available'));
 }
 
 /**
@@ -545,6 +544,10 @@ function tripal_galaxy_admin_available_wf_form($form, &$form_state) {
 
     // Workflow name
     $form['rows'][$i]['workflow_name-' . $i] = array(
+      '#type' => 'value',
+      '#value' => $workflow->workflow_name
+    );   
+    $form['rows'][$i]['workflow_name-user' . $i] = array(
       '#type' => 'item',
       '#markup' => $workflow->workflow_name
     );
@@ -614,7 +617,15 @@ function theme_tripal_galaxy_admin_available_wf_form_rows($variables) {
   $form_rows = $variables['form'];
 
   // The apparopriate headers for this form's table.
-  $headers = array('Enabled', 'Workflow Name', 'Description', 'Onsite Label', 'Galaxy Server', 'Workflow ID', 'Remove');
+  $headers = array(
+    'Enabled', 
+    'Workflow Name', 
+    'Description', 
+    'Onsite Label', 
+    'Galaxy Server', 
+    'Workflow ID', 
+    
+  'Remove');
 
   // Theme the rows of this form's table.
   $rows = array();
@@ -622,11 +633,11 @@ function theme_tripal_galaxy_admin_available_wf_form_rows($variables) {
     $row = $form_rows[$i];
     $rows[] = array(
       drupal_render($row["enabled-" . $i]),
-      drupal_render($row["workflow_name-" . $i]),
+      drupal_render($row["workflow_name-user" . $i]),
       drupal_render($row["description-" . $i]),
       drupal_render($row["label-" . $i]),
       drupal_render($row["servername-" . $i]),
-      drupal_render($row["workflow_id-" . $i]),
+      drupal_render($row["workflow_id-user" . $i]),
       drupal_render($row["remove-" . $i])
     );
   }
@@ -680,7 +691,7 @@ function tripal_galaxy_admin_available_wf_form_validate($form, &$form_state) {
       ";
       $args = array(':wf_id' => $workflow_id, ':label' => $label);
       $has_match = db_query($sql, $args)->fetchField();
-      if ($has_match) {
+      if ($has_match != FALSE && $has_match != NULL) {
         form_set_error("rows][$i][label-$i", t('A workflow with the label, "' . $label . '", already exists.'));
       }
       return FALSE;
@@ -706,39 +717,37 @@ function tripal_galaxy_admin_available_wf_form_validate($form, &$form_state) {
  */
 function tripal_galaxy_admin_available_wf_form_submit($form, &$form_state) {
   $i = 0;
-
+  $form_rows = $form_state['values']['rows'];
+  
   dpm($form_state);
   // Go through all of the row entries.
-  while ($i < count($form_state['values']) / 4) {
-
-    // If index i is out of range, break
-    if (!array_key_exists('description' . $i, $form_state['values'])) {
-      break;
-    }
-
-    // Select the workflow being edited
+  foreach ($form_rows as $i => $row) {
+      
+      // Select the workflow being edited
     $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_id = :workflow_id AND galaxy_id = :galaxy_id";
-    $args = array(
-      ':workflow_id' => $form_state['complete form']['rows']['row' . $i]['workflow_id' . $i]['#markup'],
-      ':galaxy_id' => $form_state['values']['galaxy_id' . $i]
+    $galaxy = $form_rows[$i]['galaxy-' . $i];
+    $galaxy_id = $galaxy->galaxy_id;
+    $args = array (
+      ':workflow_id' => $form_rows[$i]['workflow_id-' . $i] ,
+      ':galaxy_id' => $galaxy_id,
     );
-    $workflow_instance = db_query($sql, $args);
-    $workflow_instance = $workflow_instance->fetchObject();
-
+    $workflow_instance = db_query ( $sql, $args );
+    $workflow_instance = $workflow_instance->fetchObject ();
+    
     // If the workflow has changed values, update it
-    if ($workflow_instance->label != $form_state['values']['label' . $i] ||
-        $workflow_instance->description != $form_state['values']['description' . $i]) {
-
-      $data = array('status' => $form_state['values']['enabled' . $i],
+    if ($workflow_instance->label != $form_rows[$i]['label-' . $i] 
+        || $workflow_instance->description != $form_rows[$i]['description-' . $i]) {   
+      $data = array (
+        'status' => $form_rows[$i]['enabled-' . $i],
         'galaxy_wf_id' => $workflow_instance->galaxy_wf_id,
-        'workflow_name' => $form_state['complete form']['rows']['row' . $i]['workflow_name' . $i]['#markup'],
-        'label' => $form_state['values']['label' . $i],
-        'description' => $form_state['values']['description' . $i]
+        'workflow_name' => $form_rows[$i]['workflow_name-' . $i],
+        'label' => $form_rows[$i]['label-' . $i],
+        'description' => $form_rows[$i]['description-' . $i]
       );
-      $workflow = drupal_write_record('tripal_galaxy_wf', $data, 'galaxy_wf_id');
-      drupal_set_message(t('Workflow information Updated'));
+      $workflow = drupal_write_record ( 'tripal_galaxy_wf', $data, 'galaxy_wf_id' );
+      drupal_set_message ( t ( 'Workflow information Updated' ) );
     }
-    $i++;
+    $i ++;
   }
 }
 
