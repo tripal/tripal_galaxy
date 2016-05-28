@@ -304,12 +304,18 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
     ),
     '#default_value' => $galaxy_id
   );
+  
   $form['#prefix'] = '<div id="tripal-galaxy-admin-wf-available-form-rows">';
   $form['#suffix'] = '</div>';
 
   // If a galaxy instance has been selected, Ajax-complete the form
   if ($galaxy_id) {
 
+    // Galaxy id for the server
+    $form['galaxy_id-server'] = array(
+      '#type'=> 'value',
+      '#value'=>$galaxy_id,
+    );
     // Grab the appropriate galaxy server table entry
     $galaxy_server = db_query("SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id",
         array(':galaxy_id' => $galaxy_id));
@@ -371,12 +377,19 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
         '#markup' => $workflow['name']
 
       );
+      $form ['rows'][$i]['workflow_name-server-' . $i]  = array(
+        '#type' => 'value',
+        '#value' => $workflow['name']
+      );
 
       // Workflow_id
       $form['rows'][$i]['workflow_id-' . $i] = array(
         '#type' => 'item',
         '#markup' => $workflow['id']
-
+      );
+      $form ['rows'][$i]['workflow_id-server-' . $i]  = array(
+        '#type' => 'value',
+        '#value' => $workflow['id']
       );
 
       // Is added to site
@@ -401,8 +414,7 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
           '#value' => FALSE
         );
       }
-
-      
+    
       $i = $i + 1;
     }
 
@@ -481,30 +493,26 @@ function tripal_galaxy_admin_add_wf_form_validate($form, &$form_state) {
  */
 function tripal_galaxy_admin_add_wf_form_submit($form, &$form_state) {
   $i = 0;
-
+  //dpm()
+  $form_rows = $form_state['values']['rows'];
+  
   // Go through all of the row entries.
-  while ($i < count($form_state['values']) / 4) {
-
-    // If index i is out of range, break
-    if (!array_key_exists('available' . $i, $form_state['values'])) {
-      break;
-    }
-
+  foreach ($form_rows as $i => $row) {
+   
     // If this workflow is selected to be added to the site...
-    if (($form_state['values']['available' . $i] == 1) && ($form_state['values']['contains_wf' . $i] == FALSE)) {
+    if (( $form_rows[$i]['available-' . $i] == 1) && ($form_state['values']['contains_wf-' . $i] == FALSE)) {
 
       // Insert the new workflow into the db given the data from the add wd form
       $data = array(
-        'workflow_name' => $form_state['complete form']['rows']['row' . $i]['workflow_name' . $i]['#markup'],
-        'workflow_id' => $form_state['complete form']['rows']['row' . $i]['workflow_id' . $i]['#markup'],
-        'galaxy_id' => $form_state['values']['galaxy_id'], 'available' => $form_state['values']['available' . $i]
+        'workflow_name' =>  $form_rows[$i]['workflow_name-server-' . $i],
+        'workflow_id' =>  $form_rows[$i]['workflow_id-server-' . $i],
+        'galaxy_id' => $form_state['values']['galaxy_id-server'], 
+        'available' => $form_rows[$i]['available-' . $i]
       );
       $workflow = drupal_write_record('tripal_galaxy_wf', $data);
       drupal_set_message(t('Workflow information Recorded'));
 
-      // If the workflow is unselected
     }
-
     $i++;
   }
 
@@ -719,7 +727,6 @@ function tripal_galaxy_admin_available_wf_form_submit($form, &$form_state) {
   $i = 0;
   $form_rows = $form_state['values']['rows'];
   
-  dpm($form_state);
   // Go through all of the row entries.
   foreach ($form_rows as $i => $row) {
       
