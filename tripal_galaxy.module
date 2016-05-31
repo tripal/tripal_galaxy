@@ -124,9 +124,9 @@ function tripal_galaxy_menu() {
   );
 
   // Available Workflows
-  $items['admin/tripal/extension/galaxy/available_wf'] = array (
+  $items['admin/tripal/extension/galaxy/available_wf'] = array(
     'title' => 'Workflows',
-    'description' => 'Make workflows from a remote Galaxy instance available on this site for use by site users',
+    'description' => 'Lists the available workflows for the user',
     'page callback' => 'drupal_get_form',
     'page arguments' => array(
       'tripal_galaxy_admin_available_wf_form',
@@ -135,14 +135,14 @@ function tripal_galaxy_menu() {
       'administer galaxy'
     ),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file' => 'includes/tripal_galaxy.wf_form.inc',
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
   );
 
   // Add Workflows
-  $items['admin/tripal/extension/galaxy/available_wf/add_wf'] = array (
+  $items['admin/tripal/extension/galaxy/available_wf/add_wf'] = array(
     'title' => 'Add Workflows',
-    'description' => 'Make workflows from a remote Galaxy instance available on this site for use by site users',
+    'description' => 'Add workflows to the site given the remote galaxy instance',
     'page callback' => 'drupal_get_form',
     'page arguments' => array (
       'tripal_galaxy_admin_add_wf_form'
@@ -151,7 +151,7 @@ function tripal_galaxy_menu() {
       'administer galaxy'
     ),
     'type' => MENU_LOCAL_ACTION,
-    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file' => 'includes/tripal_galaxy.wf_form_add.inc',
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
   );
 
