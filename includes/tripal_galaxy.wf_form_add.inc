@@ -1,4 +1,7 @@
 <?php
+
+include 'tripal_galaxy.user.inc';
+
 /**
  * Generates the form that lists the available workflows in the
  * default Galaxy instances and allows the site admin to select which ones
@@ -185,7 +188,7 @@ function tripal_galaxy_admin_add_wf_form_ajax_callback(&$form, $form_state) {
  */
 function theme_tripal_galaxy_admin_add_wf_form_rows($variables) {
   $form = $variables['form'];
-  dpm($form);
+
   // The apparopriate headers for this form's table.
   $headers = array('Add Workflow', 'Workflow Name', 'Workflow Id');
 
@@ -246,6 +249,9 @@ function tripal_galaxy_admin_add_wf_form_submit($form, &$form_state) {
         'available' => $form_rows[$i]['available-' . $i]
       );
       $workflow = drupal_write_record('tripal_galaxy_wf', $data);
+      
+      // Create the appropriate node for this workflow
+      tripal_galaxy_admin_submitted_list_base($data['galaxy_id'], $data['workflow_id']);
       drupal_set_message(t('Workflow information Recorded'));
 
     }
