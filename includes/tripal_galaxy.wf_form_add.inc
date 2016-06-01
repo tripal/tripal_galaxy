@@ -11,6 +11,7 @@
  */
 function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
   $form['#tree'] = TRUE;
+    
   
    // Grab the galaxy id from the form state and Obtain the default galaxy server
   // from the database.
