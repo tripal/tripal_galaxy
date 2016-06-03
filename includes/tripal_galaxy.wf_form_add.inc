@@ -86,7 +86,7 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
     }
     
     // Obtain the workflows
-    $workflows = new Workflows ( $galaxy_instance );
+    $workflows = new GalaxyWorkflows ( $galaxy_instance );
     $workflows = $workflows->index ();
     
     // Loop through each workflow to add it to the form

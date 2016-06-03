@@ -15,6 +15,9 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   ) );
   $galaxy_server = $galaxy_server->fetchObject ();
   
+  dpm("This is the galaxy server: ");
+  dpm($galaxy_server);
+  
   // Obtain the hostname and port from the url
   $matches = array ();
   $regex = "((https|http):\/\/)?"; // SCHEME
@@ -26,14 +29,23 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   
   // Set up the Galaxy instance
   $library = libraries_load ( 'GalaxyLib-PHP' );
-  $anon_galaxy_instance = new GalaxyInstance ( $hostname, $port );
   
   $galaxy_instance = new GalaxyInstance ( $hostname, $port );
   $galaxy_instance->setAPIKey ( $galaxy_server->api_key );
   
   // Set up the workflow instance
-  $workflow_instance = new Workflows ( $galaxy_instance );
-  $workflow = $workflow_instance->show ( $workflow_id );
+  $workflow_instance = new GalaxyWorkflows ( $galaxy_instance );
+  $workflow = $workflow_instance->show( $workflow_id );
+  
+  dpm("This is the workflow id: ");
+  dpm($workflow_id);
+  
+  dpm("This is the workflow instance: ");
+  dpm($workflow_instance);
+  
+  
+  dpm("This is the workflow:");
+  dpm($workflow);
   
   // Default values for the node
   $node = new stdClass ();
@@ -50,7 +62,7 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   // Build the web form based on the input steps
   $i = 0;
   $components = NULL;
-  foreach ( array_reverse($workflow['steps']) as $step ) {
+  foreach ( $workflow['steps'] as $step ) {
     
     // If we are uploading something...
     $components[] = array (
@@ -89,14 +101,14 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
       }
       
       // Create a tool object
-      $tool_instance = new Tools ( $anon_galaxy_instance );
-      $tool = $tool_instance->build ( array (
-        'tool_id' => $tool_id 
-      ) );
-      dpm ( "This is the Tool:" );
-      dpm ( $tool_id );
-      dpm ( $tool );
-      dpm ( $tool_instance->getErrorMessage () );
+      dpm('STARGING!!!!!!!!!!!!!!!!!!!!!!!!11111');
+      $anon_galaxy_instance = new GalaxyInstance($hostname, $port);
+      $tool_instance = new GalaxyTools($anon_galaxy_instance);
+      $tool = $tool_instance->build(array('tool_id' => $tool_id));
+      dpm("This is the Tool:" );
+      dpm($tool_id );
+      dpm($tool );
+      dpm($anon_galaxy_instance->getErrorMessage()); 
     }
     
     $i ++;
