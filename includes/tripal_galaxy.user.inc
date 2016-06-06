@@ -34,8 +34,16 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   $galaxy_instance->setAPIKey ( $galaxy_server->api_key );
   
   // Set up the workflow instance
-  $workflow_instance = new GalaxyWorkflows ( $galaxy_instance );
-  $workflow = $workflow_instance->show( $workflow_id );
+  $workflow_instance = new GalaxyWorkflows($galaxy_instance);
+  $workflow = $workflow_instance->show($workflow_id);
+  
+  // Select a target history by finding a history owned by the current user
+  $history_instance = new GalaxyHistories($galaxy_instance);
+  $histories = $history_instance->index();
+  $target_history = $histories[0];
+  
+  dpm("This is the Galaxy instance:");
+  dpm($galaxy_instance);
   
   dpm("This is the workflow id: ");
   dpm($workflow_id);
@@ -46,6 +54,9 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   
   dpm("This is the workflow:");
   dpm($workflow);
+  
+  dpm("This is the history");
+  dpm($histories);
   
   // Default values for the node
   $node = new stdClass ();
@@ -60,25 +71,36 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   $node->comment = 0;
   
   // Build the web form based on the input steps
-  $i = 0;
+  
   $components = NULL;
-  foreach ( $workflow['steps'] as $step ) {
+  
+  // Make sure we have valid input
+  if($workflow == NULL || !is_array($workflow) || !array_key_exists('steps', $workflow) ){
+    return;
+  }
+  
+  $i = count($workflow['steps']);
+  foreach ( array_reverse($workflow['steps']) as $step ) {
+    
+    dpm("The step: ");
+    dpm($step);
     
     // If we are uploading something...
-    $components[] = array (
-      'name' => 'Step ' . ($i+1),
-      'form_key' => 'the_step_' . ($i+1),
+    $components[$i] = array (
+      'name' => 'Step ' . ($i),
+      'form_key' => 'the_step_' . ($i),
       'type' => 'markup',
       'weight' => 26,
-      'value' => 'Step ' . $i,
+      'value' => 'Step ' . ($i),
       'mandatory' => 0,
       'pid' => 0 
-    )
-    ;
+    );
     
     // If the tool wants a dataset to be uploaded...
-    if ($step['tool_id'] == NULL && $step['type'] == "data_input") {
-      $compnents[] = array (
+    if ($step['type'] == "data_input") {
+      dpm("I am a file upload! ");
+      
+     $components[$i] = array (
         'name' => 'Upload dataset',
         'form_key' => 'dataset_' . $i,
         'type' => 'file',
@@ -86,7 +108,7 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
         'mandatory' => 1,
         'pid' => 0 
       );
-      $i ++;
+      $i --;
       continue;
     }     
 
@@ -101,17 +123,22 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
       }
       
       // Create a tool object
-      dpm('STARGING!!!!!!!!!!!!!!!!!!!!!!!!11111');
-      $anon_galaxy_instance = new GalaxyInstance($hostname, $port);
-      $tool_instance = new GalaxyTools($anon_galaxy_instance);
-      $tool = $tool_instance->build(array('tool_id' => $tool_id));
+      dpm('STARtING!!!!!!!!!!!!!!!!!!!!!!!!11111');
+      $tool_instance = new GalaxyTools($galaxy_instance);
+      $tool = $tool_instance->build(array(
+        'tool_id' => $tool_id,
+        'history_id' => $target_history['id'],
+      ));
       dpm("This is the Tool:" );
-      dpm($tool_id );
-      dpm($tool );
-      dpm($anon_galaxy_instance->getErrorMessage()); 
+      dpm($tool_id);
+      dpm($tool);
+      dpm($galaxy_instance->getErrorMessage()); 
+      
+      //switch()
+      
     }
     
-    $i ++;
+    $i --;
   }
   
   // Attach the webform to the node.

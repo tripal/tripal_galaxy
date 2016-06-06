@@ -21,7 +21,8 @@ function tripal_galaxy_admin_home() {
 
   // Retrieve the list of galaxy servers that have been added and generate
   // the rows for the table.
-  $results = db_select('tripal_galaxy', 'tg')->fields('tg')->execute();
+  $sql = "SELECT * FROM {tripal_galaxy}";
+  $results = db_query($sql);
 
   while ($result = $results->fetchObject()) {
     $rows[] = array($result->servername, $result->description,
@@ -60,12 +61,10 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
   $default_api_key = "";
   $default_url = "";
 
-  dpm("The galaxy id: ");
-  dpm($galaxy_id);
   // If a galaxy id is set, feel free to declare all the default values with the
   // appropriate
   // Galaxy instance
-  if ($galaxy_id !== NULL) {
+  if ($galaxy_id != NULL) {
     $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
     $galaxy_instance = db_query($sql, array(':galaxy_id' => $galaxy_id));
     $galaxy_instance = $galaxy_instance->fetchObject();

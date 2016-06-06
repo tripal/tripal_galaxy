@@ -100,7 +100,7 @@ function tripal_galaxy_menu() {
   $items['admin/tripal/extension/galaxy/edit/%'] = array (
     'description' => 'Edit a galaxy instance',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array ('tripal_galaxy_admin_configuration_form'),
+    'page arguments' => array ('tripal_galaxy_admin_configuration_form', 5),
     'access arguments' => array ('administer galaxy'),
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
