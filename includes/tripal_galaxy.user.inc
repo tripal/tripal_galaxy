@@ -1,6 +1,13 @@
 <?php
 
 /**
+ * The different tool input parameters: 
+ * https://github.com/galaxyproject/galaxy/blob/dev/client/galaxy/scripts/mvc/form/form-parameters.js#L96
+ */
+
+
+
+/**
  * The base function to submitted_list()
  */
 function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
@@ -15,8 +22,8 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   ) );
   $galaxy_server = $galaxy_server->fetchObject ();
   
-  dpm("This is the galaxy server: ");
-  dpm($galaxy_server);
+  dpm ( "This is the galaxy server: " );
+  dpm ( $galaxy_server );
   
   // Obtain the hostname and port from the url
   $matches = array ();
@@ -34,29 +41,28 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   $galaxy_instance->setAPIKey ( $galaxy_server->api_key );
   
   // Set up the workflow instance
-  $workflow_instance = new GalaxyWorkflows($galaxy_instance);
-  $workflow = $workflow_instance->show($workflow_id);
+  $workflow_instance = new GalaxyWorkflows ( $galaxy_instance );
+  $workflow = $workflow_instance->show ( $workflow_id );
   
   // Select a target history by finding a history owned by the current user
-  $history_instance = new GalaxyHistories($galaxy_instance);
-  $histories = $history_instance->index();
+  $history_instance = new GalaxyHistories ( $galaxy_instance );
+  $histories = $history_instance->index ();
   $target_history = $histories[0];
   
-  dpm("This is the Galaxy instance:");
-  dpm($galaxy_instance);
+  dpm ( "This is the Galaxy instance:" );
+  dpm ( $galaxy_instance );
   
-  dpm("This is the workflow id: ");
-  dpm($workflow_id);
+  dpm ( "This is the workflow id: " );
+  dpm ( $workflow_id );
   
-  dpm("This is the workflow instance: ");
-  dpm($workflow_instance);
+  dpm ( "This is the workflow instance: " );
+  dpm ( $workflow_instance );
   
+  dpm ( "This is the workflow:" );
+  dpm ( $workflow );
   
-  dpm("This is the workflow:");
-  dpm($workflow);
-  
-  dpm("This is the history");
-  dpm($histories);
+  dpm ( "This is the history" );
+  dpm ( $histories );
   
   // Default values for the node
   $node = new stdClass ();
@@ -75,15 +81,15 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   $components = NULL;
   
   // Make sure we have valid input
-  if($workflow == NULL || !is_array($workflow) || !array_key_exists('steps', $workflow) ){
+  if ($workflow == NULL || ! is_array ( $workflow ) || ! array_key_exists ( 'steps', $workflow )) {
     return;
   }
   
-  $i = count($workflow['steps']);
-  foreach ( array_reverse($workflow['steps']) as $step ) {
+  $i = count ( $workflow['steps'] );
+  foreach ( array_reverse ( $workflow['steps'] ) as $step ) {
     
-    dpm("The step: ");
-    dpm($step);
+    dpm ( "The step: " );
+    dpm ( $step );
     
     // If we are uploading something...
     $components[$i] = array (
@@ -98,9 +104,9 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
     
     // If the tool wants a dataset to be uploaded...
     if ($step['type'] == "data_input") {
-      dpm("I am a file upload! ");
+      dpm ( "I am a file upload! " );
       
-     $components[$i] = array (
+      $components[$i] = array (
         'name' => 'Upload dataset',
         'form_key' => 'dataset_' . $i,
         'type' => 'file',
@@ -113,8 +119,7 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
     }     
 
     // If the workflow step is not a data upload, figure out what it needs
-    else {
-      
+    else {  
       // Get the tool_id, Continue if it is null;
       $tool_id = $step['tool_id'];
       if ($tool_id == NULL) {
@@ -123,21 +128,39 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
       }
       
       // Create a tool object
-      dpm('STARtING!!!!!!!!!!!!!!!!!!!!!!!!11111');
-      $tool_instance = new GalaxyTools($galaxy_instance);
-      $tool = $tool_instance->build(array(
+      dpm ( 'STARtING!!!!!!!!!!!!!!!!!!!!!!!!11111' );
+      $tool_instance = new GalaxyTools ( $galaxy_instance );
+      $tool = $tool_instance->build ( array (
         'tool_id' => $tool_id,
-        'history_id' => $target_history['id'],
-      ));
-      dpm("This is the Tool:" );
-      dpm($tool_id);
-      dpm($tool);
-      dpm($galaxy_instance->getErrorMessage()); 
+        'history_id' => $target_history['id'] 
+      ) );
+      dpm ( "This is the Tool:" );
+      dpm ( $tool_id );
+      dpm ( $tool );
+      dpm ( $galaxy_instance->getErrorMessage () );
       
-      //switch()
-      
+      // Iterate over tool inputs
+      foreach ( $tool["inputs"] as $input ) {
+        
+        dpm ( "This is the input: " );
+        dpm ( $input );
+        
+        // Add the label to the components
+        $components[] = array (
+          'name' => 'input tool ' . ($i) . $input['label'],
+          'form_key' => 'Input ' . ($i) . ": " . $input['label'],
+          'type' => 'markup',
+          'weight' => 26,
+          'value' => 'Input ' . ($i) . ": " . $input['label'],
+          'mandatory' => 0,
+          'pid' => 0 
+        );
+        // Add components to match each of the input models
+        $components[] = construct_component ( $input );
+      }
     }
     
+    // Decrement the counter
     $i --;
   }
   
@@ -168,6 +191,67 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   // Save the node.
   node_save ( $node );
 }
+
+/**
+ * A function to construct a web form component based on 
+ * A given tool input
+ * 
+ * @param $tool_input 
+ *   The tool input to build the component for 
+ *  
+ * @return 
+ *   An array suitable for the 'components' webform array 
+ */
+function construct_component($tool_input) {
+  $options = array();
+  if(array_key_exists('options', $tool_input)){
+    $options = $tool_input['options'];
+  }
+  
+  dpm("these are the options: ");
+  dpm($options);
+  
+  // These are the cases
+  switch ($tool_input) {
+    case 'text' :
+      break;
+    case 'select' :
+      break;
+    
+
+    case 'data_column':
+      break;
+    case 'genomebuild':
+      break;
+    
+    // Usually refers to the data coming into the tool
+    case 'data':
+      break;
+    case 'data_collection':
+      break;
+    case 'integer':
+      break;
+    case 'float':
+      break;
+    case 'boolean':
+      break;
+    case 'drill_down':
+      break;
+    case 'color':
+      break;
+    case 'hidden':
+      break;
+    case 'hidden_data':
+      break;
+    case 'baseurl':
+      break;
+    case 'library_data':
+      break;
+    case 'ftpfile':
+      break;
+  }
+}
+
 
 /**
  * A funciton for building the workflow's input form
