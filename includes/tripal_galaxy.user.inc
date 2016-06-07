@@ -138,7 +138,10 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
       dpm ( $tool_id );
       dpm ( $tool );
       dpm ( $galaxy_instance->getErrorMessage () );
-      
+      if($tool == FALSE || $tool == NULL){
+        drupal_set_message('Error creating form for this workflow', 'Error');
+        return;
+      }
       // Iterate over tool inputs
       foreach ( $tool["inputs"] as $input ) {
         
