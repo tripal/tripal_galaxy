@@ -148,18 +148,35 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
         dpm ( "This is the input: " );
         dpm ( $input );
         
+        $input_name = NULL;
+        if (!array_key_exists('label', $input)){
+         $input_name = $input['title'];
+        }else {
+          $input_name = $input['label'];
+        }
+        
         // Add the label to the components
         $components[] = array (
-          'name' => 'input tool ' . ($i) . $input['label'],
-          'form_key' => 'Input ' . ($i) . ": " . $input['label'],
+          'name' => 'input tool ' . ($i) . $input_name,
+          'form_key' => 'Input ' . ($i) . ": " . $input_name,
           'type' => 'markup',
           'weight' => 26,
-          'value' => 'Input ' . ($i) . ": " . $input['label'],
+          'value' => 'Input ' . ($i) . ": " . $input_name,
           'mandatory' => 0,
           'pid' => 0 
         );
-        // Add components to match each of the input models
-        $components[] = construct_component ( $input );
+        
+        // If there is no type in this input, skip this input
+        if(!array_key_exists('type', $input)){
+          continue;
+        }
+        
+        // Add The appropriate webform component to 
+        // to match each of the input models
+        $component = construct_component($input);
+        if($component != FALSE){
+          $components[] = $component;
+        }
       }
     }
     
@@ -186,8 +203,8 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
     'record_exists' => TRUE,
     'roles' => array (
       0 => '1' 
-    ), // Anonymous user can submit this webform.
-      // 'emails' => $emails,
+    ),
+
     'components' => $components 
   );
   
@@ -197,38 +214,58 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
 
 /**
  * A function to construct a web form component based on 
- * A given tool input
+ *   A given tool input.
  * 
  * @param $tool_input 
- *   The tool input to build the component for 
+ *   The tool input to build the component for. Must have Key 'type'. 
  *  
  * @return 
  *   An array suitable for the 'components' webform array 
+ *   False otherwise. 
  */
 function construct_component($tool_input) {
-  $options = array();
-  if(array_key_exists('options', $tool_input)){
+  // Initiate variables
+  $options = array ();
+  $webform_items = "";
+  $component = array ();
+  $webform_type = "";
+  // If we have no options, return False
+  if (array_key_exists ( 'options', $tool_input )) {
     $options = $tool_input['options'];
+    if (count ( $options ) < 1) {
+      return FALSE;
+    }
   }
   
-  dpm("these are the options: ");
-  dpm($options);
+  dpm ( "these are the options: " );
+  dpm ( $options );
   
-  // These are the cases
-  switch ($tool_input) {
-    case 'text' :
+
+  
+  // These are the cases for the tool input type
+  switch ($tool_input['type']) {
+    case 'text':
       break;
+      
+    // If tool input is of type select
     case 'select' :
+      $webform_type = 'select';
+      
+      foreach($options as $option){
+        $webform_items .= $option . "|";
+            
+      }
       break;
     
-
-    case 'data_column':
+    // If tool input is of type data_column
+    case 'data_column' :
       break;
-    case 'genomebuild':
+      
+    case 'genomebuild' :
       break;
     
     // Usually refers to the data coming into the tool
-    case 'data':
+    case 'data' :
       break;
     case 'data_collection':
       break;
@@ -246,13 +283,32 @@ function construct_component($tool_input) {
       break;
     case 'hidden_data':
       break;
-    case 'baseurl':
+    case 'baseurl' :
       break;
-    case 'library_data':
+    case 'library_data' :
       break;
-    case 'ftpfile':
+    case 'ftpfile' :
+      break;
+    
+    default :
       break;
   }
+  
+  // Default component
+  $component = array (
+    'name' => 'Subject',
+    'form_key' => 'subject',
+    'type' => $webform_type,
+    'mandatory' => 1,
+    'weight' => 30,
+    'pid' => 0,
+    'extra' => array (
+      'title_display' => 'inline',
+      'private' => 0,
+      'items' => $webform_items,
+      'aslist' => 1 
+    ) 
+  );
 }
 
 
