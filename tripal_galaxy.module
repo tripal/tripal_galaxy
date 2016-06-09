@@ -203,7 +203,7 @@ function tripal_galaxy_menu() {
     'title' => 'Available Workflows',
     'description' => 'A list of available analytical workflows for this site',
     // Are we sure about this?
-    'page callback' => 'tripal_galaxy_admin_submitted_list',
+    'page callback' => 'test_webforms',
     'access arguments' => array (
       'administer galaxy'
     ),
