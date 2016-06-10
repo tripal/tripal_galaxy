@@ -14,16 +14,19 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   // Set up basic node defaults.
   if ($workflow_id == NULL) {
     drupal_set_message ( t ( 'This page currently not supported' ), 'error' );
+    return;
   }
+  
+  // Initialize variables.
+  $webform_weight = 25;
+  $webform_page = 1;
+  $components = NULL;
   
   // Obtain the galaxy server from the galaxy id
   $galaxy_server = db_query ( "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id", array (
     ':galaxy_id' => $galaxy_id 
   ) );
   $galaxy_server = $galaxy_server->fetchObject ();
-  
-  dpm ( "This is the galaxy server: " );
-  dpm ( $galaxy_server );
   
   // Obtain the hostname and port from the url
   $matches = array ();
@@ -38,31 +41,104 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   $library = libraries_load ( 'GalaxyLib-PHP' );
   
   $galaxy_instance = new GalaxyInstance ( $hostname, $port );
+  
+  // Check to make sure we have a valid connection.
+  if($galaxy_instance->getVersion() == NULL){
+    drupal_set_message ( t('Cannot connect to galaxy instance'),'error');
+    return;
+  }
+  
   $galaxy_instance->setAPIKey ( $galaxy_server->api_key );
   
-  // Set up the workflow instance
+  // Set up the workflow instance.
   $workflow_instance = new GalaxyWorkflows ( $galaxy_instance );
   $workflow = $workflow_instance->show ( $workflow_id );
   
-  // Select a target history by finding a history owned by the current user
+  // Select a target history by finding a history owned by the current user.
   $history_instance = new GalaxyHistories ( $galaxy_instance );
   $histories = $history_instance->index ();
   $target_history = $histories[0];
+     
+
   
-  dpm ( "This is the Galaxy instance:" );
-  dpm ( $galaxy_instance );
+  // Make sure we have a valid workflow.
+  if ($workflow == NULL || ! is_array ( $workflow ) || ! array_key_exists ( 'steps', $workflow )) {
+    drupal_set_message ( t ( 'Unrecognized response from Galaxy server' ), 'error' );
+    return;
+  }
   
-  dpm ( "This is the workflow id: " );
-  dpm ( $workflow_id );
-  
-  dpm ( "This is the workflow instance: " );
-  dpm ( $workflow_instance );
-  
-  dpm ( "This is the workflow:" );
-  dpm ( $workflow );
-  
-  dpm ( "This is the history" );
-  dpm ( $histories );
+  // Construct web form components based on workflow steps.
+  $i = count ( $workflow['steps'] );
+  foreach ( $workflow['steps'] as $step ) {
+      
+      // If the step is of type data_input. This step is to prompt the user for
+      // a file on their computer. Note this is not a tool.
+    if ($step['type'] == "data_input") {
+      $components[] = array (
+        'name' => 'Upload dataset',
+        'form_key' => 'dataset_' . $i,
+        'type' => 'file',
+        'weight' => $webform_weight ++,
+        'mandatory' => 1,
+        'pid' => 0,
+        'filtering' => array (
+          'types' => array (
+            'bed',
+            'bam',
+            'blast' 
+          ),
+          'addextensions' => '',
+          'size' => '20 GB' 
+        ),
+        'page_num' => $webform_page 
+      );
+      $webform_page++;
+      $i --;
+      continue;
+    }     
+    else { 
+      
+      // Get the tool_id, continue if it is null. All steps should have
+      // exactly zero or one Tool.
+      $tool_id = $step['tool_id'];
+      if ($tool_id == NULL) {
+        $i --;
+        continue;
+      }
+      
+      // Construct the component for this step by fining input information 
+      // about its tool.
+      $tool_instance = new GalaxyTools ( $galaxy_instance );
+      $tool = $tool_instance->build ( array (
+        'tool_id' => $tool_id,
+        'history_id' => $target_history['id'], 
+      ));
+     
+      if($tool == FALSE || $tool == NULL){
+        drupal_set_message('Error rendering workflow information.' , 'Error');
+        return;
+      }
+      
+      // Iterate over tool inputs
+      foreach ( $tool["inputs"] as $input ) {
+                      
+        // If there is no type in this input, skip this input
+        if(!array_key_exists('type', $input)){
+          continue;
+        }
+        
+        // Add The appropriate webform components to 
+        // to match each of the input models
+        $component = construct_component($input, $i, $webform_page, $webform_weight);
+        if($component != FALSE){
+          $components[] = $component;
+        }
+      }  
+    }
+    
+    // Decrement the counter
+    $i --;
+  }
   
   // Default values for the node
   $node = new stdClass ();
@@ -75,97 +151,6 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   $node->uid = 1;
   $node->promote = 0;
   $node->comment = 0;
-  
-  
-  $components = NULL;
-  
-  // Make sure we have valid input
-  if ($workflow == NULL || ! is_array ( $workflow ) || ! array_key_exists ( 'steps', $workflow )) {
-    return;
-  }
-  
-  // Construct web form components based on workflow steps.
-  $i = count ( $workflow['steps'] );
-  foreach ( array_reverse ( $workflow['steps'] ) as $step ) {
-    
-    dpm ( "The step: " );
-    dpm ( $step );
-    
-    $components[$i] = array (
-      'name' => 'Step ' . ($i),
-      'form_key' => 'the_step_' . ($i),
-      'type' => 'markup',
-      'weight' => 26,
-      'value' => 'Step ' . ($i),
-      'mandatory' => 0,
-      'pid' => 0 
-    );
-    
-    // If the step is of type data_input. This step is to prompt the user for
-    // a file on their computer. Note this is not a tool.
-    if ($step['type'] == "data_input") {
-      dpm ( "I am a file upload! " );
-      
-      $components[$i] = array (
-        'name' => 'Upload dataset',
-        'form_key' => 'dataset_' . $i,
-        'type' => 'file',
-        'weight' => 26,
-        'mandatory' => 1,
-        'pid' => 0 
-      );
-      $i --;
-      continue;
-    }     
-
-    // If the workflow step is not a data upload, figure out what it needs
-    else { 
-      
-      // Get the tool_id, continue if it is null. All steps should have
-      // exactly one Tool.
-      $tool_id = $step['tool_id'];
-      if ($tool_id == NULL) {
-        $i ++;
-        continue;
-      }
-      
-      $tool_instance = new GalaxyTools ( $galaxy_instance );
-      $tool = $tool_instance->build ( array (
-        'tool_id' => $tool_id,
-        'history_id' => $target_history['id'] 
-      ));
-      dpm ( "This is the Tool:" );
-      dpm ( $tool_id );
-      dpm ( $tool );
-      
-      if($tool == FALSE || $tool == NULL){
-        drupal_set_message('Error rendering workflow information.' , 'Error');
-        return;
-      }
-      
-      // Iterate over tool inputs
-      foreach ( $tool["inputs"] as $input ) {
-        
-        dpm ( "This is the input: " );
-        dpm ( $input );
-               
-        // If there is no type in this input, skip this input
-        if(!array_key_exists('type', $input)){
-          continue;
-        }
-        
-        // Add The appropriate webform component to 
-        // to match each of the input models
-        $component = construct_component($input);
-        if($component != FALSE){
-          $components[] = $component;
-        }
-      }
-    }
-    
-    // Decrement the counter
-    $i --;
-  }
   
   // Attach the webform to the node.
   $node->webform = array (
@@ -209,7 +194,7 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
  *   An array suitable for the 'components' webform array 
  *   False otherwise. 
  */
-function construct_component($tool_input, $index) {
+function construct_component($tool_input, $index, &$webform_page, &$webform_weight) {
  
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
@@ -232,8 +217,20 @@ function construct_component($tool_input, $index) {
     if (count ( $option ) == 0) {
       continue;
     }
+    
+    dpm("Current option: ");
+    dpm($option);
+    while (is_array($option)){
+      foreach ($option as &$inner_option){
+        $option = $inner_option;
+        break;
+      }
+      
+    }
+    
+    
     // Items must be in the form 'key1|value1 \n key2|value2'; 
-    $webform_items .= $option[0] ."_" . $x . "|" . $option[0] ."\n";
+    $webform_items .= $option ."_" . $x . "|" . $option ."\n";
     $x++;
   }
     
@@ -354,15 +351,17 @@ function construct_component($tool_input, $index) {
   
   // Default component. Defaults to a drop-down list component.
   $component = array (
-    'name' => $input_name . "_" . $index,
-    'form_key' => $input_name . "_" . $index,
+    'name' =>"Step " . $index .": " . $input_name,
+    'form_key' => "Step " . $index .": " . $input_name,
     'type' => $webform_type,
     'value' => $webform_value,
     'mandatory' => $mandatory,
-    'weight' => 30,
+    'weight' => $webform_weight++,
     'pid' => 0,
     'extra' => $extra,
+    'page_num'=> $webform_page,
   );
+  $webform_page++;
   
   return $component;
 }
