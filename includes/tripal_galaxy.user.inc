@@ -17,6 +17,7 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
     return;
   }
   
+  
   // Initialize variables.
   $webform_weight = 25;
   $webform_page = 1;
@@ -27,6 +28,10 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
     ':galaxy_id' => $galaxy_id 
   ) );
   $galaxy_server = $galaxy_server->fetchObject ();
+  
+  dpm("This is the galaxy server: ");
+  dpm($galaxy_server);
+  
   
   // Obtain the hostname and port from the url
   $matches = array ();
@@ -88,7 +93,7 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
             'blast' 
           ),
           'addextensions' => '',
-          'size' => '20 GB' 
+          'size' => '2 GB' 
         ),
         'page_num' => $webform_page 
       );
@@ -114,8 +119,16 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
         'history_id' => $target_history['id'], 
       ));
      
+      dpm("Tool id: ");
+      dpm($tool_id);
+      dpm("History_id: ");
+      dpm($target_history['id']);
+      
+      
       if($tool == FALSE || $tool == NULL){
+        dpm($galaxy_instance->getErrorMessage());
         drupal_set_message('Error rendering workflow information.' , 'Error');
+        
         return;
       }
       
@@ -288,7 +301,7 @@ function construct_component($tool_input, $index, &$webform_page, &$webform_weig
       // Boolean should have a single true/false value. It is also likely to
       // not have 'options' So we must invent our own
       $is_list = 0;
-      $webform_items = "t|True";
+      $webform_items = "t|True\nFalse";
       break;
       
     case 'drill_down':
