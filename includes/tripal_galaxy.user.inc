@@ -19,8 +19,8 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   
   
   // Initialize variables.
-  $webform_weight = 25;
   $webform_page = 1;
+  $webform_weight = 0;
   $components = NULL;
   
   // Obtain the galaxy server from the galaxy id
@@ -83,8 +83,8 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
         'name' => 'Upload dataset',
         'form_key' => 'dataset_' . $i,
         'type' => 'file',
-        'weight' => $webform_weight ++,
         'mandatory' => 1,
+        'weight' => $webform_weight,
         'pid' => 0,
         'filtering' => array (
           'types' => array (
@@ -98,10 +98,13 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
         'page_num' => $webform_page 
       );
       $webform_page++;
+      $webform_weight++;
       $i --;
       continue;
-    }     
-    else { 
+    } 
+    
+    // If the step is not of type data_type
+    else {
       
       // Get the tool_id, continue if it is null. All steps should have
       // exactly zero or one Tool.
@@ -115,7 +118,7 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
       // about its tool.
       $tool_instance = new GalaxyTools ( $galaxy_instance );
       $tool = $tool_instance->build ( array (
-        'tool_id' => $tool_id,
+        'tool_id' => urlencode($tool_id),
         'history_id' => $target_history['id'], 
       ));
      
@@ -145,8 +148,27 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
         $component = construct_component($input, $i, $webform_page, $webform_weight);
         if($component != FALSE){
           $components[] = $component;
+
         }
-      }  
+      }
+      $webform_weight ++;
+      // Add a page breaker.
+      $component[] = array (
+        'pid' => '0',
+        'form_key' => 'bobs_your_uncle',
+        'name' => "bob's your uncle",
+        'type' => 'pagebreak',
+        'weight' => $webform_weight,
+        'value' => '',
+        'extra' => array (
+          'private' => 0,
+          'next_page_label' => '',
+          'prev_page_label' => '' 
+        ),
+        'required' => '0',
+        'page_num' => $webform_page 
+      );
+      $webform_page ++;
     }
     
     // Decrement the counter
@@ -340,7 +362,11 @@ function construct_component($tool_input, $index, &$webform_page, &$webform_weig
    // Obtain the tool name.
   $input_name = NULL;
   if (! array_key_exists ( 'label', $tool_input )) {
-    $input_name = $tool_input['title'];
+    if(!array_key_exists('title', $tool_input)){
+      $input_name = NULL;
+    }else {
+      $input_name = $tool_input['title'];
+    }
   } else {
     $input_name = $tool_input['label'];
   }
@@ -368,14 +394,13 @@ function construct_component($tool_input, $index, &$webform_page, &$webform_weig
     'form_key' => "Step " . $index .": " . $input_name,
     'type' => $webform_type,
     'value' => $webform_value,
+    'weight' => $webform_weight,  
     'mandatory' => $mandatory,
-    'weight' => $webform_weight++,
     'pid' => 0,
     'extra' => $extra,
     'page_num'=> $webform_page,
   );
-  $webform_page++;
-  
+  $webform_weight++;
   return $component;
 }
 
