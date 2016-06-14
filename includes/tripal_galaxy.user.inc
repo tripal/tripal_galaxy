@@ -11,28 +11,20 @@
  * The base function to submitted_list()
  */
 function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
-  // Set up basic node defaults.
-  if ($workflow_id == NULL) {
-    drupal_set_message ( t ( 'This page currently not supported' ), 'error' );
-    return;
-  }
   
-  
-  // Initialize variables.
+  // Initialize variables. All of these variables are necessary 
+  // to create paginated webforms.
   $webform_page = 1;
   $webform_weight = 0;
+  $webform_cid = 1;
   $components = NULL;
   
   // Obtain the galaxy server from the galaxy id
   $galaxy_server = db_query ( "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id", array (
     ':galaxy_id' => $galaxy_id 
-  ) );
+  ));
   $galaxy_server = $galaxy_server->fetchObject ();
-  
-  dpm("This is the galaxy server: ");
-  dpm($galaxy_server);
-  
-  
+   
   // Obtain the hostname and port from the url
   $matches = array ();
   $regex = "((https|http):\/\/)?"; // SCHEME
@@ -64,22 +56,21 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   $histories = $history_instance->index ();
   $target_history = $histories[0];
      
-
-  
   // Make sure we have a valid workflow.
   if ($workflow == NULL || ! is_array ( $workflow ) || ! array_key_exists ( 'steps', $workflow )) {
     drupal_set_message ( t ( 'Unrecognized response from Galaxy server' ), 'error' );
     return;
   }
-  
-  // Construct web form components based on workflow steps.
-  $i = count ( $workflow['steps'] );
+    
+    // Construct web form components based on workflow steps.
+  $i = 1;
   foreach ( $workflow['steps'] as $step ) {
-      
-      // If the step is of type data_input. This step is to prompt the user for
-      // a file on their computer. Note this is not a tool.
+    
+    // If the step is of type data_input. This step is to prompt the user for
+    // a file on their computer. Note this is not a tool.
     if ($step['type'] == "data_input") {
       $components[] = array (
+        'cid' => $webform_cid,
         'name' => 'Upload dataset',
         'form_key' => 'dataset_' . $i,
         'type' => 'file',
@@ -93,86 +84,85 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
             'blast' 
           ),
           'addextensions' => '',
-          'size' => '2 GB' 
+          'size' => file_upload_max_size () 
         ),
         'page_num' => $webform_page 
       );
-      $webform_page++;
-      $webform_weight++;
-      $i --;
-      continue;
-    } 
-    
-    // If the step is not of type data_type
+      $webform_weight ++;
+      $webform_cid ++;
+
+    }     
+
+    // If the step is not of type data_type. It must be a tool.
     else {
       
       // Get the tool_id, continue if it is null. All steps should have
       // exactly zero or one Tool.
       $tool_id = $step['tool_id'];
       if ($tool_id == NULL) {
-        $i --;
+        dpm ( "@@@@ THIS TOOL ID IS NULL @@@@" );
         continue;
       }
       
-      // Construct the component for this step by fining input information 
+      // Construct the component for this step by fining input information
       // about its tool.
       $tool_instance = new GalaxyTools ( $galaxy_instance );
       $tool = $tool_instance->build ( array (
-        'tool_id' => urlencode($tool_id),
-        'history_id' => $target_history['id'], 
-      ));
-     
-      dpm("Tool id: ");
-      dpm($tool_id);
-      dpm("History_id: ");
-      dpm($target_history['id']);
+        'tool_id' => urlencode ( $tool_id ),
+        'history_id' => $target_history['id'] 
+      ) );
       
-      
-      if($tool == FALSE || $tool == NULL){
-        dpm($galaxy_instance->getErrorMessage());
-        drupal_set_message('Error rendering workflow information.' , 'Error');
-        
+      // Make sure tool informaiton is correct
+      if ($tool == FALSE || $tool == NULL) {
+        dpm ( $galaxy_instance->getErrorMessage () );
+        drupal_set_message ( 'Error rendering workflow information.', 'Error' );
         return;
       }
       
       // Iterate over tool inputs
       foreach ( $tool["inputs"] as $input ) {
-                      
+        
         // If there is no type in this input, skip this input
-        if(!array_key_exists('type', $input)){
+        if (! array_key_exists ( 'type', $input )) {
+          dpm ( "@@@ @@@ @@@ Tool input contains no type! Tool information: @@@ @@@ @@@" );
+          dpm ( $tool );
           continue;
         }
         
-        // Add The appropriate webform components to 
+        // Add The appropriate webform components to
         // to match each of the input models
-        $component = construct_component($input, $i, $webform_page, $webform_weight);
-        if($component != FALSE){
+        $component = construct_component ( $input, $i, $webform_page, $webform_weight, $webform_cid );
+        if ($component != FALSE) {
           $components[] = $component;
-
+        }else {
+          dpm($component);
         }
       }
-      $webform_weight ++;
-      // Add a page breaker.
-      $component[] = array (
-        'pid' => '0',
-        'form_key' => 'bobs_your_uncle',
-        'name' => "bob's your uncle",
-        'type' => 'pagebreak',
-        'weight' => $webform_weight,
-        'value' => '',
-        'extra' => array (
-          'private' => 0,
-          'next_page_label' => '',
-          'prev_page_label' => '' 
-        ),
-        'required' => '0',
-        'page_num' => $webform_page 
-      );
-      $webform_page ++;
     }
     
-    // Decrement the counter
-    $i --;
+    // Add a page breaker for the next step.
+    $webform_page ++;
+    $component[] = array (
+      'cid' => $webform_cid,
+      'pid' => '0',
+      'form_key' => 'pagebreak_' . $i,
+      'name' => 'pagebreak_' . $i,
+      'type' => 'pagebreak',
+      'weight' => $webform_weight,
+      'value' => '',
+      'extra' => array (
+        'private' => 0,
+        'next_page_label' => '',
+        'prev_page_label' => '' 
+      ),
+      'required' => '0',
+      'page_num' => $webform_page 
+    );
+    $webform_weight ++;
+    $webform_cid ++;
+    
+    // Increment the counter
+    $i ++;
   }
   
   // Default values for the node
@@ -186,8 +176,8 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
   $node->uid = 1;
   $node->promote = 0;
   $node->comment = 0;
-  
-  // Attach the webform to the node.
+    
+    // Attach the webform to the node.
   $node->webform = array (
     'confirmation' => '',
     'confirmation_format' => NULL,
@@ -198,16 +188,30 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
     'allow_draft' => '0',
     'auto_save' => '0',
     'submit_notice' => '1',
+    'confidential' => '0',
     'submit_text' => '',
     'submit_limit' => '-1', // User can submit more than once.
     'submit_interval' => '-1',
     'total_submit_limit' => '-1',
     'total_submit_interval' => '-1',
+    'progressbar_bar' => '1',
+    'progressbar_page_number' => '0',
+    'progressbar_percent' => '0',
+    'progressbar_pagebreak_labels' => '1',
+    'progressbar_include_confirmation' => '1',
+    'progressbar_label_first' => 'Start',
+    'progressbar_label_confirmation' => 'Complete',
+    'preview' => '0',
+    'preview_next_button_label' => '',
+    'preview_prev_button_label' => '',
+    'preview_title' => '',
+    'preview_message' => '',
+    'preview_message_format' => NULL,
     'record_exists' => TRUE,
     'roles' => array (
-      0 => '1' 
+     '1', '2', 
     ),
-
+    'emails' => array(),
     'components' => $components 
   );
   
@@ -229,7 +233,7 @@ function tripal_galaxy_admin_submitted_list_base($galaxy_id, $workflow_id) {
  *   An array suitable for the 'components' webform array 
  *   False otherwise. 
  */
-function construct_component($tool_input, $index, &$webform_page, &$webform_weight) {
+function construct_component($tool_input, $index, &$webform_page, &$webform_weight, &$webform_cid) {
  
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
@@ -238,42 +242,62 @@ function construct_component($tool_input, $index, &$webform_page, &$webform_weig
   $is_list = 1;
   $has_multiple = 0;
   $mandatory = 0;
-  $webform_items = "";
+  $webform_items = "Not Available";
   $webform_value = "";
   $webform_type = 'select';
   
+  // If the tool_input contains a value of test_param,
+  // For now, set the tool input equal to that
+  if(array_key_exists("test_param", $tool_input)){
+    $tool_input = $tool_input['test_param'];
+  }
+  
+  
+  // Set the default value accordingly.
+  if(array_key_exists('value', $tool_input)){
+    $webform_value = $tool_input['value'];
+  }
+  
+  // Find the options
   if (array_key_exists ( 'options', $tool_input )) {
     $options = $tool_input['options'];
   }
   
-  // Add options to the webform items list.
+  // Add options to the webform items list. This loop is tricky
+  // But its essentially grabbing the first non-array item in each option.
   $x = 0;
   foreach ( $options as $option ) {
     if (count ( $option ) == 0) {
       continue;
     }
-    
-    dpm("Current option: ");
-    dpm($option);
-    while (is_array($option)){
-      foreach ($option as &$inner_option){
-        $option = $inner_option;
-        break;
-      }
       
+      // Iterate through the subArrays until we find our first string value.
+    while ( is_array ( $option ) ) {
+      
+      // if the 'name' element exists, use this as our string value
+      if (array_key_exists ( 'name', $option )) {
+        $option = $option['name'];
+      } else {
+        
+        // Let the option equal the first element in the option array
+        foreach ( $option as &$inner_option ) {
+          $option = $inner_option;
+          break;
+        }
+      }
     }
     
-    
-    // Items must be in the form 'key1|value1 \n key2|value2'; 
+    // Add the option to the webform_items in the form:
+    // 'key1|value1 \n key2|value2'
     $webform_items .= $option ."_" . $x . "|" . $option ."\n";
     $x++;
   }
     
+  
   // Extract tool input form information to a drupal webform component.
-  switch ($tool_input['type']) {
+  switch ($tool_input['type']) {  
     
-    case 'text':
-      
+    case 'text':     
       // Text should be the webform equivalent of textfield.
       $webform_type = 'textfield';
       if(array_key_exists('value', $tool_input)){
@@ -304,7 +328,7 @@ function construct_component($tool_input, $index, &$webform_page, &$webform_weig
     case 'data':
       
       // For the most part, this should be the default drop down list webform
-      // Component.
+           
       break;
     case 'data_collection':
       
@@ -323,7 +347,7 @@ function construct_component($tool_input, $index, &$webform_page, &$webform_weig
       // Boolean should have a single true/false value. It is also likely to
       // not have 'options' So we must invent our own
       $is_list = 0;
-      $webform_items = "t|True\nFalse";
+      $webform_items = "t|True\nf|False";
       break;
       
     case 'drill_down':
@@ -359,7 +383,7 @@ function construct_component($tool_input, $index, &$webform_page, &$webform_weig
       break;
   }
     
-   // Obtain the tool name.
+  // Obtain the tool name.
   $input_name = NULL;
   if (! array_key_exists ( 'label', $tool_input )) {
     if(!array_key_exists('title', $tool_input)){
@@ -390,6 +414,7 @@ function construct_component($tool_input, $index, &$webform_page, &$webform_weig
   
   // Default component. Defaults to a drop-down list component.
   $component = array (
+    'cid' => $webform_cid,
     'name' =>"Step " . $index .": " . $input_name,
     'form_key' => "Step " . $index .": " . $input_name,
     'type' => $webform_type,
@@ -400,6 +425,7 @@ function construct_component($tool_input, $index, &$webform_page, &$webform_weig
     'extra' => $extra,
     'page_num'=> $webform_page,
   );
+  $webform_cid++;
   $webform_weight++;
   return $component;
 }
@@ -412,7 +438,10 @@ function tripal_galaxy_admin_submitted_list() {
   tripal_galaxy_admin_submitted_list_base ( 0 );
 }
 
-
+/**
+ * A bogus function that serves no real purpose other than to work as an
+ *  example. 
+ */
 function test_webforms() {
   $node = new stdClass ();
   $node->type = 'webform';
