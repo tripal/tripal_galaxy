@@ -21,7 +21,7 @@ function tripal_galaxy_init() {
     if (!$library) {
       drupal_set_message(t('The GalaxyLib-PHP library is not installed. The Galaxy module requires it.'), 'warning');
     }
-  } 
+  }
 }
 
 
@@ -135,8 +135,8 @@ function tripal_galaxy_menu() {
       'administer galaxy'
     ),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.wf_form.inc',
-    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
+    'file' => 'includes/tripal_galaxy.admin_wf_form.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy')
   );
 
   // Add Workflows
@@ -144,27 +144,19 @@ function tripal_galaxy_menu() {
     'title' => 'Add Workflows',
     'description' => 'Add workflows to the site given the remote galaxy instance',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array (
-      'tripal_galaxy_admin_add_wf_form'
-    ),
-    'access arguments' => array (
-      'administer galaxy'
-    ),
+    'page arguments' => array('tripal_galaxy_admin_add_wf_form'),
+    'access arguments' => array('administer galaxy'),
     'type' => MENU_LOCAL_ACTION,
-    'file' => 'includes/tripal_galaxy.wf_form_add.inc',
-    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
+    'file' => 'includes/tripal_galaxy.admin_wf_form_add.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy' )
   );
 
   // Remove Workflows
   $items['admin/tripal/extension/galaxy/available_wf/remove/%'] = array (
     'description' => 'Remove a Workflow from site',
     'page callback' => 'tripal_galaxy_admin_remove_wf',
-    'page arguments' => array (
-      6,
-    ),
-    'access arguments' => array (
-      'administer galaxy'
-    ),
+    'page arguments' => array(6),
+    'access arguments' => array('administer galaxy'),
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
