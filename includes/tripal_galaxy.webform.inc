@@ -61,7 +61,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   dpm($workflow);
   // Construct web form components based on workflow steps.
   $i = 1;
-  foreach ($workflow['steps'] as $step_index => $step) {
+  $steps = $workflow['steps'];
+  foreach ($steps as $step_index => $step) {
 
     // Get the tool for this step.  Some steps don't have tools so the tool_id
     // stays as null if there isn't one.
@@ -106,7 +107,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'private' => 0,
         'css_classes' => '',
         'title_display' => 0,
-        'collapsible' => 0,
+        'collapsible' => 1,
         'collapsed' => 0,
         'description' => $fieldset_desc,
       ),
@@ -154,22 +155,14 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       );
     }
 
-    // Add in the tool and it's inputs to the webform.
+    // If this step isn't a tool then handle it appropriately.
     if (!$tool) {
       tripal_galaxy_add_webform_non_tool_input($components, $step, $i, $cid);
     }
+    // Otherwise, iterate over tool inputs and add webform components.
     else {
-      // Iterate over tool inputs.
-      foreach ($tool["inputs"] as $input) {
-        // If there is no type skip this input
-        if (!array_key_exists('type', $input)) {
-          dpm("@@@ @@@ @@@ Tool input contains no type! Tool information: @@@ @@@ @@@");
-          dpm($tool);
-          continue;
-        }
-
-        // Add appropriate webform components to match the inputs.
-        tripal_galaxy_add_webform_tool_input($components, $input, $step, $i, $cid);
+      foreach ($tool["inputs"] as $tool_input) {
+        tripal_galaxy_add_webform_tool_input($components, $tool_input, $steps, $i, $cid);
       }
     }
     // Increment the step counter;
@@ -284,7 +277,7 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
  *   An array suitable for the 'components' webform array
  *   False otherwise.
  */
-function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $step, $step_index, $pid = 0) {
+function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps, $step_index, $pid = 0) {
 
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
@@ -454,6 +447,21 @@ function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $step, 
   else if(array_key_exists('title', $tool_input)) {
     $input_name = $tool_input['title'];
   }
+
+
+  // If this field recieves it's value from a previous step then we want
+  // to set the type as markup and print that information
+  $tool_name = $tool_input['name'];
+  if (array_key_exists($tool_name, $steps[$step_index-1]['input_steps'])){
+    $source_step = $steps[$step_index-1]['input_steps'][$tool_name]['source_step'];
+    $step_output = $steps[$step_index-1]['input_steps'][$tool_name]['step_output'];
+    $webform_type = 'markup';
+    $extra['format'] = 'full_html';
+    $webform_value =  "<label>" . $input_name . "</label>" .
+      "Output from step " . ($source_step + 1);
+  }
+
+
 
   // Default component. Defaults to a drop-down list component.
   $cid = count($components) + 1;
