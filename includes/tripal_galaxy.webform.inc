@@ -284,7 +284,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps,
   $options = array();
   $component = array ();
   $is_list = 1;
-  $webform_items = "0|No Options";
   $webform_value = "";
   $webform_type = 'select';
   $input_name = '';
@@ -293,16 +292,10 @@ function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps,
     'title_display' => 'before',
     'description_above' => 1,
     'private' => 0,
-    'items' => $webform_items,
+    'items' => "0|-Select-",
     'aslist' => $is_list,
     'multiple' => 0,
   );
-
-  // If the tool_input contains a value of test_param then set the tool input
-  // equal to that.
-  if(array_key_exists("test_param", $tool_input)){
-    $tool_input = $tool_input['test_param'];
-  }
 
   // Set the default value accordingly.
   if(array_key_exists('value', $tool_input)){
@@ -332,37 +325,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps,
     $extra['description'] = $tool_input['help'];
   }
 
-  // Add options to the webform items list. This loop is tricky,
-  // but its essentially grabbing the first non-array item in each option.
-  $x = 0;
-  foreach ($options as $option) {
-    if (count($option) == 0) {
-      continue;
-    }
-
-      // Iterate through the subArrays until we find our first string value.
-    while (is_array($option)) {
-
-      // if the 'name' element exists, use this as our string value
-      if (array_key_exists('name', $option)) {
-        $option = $option['name'];
-        continue;
-      }
-
-      // Let the option equal the first element in the option array
-      foreach ($option as &$inner_option) {
-        $option = $inner_option;
-        break;
-      }
-    }
-
-    // Add the option to the webform_items in the form:
-    // 'key1|value1 \n key2|value2'.
-    $webform_items .= $option ."_" . $x . "|" . $option ."\n";
-    $x++;
-  }
-
-
   // Extract tool input form information to a drupal webform component.
   switch ($tool_input['type']) {
     case 'text':
@@ -391,7 +353,14 @@ function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps,
       break;
 
     case 'data':
-      // For the most part, this should be the default drop down list webform
+      // Data appears to be a file selection of files that already
+      // exists in the user's history.
+      $webform_type = 'select';
+      foreach ($tool_input['options'] as $key => $vals) {
+        foreach ($vals as $details) {
+          $extra['items'] .= $details['id'] . '|' . $details['name'] . "\n";
+        }
+      }
       break;
 
     case 'data_collection':
@@ -434,6 +403,22 @@ function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps,
     case 'repeat':
       break;
 
+    case 'conditional':
+      // A conditional case contains nested components but those components
+      // should only be shown when specific selections are made in other
+      // components. We will recursively add all the components and then
+      // create the conditional rules that webforms will use to show the
+      // conditional fields.
+      foreach ($tool_input['cases'] as $case) {
+        foreach ($case['inputs'] as $input) {
+          tripal_galaxy_add_webform_tool_input($components, $input, $steps, $step_index, $pid);
+        }
+      }
+
+      // We won't add a 'conditional' as a component so we can short circuit
+      // this function and return.
+      return;
+      break;
     default :
       drupal_set_message('Unhandled tool input type: ' . $tool_input['type'], 'error');
       break;
