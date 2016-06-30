@@ -16,10 +16,10 @@ require ('theme/tripal_galaxy.theme.inc');
 function tripal_galaxy_init() {
   global $user;
 
-  $library = libraries_detect('GalaxyLib-PHP');
+  $library = libraries_detect('blend4php');
   if (user_access('administer galaxy', $user)) {
     if (!$library) {
-      drupal_set_message(t('The GalaxyLib-PHP library is not installed. The Galaxy module requires it.'), 'warning');
+      drupal_set_message(t('The blend4php library is not installed. The Galaxy module requires it.'), 'warning');
     }
   }
 }
@@ -36,10 +36,10 @@ function tripal_galaxy_libraries_info() {
 
   // A very simple library. No changing APIs (hence, no versions), no variants.
   // Expected to be extracted into 'sites/all/libraries/simple'.
-  $libraries['GalaxyLib-PHP'] = array(
-    'name' => 'GalaxyLib-PHP',
-    'vendor url' => 'https://github.com/tripal/GalaxyLib-PHP',
-    'download url' => 'https://github.com/tripal/GalaxyLib-PHP',
+  $libraries['blend4php'] = array(
+    'name' => 'blend4php',
+    'vendor url' => 'https://github.com/galaxyproject/blend4php',
+    'download url' => 'https://github.com/galaxyproject/blend4php',
     'version arguments' => array(
       'file' => 'version.txt',
       'pattern' => '/^(.*)$/',
@@ -69,7 +69,7 @@ function tripal_galaxy_permission() {
     ),
     'administer galaxy' => array (
       'title' => t ( 'Administer Galaxy' ),
-      'description' => t ( 'Allows a user to submit a published workflow for execution on a remote Galaxy Instance' )
+      'description' => t ( 'Allows a user to configure site-wide default Galaxy instances.' )
     )
   );
 }

@@ -72,7 +72,7 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
 
     // Create a new galaxy instance using the obtained hostname and port
     // Then Authenticate
-    libraries_load('GalaxyLib-PHP');
+    libraries_load('blend4php');
     $galaxy_instance = new GalaxyInstance($hostname, $port);
     $galaxy_instance->setAPIKey($galaxy_server->api_key);
 
@@ -247,18 +247,29 @@ function tripal_galaxy_admin_add_wf_form_submit($form, &$form_state) {
     if (($form_rows[$i]['available-' . $i] == 1) && ($form_state['values']['contains_wf-' . $i] == FALSE)) {
 
       // Insert the new workflow into the db given the data from the add wd form
-      $data = array(
-        'workflow_name' => $form_rows[$i]['workflow_name-server-' . $i],
-        'workflow_id' => $form_rows[$i]['workflow_id-server-' . $i],
-        'galaxy_id' => $form_state['values']['galaxy_id-server'],
-        'available' => $form_rows[$i]['available-' . $i]
-      );
-      $workflow = drupal_write_record('tripal_galaxy_wf', $data);
-
-      // Create the appropriate node for this workflow
-      module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.webform');
-      tripal_galaxy_build_webform($data['galaxy_id'], $data['workflow_id']);
-      drupal_set_message(t('Workflow Added'));
+      $transaction = db_transaction();
+      try {
+        $data = array(
+          'workflow_name' => $form_rows[$i]['workflow_name-server-' . $i],
+          'workflow_id' => $form_rows[$i]['workflow_id-server-' . $i],
+          'galaxy_id' => $form_state['values']['galaxy_id-server'],
+          'available' => $form_rows[$i]['available-' . $i]
+        );
+        $workflow = drupal_write_record('tripal_galaxy_wf', $data);
+  
+        // Create the appropriate node for this workflow
+        module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.webform');
+        $success = tripal_galaxy_build_webform($data['galaxy_id'], $data['workflow_id']);
+        if (!$success) {
+          throw new Exception('Could not create workflow');
+        }
+        drupal_set_message(t('Workflow Added'));
+      }
+      catch (Exception $e) {
+        $transaction->rollback();
+        drupal_set_message($e->getMessage(), 'error');
+        //watchdog_exception('tripal_galaxy', $e);
+      }
     }
     $i ++;
   }

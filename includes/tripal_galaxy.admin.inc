@@ -1,7 +1,5 @@
 <?php
 
-
-
 /**
  * @file
  * This file contains the functions used for administration of the module
@@ -250,7 +248,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
 
     // Create a new galaxy instance using the obtained hostname and port
     // Then Authenticate
-    $library = libraries_load('GalaxyLib-PHP');
+    $library = libraries_load('blend4php');
     $galaxy_instance = new GalaxyInstance($hostname, $port);
     $galaxy_instance->setAPIKey($data['api_key']);
 

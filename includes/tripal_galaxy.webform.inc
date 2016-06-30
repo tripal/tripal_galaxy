@@ -13,6 +13,9 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
   // The array of components for the webform.
   $components = array();
+  
+  // The conditionals array for the webform
+  $conditionals = array();
 
   // Obtain the galaxy server details using the galaxy id.
   $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
@@ -28,14 +31,14 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $hostname = $matches[3];
   $port = $matches[5];
 
-  // Load the GalaxyLib-PHP library into scope and create the Galaxy instance.
-  $library = libraries_load('GalaxyLib-PHP');
+  // Load the blend4php library into scope and create the Galaxy instance.
+  $library = libraries_load('blend4php');
   $galaxy_instance = new GalaxyInstance($hostname, $port);
 
   // Check to make sure we have a valid connection.
   if($galaxy_instance->getVersion() == NULL){
     drupal_set_message(t('Cannot connect to galaxy instance'), 'error');
-    return;
+    return FALSE;
   }
 
   // Set the API for this galaxy instance.
@@ -43,7 +46,12 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
   // Create the workflow instance.
   $workflow_instance = new GalaxyWorkflows($galaxy_instance);
-  $workflow = $workflow_instance->show($workflow_id);
+  $workflow = $workflow_instance->show(array('workflow_id' => $workflow_id));
+  if (!$workflow) {
+    drupal_set_message('Cannot find workflow. ' . $galaxy_instance->getErrorMessage(), 'error');
+    return FALSE;
+  }
+  dpm($workflow);
 
   // Select a target history by using the first history owned by the user.
   // The history_id is required for retrieving tool information for a workflow.
@@ -52,13 +60,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $histories = $history_instance->index();
   $target_history = $histories[0];
 
-  // Make sure we have a valid workflow.
-  if ($workflow == NULL || !is_array($workflow) || !array_key_exists('steps', $workflow)) {
-    drupal_set_message(t('Unrecognized response from Galaxy server'), 'error');
-    return;
-  }
-
-  dpm($workflow);
   // Construct web form components based on workflow steps.
   $i = 1;
   $steps = $workflow['steps'];
@@ -78,7 +79,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       // Make sure tool informaiton is correct.
       if (!$tool) {
         drupal_set_message('Cannot retrieve tool information from Galaxy: ' . $tool_id, 'Error' );
-        return;
+        return FALSE;
       }
       dpm($tool);
     }
@@ -162,7 +163,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     // Otherwise, iterate over tool inputs and add webform components.
     else {
       foreach ($tool["inputs"] as $tool_input) {
-        tripal_galaxy_add_webform_tool_input($components, $tool_input, $steps, $i, $cid);
+        tripal_galaxy_add_webform_tool_input($components, $conditionals, $tool_input, $steps, $i, $cid);
       }
     }
     // Increment the step counter;
@@ -217,11 +218,13 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
      '1', '2',
     ),
     'emails' => array(),
-    'components' => $components
+    'components' => $components,
+    'conditionals' => $conditionals
   );
 
   // Save the node.
   node_save($node);
+  return TRUE;
 }
 
 /**
@@ -277,7 +280,7 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
  *   An array suitable for the 'components' webform array
  *   False otherwise.
  */
-function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps, $step_index, $pid = 0) {
+function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $tool_input, $steps, $step_index, $pid = 0) {
 
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
@@ -361,6 +364,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps,
           $extra['items'] .= $details['id'] . '|' . $details['name'] . "\n";
         }
       }
+      $webform_value = '';
       break;
 
     case 'data_collection':
@@ -403,15 +407,35 @@ function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps,
     case 'repeat':
       break;
 
-    case 'conditional':
+    case 'conditional':     
       // A conditional case contains nested components but those components
       // should only be shown when specific selections are made in other
       // components. We will recursively add all the components and then
       // create the conditional rules that webforms will use to show the
       // conditional fields.
+      
+      // First add the test param as this is used for the conditional
+      tripal_galaxy_add_webform_tool_input($components, $conditionals, $tool_input['test_param'], $steps, $step_index, $pid);
+      $num_components = count($components) - 1;
+      $source_id = $components[$num_components]['cid'];
+      
+      // Add the case paramters.
       foreach ($tool_input['cases'] as $case) {
         foreach ($case['inputs'] as $input) {
-          tripal_galaxy_add_webform_tool_input($components, $input, $steps, $step_index, $pid);
+          tripal_galaxy_add_webform_tool_input($components, $conditionals, $input, $steps, $step_index, $pid);
+          $num_components = count($components) - 1;
+          $target_id = $components[$num_components]['cid'];
+          
+          // CONNOR: Add each conditional here
+          $conditionals[] = array(
+            'andor' => NULL,
+            'weight' => 1,
+            'rules' => array(
+            ),
+            'actions' => array(
+              
+            )
+          );
         }
       }
 
@@ -447,10 +471,9 @@ function tripal_galaxy_add_webform_tool_input(&$components, $tool_input, $steps,
   }
 
 
-
   // Default component. Defaults to a drop-down list component.
   $cid = count($components) + 1;
-  $components[] = array (
+  $components[] = array(
     'cid' => $cid,
     'pid' => $pid,
     'name' => $input_name,
