@@ -13,7 +13,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
   // The array of components for the webform.
   $components = array();
-  
+
   // The conditionals array for the webform
   $conditionals = array();
 
@@ -81,7 +81,9 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         drupal_set_message('Cannot retrieve tool information from Galaxy: ' . $tool_id, 'Error' );
         return FALSE;
       }
-      dpm($tool);
+      if ($tool['name'] == 'TopHat') {
+        dpm($tool);
+      }
     }
 
     // Each step is contained in a fieldset. We'll name the field set after
@@ -170,6 +172,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     $i++;
   }
   dpm($components);
+  dpm($conditionals);
 
   // Default values for the node
   $node = new stdClass ();
@@ -407,34 +410,48 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     case 'repeat':
       break;
 
-    case 'conditional':     
+    case 'conditional':
       // A conditional case contains nested components but those components
       // should only be shown when specific selections are made in other
       // components. We will recursively add all the components and then
       // create the conditional rules that webforms will use to show the
       // conditional fields.
-      
+
       // First add the test param as this is used for the conditional
       tripal_galaxy_add_webform_tool_input($components, $conditionals, $tool_input['test_param'], $steps, $step_index, $pid);
       $num_components = count($components) - 1;
       $source_id = $components[$num_components]['cid'];
-      
+
       // Add the case paramters.
       foreach ($tool_input['cases'] as $case) {
-        foreach ($case['inputs'] as $input) {
+        foreach ($case['inputs'] as $cindex => $input) {
+
           tripal_galaxy_add_webform_tool_input($components, $conditionals, $input, $steps, $step_index, $pid);
           $num_components = count($components) - 1;
           $target_id = $components[$num_components]['cid'];
-          
-          // CONNOR: Add each conditional here
+
           $conditionals[] = array(
             'andor' => NULL,
-            'weight' => 1,
+            'weight' => $cindex,
             'rules' => array(
+              array(
+                'source_type' => 'component',
+                'source' => $source_id,
+                // element will be listening
+                'operator' => 'equal',
+                // This is the option for which this conditional applies.
+                'value' => $case['value'],
+              ),
             ),
+            // What will happen when the conditional is met
             'actions' => array(
-              
-            )
+              array(
+                'target_type' => 'component',
+                'target' => $target_id,
+                'action' => 'show',
+                'argument' => '',
+              ),
+            ),
           );
         }
       }
