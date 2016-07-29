@@ -287,6 +287,32 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
 
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
+  
+  
+  // This is for the test param recursive step
+  if(array_key_exists('options', $tool_input)) {
+    $inputs = '';
+    // Generate the options that will be put under
+    foreach ($tool_input['options'] as $key => $val) {
+      // The val is now that sub-array containing the human readable option
+      // (index 0) as well as the unique key-name (index 1).
+      if(is_array($val) and !empty($val) and count($val) >= 2) {
+        $inputs .= $val[1] . '|' . $val[0] . "\r\n";
+      }
+    }
+  }
+  
+    if(empty($inputs)) {
+      if(empty($inputs) and array_key_exists('text_value', $tool_input)) {
+          $inputs = $tool_input['text_value'];
+        }
+      
+       else if(empty($inputs)){
+        $inputs = "";
+      }
+    }
+  
+  
   $options = array();
   $component = array ();
   $is_list = 1;
@@ -298,7 +324,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     'title_display' => 'before',
     'description_above' => 1,
     'private' => 0,
-    'items' => "0|-Select-",
+    'items' => $inputs,
     'aslist' => $is_list,
     'multiple' => 0,
   );
