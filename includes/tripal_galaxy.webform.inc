@@ -81,9 +81,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         drupal_set_message('Cannot retrieve tool information from Galaxy: ' . $tool_id, 'Error' );
         return FALSE;
       }
-      if ($tool['name'] == 'TopHat') {
-        dpm($tool);
-      }
+      dpm($tool);
     }
 
     // Each step is contained in a fieldset. We'll name the field set after
@@ -287,32 +285,25 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
 
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
-  
-  
-  // This is for the test param recursive step
   if(array_key_exists('options', $tool_input)) {
-    $inputs = '';
+    $items = '';
     // Generate the options that will be put under
     foreach ($tool_input['options'] as $key => $val) {
       // The val is now that sub-array containing the human readable option
       // (index 0) as well as the unique key-name (index 1).
       if(is_array($val) and !empty($val) and count($val) >= 2) {
-        $inputs .= $val[1] . '|' . $val[0] . "\r\n";
+        $items .= $val[1] . '|' . $val[0] . "\r\n";
       }
     }
   }
-  
-    if(empty($inputs)) {
-      if(empty($inputs) and array_key_exists('text_value', $tool_input)) {
-          $inputs = $tool_input['text_value'];
-        }
-      
-       else if(empty($inputs)){
-        $inputs = "";
-      }
-    }
-  
-  
+
+  // If there are no options for the tool then set the items to the
+  // default value if one is provided.
+  if(empty($items) and array_key_exists('text_value', $tool_input)) {
+    $items = $tool_input['text_value'];
+  }
+
+
   $options = array();
   $component = array ();
   $is_list = 1;
@@ -324,7 +315,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     'title_display' => 'before',
     'description_above' => 1,
     'private' => 0,
-    'items' => $inputs,
+    'items' => $items,
     'aslist' => $is_list,
     'multiple' => 0,
   );
@@ -450,36 +441,39 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
 
       // Add the case paramters.
       foreach ($tool_input['cases'] as $case) {
+        $conditional = array(
+          'andor' => NULL,
+          'weight' => count($conditionals),
+          'rules' => array(
+            array(
+              'source_type' => 'component',
+              'source' => $source_id,
+              // element will be listening
+              'operator' => 'equal',
+              // This is the option for which this conditional applies.
+              'value' => $case['value'],
+            ),
+          ),
+          'actions' => array(),
+        );
+
+        // Iterate through the cases and add a new component and a new
+        // conditional action.
         foreach ($case['inputs'] as $cindex => $input) {
 
           tripal_galaxy_add_webform_tool_input($components, $conditionals, $input, $steps, $step_index, $pid);
           $num_components = count($components) - 1;
           $target_id = $components[$num_components]['cid'];
 
-          $conditionals[] = array(
-            'andor' => NULL,
-            'weight' => $cindex,
-            'rules' => array(
-              array(
-                'source_type' => 'component',
-                'source' => $source_id,
-                // element will be listening
-                'operator' => 'equal',
-                // This is the option for which this conditional applies.
-                'value' => $case['value'],
-              ),
-            ),
-            // What will happen when the conditional is met
-            'actions' => array(
-              array(
-                'target_type' => 'component',
-                'target' => $target_id,
-                'action' => 'show',
-                'argument' => '',
-              ),
-            ),
+          $conditional['actions'][] = array(
+            'target_type' => 'component',
+            'target' => $target_id,
+            'action' => 'show',
+            'argument' => '',
           );
         }
+
+        $conditionals[] = $conditional;
       }
 
       // We won't add a 'conditional' as a component so we can short circuit
