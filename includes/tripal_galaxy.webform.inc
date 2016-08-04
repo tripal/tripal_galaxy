@@ -527,7 +527,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     'cid' => $cid,
     'pid' => $pid,
     'name' => $input_name,
-    'form_key' => "Step_" . $step_index ."_" . $cid,
+    'form_key' => "Step_" . $step_index ."_" . $tool_name,
     'type' => $webform_type,
     'value' => $webform_value,
     'extra' => $extra,
@@ -535,3 +535,146 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     'required' => $is_required,
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+function tripal_galaxy_invoke() {
+  
+  // Hardcoded node id for now.
+  $node_id = '225';
+  
+  // To run the workflow, we need:
+  // 0) Workflow id
+  // 0.5) Optionally a history id
+  // 1) Tool's index in workflow
+  // 2) Tool's parameter name
+  // 3) Tool's parameter value
+  $parameters = array ();
+  $tool_index = 0;
+  $tool_param_name = 0;
+  $tool_param_value = 0;
+  
+  // The form key element of the webform_component is what is used to attain the name of
+  // the webform element. Example: Step_8_41
+  // right now format is: Step_<step_number>_<param_name>
+  $form_key = 0;
+  
+  
+  $webform_components = db_select ( 'webform_component', 'wc' )->fields ( 'wc', array (
+    'form_key',
+    'value',
+    'name' 
+  ) )->condition ( 'nid', $node_id, '=' )->execute ();
+  
+  // Iterate through all of the components
+  while ( $webform_component = $webform_components->fetchObject () ) {
+    
+    //dpm ( "Here is the current webform_component: " );
+    //dpm ( $webform_component );
+    
+    $form_key = $webform_component->form_key;
+    $matches = array ();
+    
+    // Obtain the tool_index,
+    $tool_index = preg_match ( '/^Step_(\d+)/', $form_key, $matches );
+    
+    // Check to make sure we've matched with a valid tool_index
+    if ($tool_index == - 1 || count ( $matches ) == 0) {
+      continue;
+    }
+    $tool_index = $matches[1];
+    $tool_index --;
+    
+   // dpm ( "Here is the current tool index: " );
+   // dpm ( $tool_index );
+    
+    $matches = array ();
+    
+    // Obtain tool parameter name
+    $tool_param_name = preg_match ( '/^Step_\d+_(.+)/', $form_key, $matches );    
+    
+    // Check to make sure we have a valid parameter name
+    if ($tool_param_name == - 1 || count ( $matches ) == 0) {
+      continue;
+    }
+    $tool_param_name = $matches[1];
+       
+    //dpm ( "Here is the current tool param name" );
+    //dpm ( $tool_param_name );
+    
+    $tool_param_value = $webform_component->value;
+    
+    dpm ( "Here is the tool param value:" );
+    dpm ( $tool_param_value );
+    
+    // If the value is okay, add it to the parameters list
+    if(filter_cases($tool_param_value)){
+      dpm("Adding to parameters: ");
+      dpm($tool_param_value);
+      $array2 = array($tool_param_name => $tool_param_value);
+      if(empty($parameters[$tool_index])){
+        $parameters[$tool_index] = array();
+      }
+      $parameters[$tool_index] = array_merge($parameters[$tool_index], $array2);
+    }
+  
+  }
+  
+   dpm("The parameters are: ");
+   dpm($parameters);
+  
+   $parameters = array(
+    '3' => array('descr_columns' => "17"),
+    '4'=> array('convert_from'=> "Co" , 'strip'=>false),
+    '5' => array('columnList' => "c1,c7"),
+   );
+   dpm("The correct format is: ");
+   dpm($parameters);
+   
+}
+
+/**
+ * A function to filter the different cases for the values returned by the tools.
+ *   returns true if the value entered is a valid value to enter in the invoke_workflow
+ *   parameters. 
+ *   
+ */
+function filter_cases($value){
+  
+  $matches = array();
+
+   if($value ===''){
+      return FALSE; 
+    }
+    
+   // If the valuie contains any html,  it is not a valid value.
+   if(strpos($value, "<p>") !== FALSE) {
+      return FALSE;
+   }
+   if (strpos($value, "<string>") !== FALSE) {
+      return FALSE;
+   }
+   if (strpos($value, "<label>") !== FALSE) {
+      return FALSE;
+   }
+
+  return TRUE;
+  
+}
+
+
+
+
+
+
+
+

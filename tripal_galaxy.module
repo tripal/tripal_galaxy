@@ -161,6 +161,17 @@ function tripal_galaxy_menu() {
     'file' => 'includes/tripal_galaxy.admin.inc',
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
   );
+  
+    // Test the invoke functionality
+  $items['test_invoke'] = array(
+    'title' => 'Testing_Invoke',
+    'description' => 'Testing the invoke function with a wbeform nid of 223',
+    'page callback' => 'tripal_galaxy_invoke',
+    'access arguments' => array('administer galaxy'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/tripal_galaxy.webform.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy' )
+  );
 
   // Usage
   $items['admin/tripal/extension/galaxy/usage'] = array (
