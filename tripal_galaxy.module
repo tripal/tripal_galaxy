@@ -1,4 +1,3 @@
-
 <?php
 /**
  * @file
@@ -31,7 +30,6 @@ function tripal_galaxy_init() {
  *
  * For defining external libraries.
  */
-
 function tripal_galaxy_libraries_info() {
 
   // A very simple library. No changing APIs (hence, no versions), no variants.
@@ -162,7 +160,7 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
   );
   
-    // Test the invoke functionality
+/*     // Test the invoke functionalityw
   $items['test_invoke'] = array(
     'title' => 'Testing_Invoke',
     'description' => 'Testing the invoke function with a wbeform nid of 223',
@@ -171,7 +169,7 @@ function tripal_galaxy_menu() {
     'type' => MENU_NORMAL_ITEM,
     'file' => 'includes/tripal_galaxy.webform.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy' )
-  );
+  ); */
 
   // Usage
   $items['admin/tripal/extension/galaxy/usage'] = array (
@@ -268,6 +266,235 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
   );
   return $items;
 }
+
+
+/**
+ * 
+ * @param  $form
+ * @param  $form_state
+ * @param  $form_id
+ */
+function tripal_galaxy_form_alter(&$form, &$form_state, $form_id ) {
+  
+  // Check to make sure we have the right form_state
+  if(!array_key_exists('webform', $form_state)){
+    dpm("I don't have a webform;");
+    return;
+  }
+  
+  if(!array_key_exists('component_tree', $form_state['webform']) ){
+    dpm("I don't have a component tree");
+    return;
+  }
+  
+  if(!array_key_exists('children', $form_state['webform']['component_tree'])){
+    dpm("I don't have children");
+    return;
+  }
+  
+  if(count($form_state['webform']['component_tree']['children']) < 1){
+    dpm("I have too few children");
+    return;
+  }
+  
+  $webform = $form_state['webform']['component_tree']['children'];
+  dpm("Here is my webform:");
+  dpm($form_state);
+  
+  // If the form is a galaxy webform, it should have a [Galaxy Webform] tag
+  if ($webform[1]['form_key'] == 'galaxy_webform') {
+    $form['#submit'] = array('tripal_galaxy_execute_workflow');
+    dpm($form);
+  } 
+  
+}
+
+
+/**
+ * The function responsible for overriding the webform's submit handler 
+ * 
+ * @param unknown $form
+ * @param unknown $form_state
+ */
+function tripal_galaxy_execute_workflow($form, &$form_state){
+  $parameters = tripal_galaxy_gather_params($form, $form_state);
+  $inputs = tripal_galaxy_gather_inputs($form, $form_state);
+}
+
+function tripal_galaxy_gather_inputs($form, &$form_state){
+  
+}
+
+/**
+ * Gathers tool parameters from a given $webform.
+ * 
+ * @param multi-variable $webform
+ * 
+ * @return 
+ *   An array of tool parameters to be used with the blend4php galaxy_invoke function
+ */
+function tripal_galaxy_gather_params($form, &$form_state) {
+  drupal_set_message("I did it!");
+  
+  
+  $webform_components = $form_state['webform']['component_tree']['children'];
+ 
+  // To run the workflow, we need:
+  // 0) Workflow id
+  // 0.5) Optionally a history id
+  // 1) Tool's index in workflow
+  // 2) Tool's parameter name
+  // 3) Tool's parameter value
+  $parameters = array ();
+  $tool_index = 0;
+  $tool_param_name = 0;
+  $tool_param_value = 0;
+  
+  // The form key element of the webform_component is what is used to attain the name of
+  // the webform element. Example: Step_8_41
+  // right now format is: Step_<step_number>_<param_name>
+  $form_key = 0;
+  
+  $the_queue = array();
+  
+  // Iterate through all of the components
+  foreach ($webform_components as $webform_component) {
+    
+    dpm("Current component:");
+    dpm($webform_component);
+    
+    // Add the webform component to the queue.
+    $the_queue[] = $webform_component;
+    
+    // Parse all of the child values. 
+    foreach( $webform_component['children'] as $child_component) {
+      // Become the most base child. 
+      while ( array_key_exists ( 'children', $child_component ) ) {
+        $child_component = $child_component['children'];
+      }
+    }
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    }
+    $form_key = $webform_component['form_key'];
+    $matches = array ();
+    
+    // Obtain the tool_index,
+    $tool_index = preg_match ( '/^Step_(\d+)/', $form_key, $matches );
+    
+    // Check to make sure we've matched with a valid tool_index
+    if ($tool_index == - 1 || count ( $matches ) == 0) {
+      continue;
+    }
+    
+    
+    
+    $tool_index = $matches[1];
+    $tool_index --;
+    
+    $matches = array ();
+    
+    // Obtain tool parameter name
+    $tool_param_name = preg_match ( '/^Step_\d+_(.+)/', $form_key, $matches );    
+    
+    // Check to make sure we have a valid parameter name
+    if ($tool_param_name == - 1 || count ( $matches ) == 0) {
+      continue;
+    }
+    
+    $tool_param_name = $matches[1];
+           
+    $tool_param_value = $webform_component['value'];
+    
+    dpm ( "Here is the tool param value:" );
+    dpm ( $tool_param_value );
+    
+    // If the value is okay, add it to the parameters list
+    if(filter_cases($tool_param_value)){
+      dpm("Adding to parameters: ");
+      dpm($tool_param_value);
+      $array2 = array($tool_param_name => $tool_param_value);
+      if(empty($parameters[$tool_index])){
+        $parameters[$tool_index] = array();
+      }
+      $parameters[$tool_index] = array_merge($parameters[$tool_index], $array2);
+    }
+  
+  }
+  
+   dpm("The parameters are: ");
+   dpm($parameters);
+  
+   $parameters = array(
+    '3' => array('descr_columns' => "17"),
+    '4'=> array('convert_from'=> "Co" , 
+                 'strip'=>false),
+    '5' => array('columnList' => "c1,c7"),
+   );
+   dpm( "The correct format is: " );
+   dpm( $parameters );
+
+}
+
+
+/**
+ * A function to filter the different cases for the values returned by the tools.
+ *   returns true if the value entered is a valid value to enter in the invoke_workflow
+ *   parameters. 
+ *   
+ */
+function filter_cases($value){
+  
+  $matches = array();
+
+   if($value ===''){
+      
+     return FALSE;
+     
+    }
+    
+   // If the valuie contains any html,  it is not a valid value.
+   if(strpos($value, "<p>") !== FALSE) {
+      
+     return FALSE;
+   
+   }
+   
+   if (strpos($value, "<string>") !== FALSE) {
+      
+     return FALSE;
+   
+   }
+   
+   if (strpos($value, "<label>") !== FALSE) {
+      
+     return FALSE;
+   
+   }
+
+  return TRUE;
+  
+}
+
 
 /**
  * Implements hook_help()

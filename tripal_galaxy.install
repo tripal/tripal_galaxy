@@ -82,6 +82,7 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
  * Adds the 'tripal_galaxy_wf' table to Drupal schema.
  */
 function tripal_galaxy_add_wf_table(&$schema){
+ 
   $schema['tripal_galaxy_wf'] = array(
     'table' => 'tripal_galaxy_wf',
     'fields' => array (
@@ -125,7 +126,6 @@ function tripal_galaxy_add_wf_table(&$schema){
       'tripal_galaxy_wf_uq2' => array('label'),
     ),
   );
-
 }
 
 /**
