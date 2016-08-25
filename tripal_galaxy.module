@@ -312,7 +312,9 @@ function tripal_galaxy_form_alter(&$form, &$form_state, $form_id ) {
 function tripal_galaxy_webform_client_submit($form, &$form_state){
   
   $parameters = tripal_galaxy_gather_params($form, $form_state);
-  $inputs = tripal_galaxy_gather_inputs($form, $form_state);
+  
+  $inputs = tripal_galaxy_temp_inputs(); 
+  //$inputs = tripal_galaxy_gather_inputs($form, $form_state);
   
 }
 
@@ -320,7 +322,11 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
  * 
  */
 function tripal_galaxy_gather_inputs($form, &$form_state){
-    
+  
+}
+
+function tripal_galaxy_temp_inputs(&$form_state){
+  
 }
 
 /**
@@ -349,15 +355,11 @@ function tripal_galaxy_gather_params($form, &$form_state) {
   
   // Loop through all of the submission entries for a given submission
   while ($submission_data = $submission_query->fetchObject() ){
-    dpm("The submission data:");
-    dpm($submission_data);
     // Need the proper name of the parameter name and step number from webform_component table
     $sql = "SELECT * FROM {webform_component} WHERE nid = :nid AND cid = :cid";
     $component_query = db_query($sql, array(':nid' => $nid, ':cid' =>$submission_data->cid ));
     $component_data = $component_query->fetchObject();
-    dpm("The component data: ");
-    dpm($component_data);
-    
+
     $form_key = $component_data->form_key;
     
     // 1) Obtain the index of the tool
@@ -380,6 +382,9 @@ function tripal_galaxy_gather_params($form, &$form_state) {
     
     // 3) Obtain tool_parameter data
     $tool_param_value = $submission_data->data;
+    if($tool_param_value == '' || $tool_param_value == NULL) {
+      continue;
+    }
     
     // Place the parameters in the appropriate format
     $array2 = array($tool_param_name => $tool_param_value);
