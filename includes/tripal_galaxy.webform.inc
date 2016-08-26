@@ -19,7 +19,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     'form_key' => 'galaxy_webform',
     'name' => 'galaxy_webform',
     'type' => 'hidden',
-    'value' => '',
+    'value' => $galaxy_id,
     'extra' => array (
       'private' => 0,
       'hidden_type' => 'value',

@@ -325,8 +325,54 @@ function tripal_galaxy_gather_inputs($form, &$form_state){
   
 }
 
-function tripal_galaxy_temp_inputs(&$form_state){
+/**
+ * Load defauilt inputs for a workflow. The default inputs are 
+ * The inputs displayed on the current history whose names match that
+ * which was marked on the webform.
+ * 
+ * @param multi-variable $form_state
+ */
+function tripal_galaxy_default_inputs(&$form_state){
+  $webform_components = $form_state['webform']['component_tree']['children'];
   
+  // The galaxy id should have been loaded into the webform components
+  $galaxy_id = $webform_components[1]['value'];
+
+  // Sql statement to select the the proper galaxy instance
+  $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
+  $galaxy_server = db_query($sql, array(':galaxy_id' => $galaxy_id));
+  $galaxy_server = $galaxy_server->fetchObject ();
+
+  // Obtain the hostname and port from the url.
+  $matches = array ();
+  $regex = "((https|http):\/\/)?"; // SCHEME
+  $regex .= "([a-z0-9-.]*)"; // Host or IP
+  $regex .= "(:)?([0-9]*)?"; // Port
+  preg_match ( "/^$regex$/", $galaxy_server->url, $matches );
+  $hostname = $matches[3];
+  $port = $matches[5];
+
+  // Load the blend4php library into scope and create the Galaxy instance.
+  $library = libraries_load('blend4php');
+  $galaxy_instance = new GalaxyInstance($hostname, $port);
+  $galaxy_history = new GalaxyHistories($galaxy_instance);
+  $galaxy_history_contents = new GalaxyHistoryContents($galaxy_instance);
+  
+  // Obtain the current history
+  $galaxy_current_history = $galaxy_history->getMostRecentlyUsed();
+
+  // Obtain history contents for the current history
+  $history_id = $galaxy_current_history['id'];
+  $current_history_contents = $galaxy_history_contents->index();
+  
+  // Obtain all of the relevant datasets
+  $datasets = array();
+  foreach($current_history_contents as $current_content){
+    $content_id = $current_content['id'];
+  }
+  
+
+  $form_state = 
 }
 
 /**
