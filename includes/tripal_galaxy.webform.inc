@@ -155,6 +155,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'required' => '0',
         'weight' => $icid,
       );
+      
       $hcid = count($components) + 1;
       $components[] = array(
         'cid' => $hcid,
@@ -252,7 +253,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
  * @param $pid
  */
 function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_index, $pid = 0) {
-
+  
+  
   $cid = count($components) + 1;
   switch ($step['type']) {
     case 'data_input':

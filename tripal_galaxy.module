@@ -311,11 +311,13 @@ function tripal_galaxy_form_alter(&$form, &$form_state, $form_id ) {
  */
 function tripal_galaxy_webform_client_submit($form, &$form_state){
   
+  
   $parameters = tripal_galaxy_gather_params($form, $form_state);
   
-  $inputs = tripal_galaxy_temp_inputs(); 
-  //$inputs = tripal_galaxy_gather_inputs($form, $form_state);
-  
+  //$inputs = tripal_galaxy_temp_inputs(); 
+  $inputs = tripal_galaxy_default_inputs($form, $form_state);
+  dpm("Here are the inputs obtained:");
+  dpm($inputs);
 }
 
 /*
@@ -332,9 +334,12 @@ function tripal_galaxy_gather_inputs($form, &$form_state){
  * 
  * @param multi-variable $form_state
  */
-function tripal_galaxy_default_inputs(&$form_state){
-  $webform_components = $form_state['webform']['component_tree']['children'];
+function tripal_galaxy_default_inputs($form, &$form_state){
+    
+  // Now we need the corresponding dataset_ids for these files
   
+  $webform_components = $form_state['webform']['component_tree']['children'];
+
   // The galaxy id should have been loaded into the webform components
   $galaxy_id = $webform_components[1]['value'];
 
@@ -363,16 +368,55 @@ function tripal_galaxy_default_inputs(&$form_state){
 
   // Obtain history contents for the current history
   $history_id = $galaxy_current_history['id'];
-  $current_history_contents = $galaxy_history_contents->index();
+  $current_history_contents = $galaxy_history_contents->index($history_id);
+  dpm("Current history contents:");
+  dpm($current_history_contents);
+  dpm("history id:");
+  dpm($history_id);
+  dpm("Galaxy current history");
+  dpm($galaxy_current_history);
+  dpm("galaxy history:");
+  dpm($galaxy_history);
+  dpm("galaxy instance: ");
+  dpm($galaxy_instance);
+  dpm("galaxy server:");
+  dpm($galaxy_server);
   
   // Obtain all of the relevant datasets
-  $datasets = array();
-  foreach($current_history_contents as $current_content){
-    $content_id = $current_content['id'];
+  $nid = $form_state['storage']['details']['nid'];
+  $sql = "SELECT * FROM {webform_component} WHERE nid = :nid";
+  $component_query = db_query($sql, array(':nid' => $nid,));
+  
+  $dataset_ids = array();
+  // Iterate through all of the components of the webform, looking for 
+  // The dataset components
+  while($component = $component_query->fetchObject()){
+    
+    dpm("Current component:");
+    dpm($component);
+    
+    // If the component contains 'dataset_' it must be a dataset component
+    if( strpos($component->form_key, 'dataset_') != FALSE){
+      
+      $dataset_name = $component->name;
+    
+      // Now iterate through the current history contents on the galaxy server to 
+      // Obtain the name of this dataset
+      foreach($current_history_contents as $current_content){
+        dpm("history contents:");
+        dpm($current_history_contents);
+         if($current_content['name'] == $dataset_name){
+           $dataset_ids[] = $current_content['id'];
+           break;
+         }
+      }
+      continue;
+    }
   }
   
+  return $dataset_ids;
 
-  $form_state = 
+  
 }
 
 /**
