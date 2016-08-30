@@ -336,8 +336,7 @@ function tripal_galaxy_gather_inputs($form, &$form_state){
  */
 function tripal_galaxy_default_inputs($form, &$form_state){
     
-  // Now we need the corresponding dataset_ids for these files
-  
+  // Now we need the corresponding dataset_ids for the files
   $webform_components = $form_state['webform']['component_tree']['children'];
 
   // The galaxy id should have been loaded into the webform components
@@ -360,7 +359,14 @@ function tripal_galaxy_default_inputs($form, &$form_state){
   // Load the blend4php library into scope and create the Galaxy instance.
   $library = libraries_load('blend4php');
   $galaxy_instance = new GalaxyInstance($hostname, $port);
+  
+  // Set the API for this galaxy instance.
+  $galaxy_instance->setAPIKey($galaxy_server->api_key);
+  
+  // Obtain a Galaxy history object
   $galaxy_history = new GalaxyHistories($galaxy_instance);
+  
+  // Obtain a galaxy history contents object
   $galaxy_history_contents = new GalaxyHistoryContents($galaxy_instance);
   
   // Obtain the current history
@@ -368,19 +374,9 @@ function tripal_galaxy_default_inputs($form, &$form_state){
 
   // Obtain history contents for the current history
   $history_id = $galaxy_current_history['id'];
-  $current_history_contents = $galaxy_history_contents->index($history_id);
-  dpm("Current history contents:");
-  dpm($current_history_contents);
-  dpm("history id:");
-  dpm($history_id);
-  dpm("Galaxy current history");
-  dpm($galaxy_current_history);
-  dpm("galaxy history:");
-  dpm($galaxy_history);
-  dpm("galaxy instance: ");
-  dpm($galaxy_instance);
-  dpm("galaxy server:");
-  dpm($galaxy_server);
+  
+  // Current history contents is 
+  $current_history_contents = $galaxy_history_contents->index(array('history_id' => $history_id));
   
   // Obtain all of the relevant datasets
   $nid = $form_state['storage']['details']['nid'];
@@ -396,7 +392,7 @@ function tripal_galaxy_default_inputs($form, &$form_state){
     dpm($component);
     
     // If the component contains 'dataset_' it must be a dataset component
-    if( strpos($component->form_key, 'dataset_') != FALSE){
+    if( strpos($component->form_key, 'dataset_') !== FALSE){
       
       $dataset_name = $component->name;
     
@@ -404,7 +400,7 @@ function tripal_galaxy_default_inputs($form, &$form_state){
       // Obtain the name of this dataset
       foreach($current_history_contents as $current_content){
         dpm("history contents:");
-        dpm($current_history_contents);
+        dpm($current_content);
          if($current_content['name'] == $dataset_name){
            $dataset_ids[] = $current_content['id'];
            break;
@@ -414,9 +410,7 @@ function tripal_galaxy_default_inputs($form, &$form_state){
     }
   }
   
-  return $dataset_ids;
-
-  
+  return $dataset_ids;  
 }
 
 /**

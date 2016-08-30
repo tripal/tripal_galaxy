@@ -254,7 +254,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
  */
 function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_index, $pid = 0) {
   
-  
+  dpm($step);
   $cid = count($components) + 1;
   switch ($step['type']) {
     case 'data_input':
