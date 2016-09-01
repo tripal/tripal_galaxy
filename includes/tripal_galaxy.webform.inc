@@ -174,19 +174,35 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'weight' => $icid,
       );
     }
-
-    // If this step isn't a tool then handle it appropriately.
-    if (!$tool) {
-      tripal_galaxy_add_webform_non_tool_input($components, $step, $i, $cid);
-    }
-    // Otherwise, iterate over tool inputs and add webform components.
+      
+      // If this step isn't a tool then handle it appropriately.
+    if (! $tool) {
+      // We want to add the contents of the current history as potential items to add to the queue
+      $galaxy_history = new GalaxyHistories ( $galaxy_instance );
+      
+      // Obtain a galaxy history contents object
+      $galaxy_history_contents = new GalaxyHistoryContents ( $galaxy_instance );
+      
+      // Obtain the current history
+      $galaxy_current_history = $galaxy_history->getMostRecentlyUsed ();
+      
+      // Obtain history contents for the current history
+      $history_id = $galaxy_current_history['id'];
+      
+      // Current history contents is
+      $current_history_contents = $galaxy_history_contents->index ( array (
+        'history_id' => $history_id 
+      ) );
+      
+      tripal_galaxy_add_webform_non_tool_input ( $components, $step, $i, $cid, $current_history_contents );
+    }     // Otherwise, iterate over tool inputs and add webform components.
     else {
-      foreach ($tool["inputs"] as $tool_input) {
-        tripal_galaxy_add_webform_tool_input($components, $conditionals, $tool_input, $steps, $i, $cid);
+      foreach ( $tool["inputs"] as $tool_input ) {
+        tripal_galaxy_add_webform_tool_input ( $components, $conditionals, $tool_input, $steps, $i, $cid );
       }
     }
     // Increment the step counter;
-    $i++;
+    $i ++;
   }
 
   // Default values for the node
@@ -252,35 +268,40 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
  * @param $step_index
  * @param $pid
  */
-function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_index, $pid = 0) {
+function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_index, $pid = 0, $history_contents) {
   
-  dpm($step);
-  $cid = count($components) + 1;
+  $items = "";
+  // Iterate through all of the history contents, add them as a selectable item
+  // Id is the item value and name is the human readable
+  foreach ( $history_contents as $content ) {
+    $items .= $content['id'] . "|" . $content['name'] . "\r\n";
+  }
+  
+  $extra = array (
+    'title_display' => 'before',
+    'description_above' => 1,
+    'items' => $items,
+    'aslist' => 1 
+  );
+  
+  $cid = count ( $components ) + 1;
   switch ($step['type']) {
-    case 'data_input':
-      $components[] = array(
+    case 'data_input' :
+      
+      $components[] = array (
         'cid' => $cid,
         'pid' => $pid,
         'name' => $step['tool_inputs']['name'],
         'form_key' => 'dataset_' . $step_index,
-        'type' => 'file',
-        'mandatory' => 1,
-        'filtering' => array(
-          'types' => array(
-            'bed',
-            'bam',
-            'blast'
-          ),
-          'addextensions' => '',
-          'size' => file_upload_max_size()
-        ),
-        'extra' => array(
-          'description' => $step['annotation'],
-        ),
-        'weight' => $cid
+        'type' => 'select',
+        'value' => "",
+        'extra' => $extra,
+        'weight' => $cid,
+        'required' => 1 
       );
+      
       break;
-    default:
+    default :
       break;
   }
 }

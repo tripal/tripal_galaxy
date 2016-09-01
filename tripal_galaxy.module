@@ -270,6 +270,7 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
 
 /**
  * 
+ * 
  * @param  $form
  * @param  $form_state
  * @param  $form_id
@@ -295,9 +296,7 @@ function tripal_galaxy_form_alter(&$form, &$form_state, $form_id ) {
   // If the form is a galaxy webform, it should have a [Galaxy Webfo
 
   if ($webform[1]['form_key'] == 'galaxy_webform') {
-    dpm("Enter the hooplah!");
     $form['#submit'][] = 'tripal_galaxy_webform_client_submit';
-    dpm($form_state);
   }
   
 }
@@ -316,8 +315,26 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
   
   //$inputs = tripal_galaxy_temp_inputs(); 
   $inputs = tripal_galaxy_default_inputs($form, $form_state);
-  dpm("Here are the inputs obtained:");
-  dpm($inputs);
+
+  /*
+   * This section is hardcoded! Please remove before it becomes
+   * too late to do so. 
+   */
+  
+  $workflow_id = 'd413a19dec13d11e';
+  
+  $library = libraries_load('blend4php');
+  $galaxy_instance = new GalaxyInstance('localhost', '8080');
+  $galaxy_instance->setAPIKey('a50cc79c4f0aac014831256c8c00c1cb');
+  $workflow = new GalaxyWorkflows($galaxy_instance);
+  $array = array(
+    'workflow_id' => $workflow_id,
+    'hist_id' => 'c9468fdb6dc5c5f1', 
+    'input_dataset_ids' => $inputs,
+    'parameters' => $parameters,
+  );
+  
+  $workflow->invoke($array); 
 }
 
 /*
@@ -336,79 +353,39 @@ function tripal_galaxy_gather_inputs($form, &$form_state){
  */
 function tripal_galaxy_default_inputs($form, &$form_state){
     
-  // Now we need the corresponding dataset_ids for the files
-  $webform_components = $form_state['webform']['component_tree']['children'];
-
-  // The galaxy id should have been loaded into the webform components
-  $galaxy_id = $webform_components[1]['value'];
-
-  // Sql statement to select the the proper galaxy instance
-  $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
-  $galaxy_server = db_query($sql, array(':galaxy_id' => $galaxy_id));
-  $galaxy_server = $galaxy_server->fetchObject ();
-
-  // Obtain the hostname and port from the url.
-  $matches = array ();
-  $regex = "((https|http):\/\/)?"; // SCHEME
-  $regex .= "([a-z0-9-.]*)"; // Host or IP
-  $regex .= "(:)?([0-9]*)?"; // Port
-  preg_match ( "/^$regex$/", $galaxy_server->url, $matches );
-  $hostname = $matches[3];
-  $port = $matches[5];
-
-  // Load the blend4php library into scope and create the Galaxy instance.
-  $library = libraries_load('blend4php');
-  $galaxy_instance = new GalaxyInstance($hostname, $port);
-  
-  // Set the API for this galaxy instance.
-  $galaxy_instance->setAPIKey($galaxy_server->api_key);
-  
-  // Obtain a Galaxy history object
-  $galaxy_history = new GalaxyHistories($galaxy_instance);
-  
-  // Obtain a galaxy history contents object
-  $galaxy_history_contents = new GalaxyHistoryContents($galaxy_instance);
-  
-  // Obtain the current history
-  $galaxy_current_history = $galaxy_history->getMostRecentlyUsed();
-
-  // Obtain history contents for the current history
-  $history_id = $galaxy_current_history['id'];
-  
-  // Current history contents is 
-  $current_history_contents = $galaxy_history_contents->index(array('history_id' => $history_id));
-  
-  // Obtain all of the relevant datasets
-  $nid = $form_state['storage']['details']['nid'];
-  $sql = "SELECT * FROM {webform_component} WHERE nid = :nid";
-  $component_query = db_query($sql, array(':nid' => $nid,));
-  
+  // Start on the 0'th input;
+  $input_num = 0;
   $dataset_ids = array();
-  // Iterate through all of the components of the webform, looking for 
-  // The dataset components
-  while($component = $component_query->fetchObject()){
     
-    dpm("Current component:");
-    dpm($component);
-    
-    // If the component contains 'dataset_' it must be a dataset component
-    if( strpos($component->form_key, 'dataset_') !== FALSE){
+  // Obtain submission id and node id.
+  $sid = $form_state['storage']['details']['sid'];
+  $nid = $form_state['storage']['details']['nid'];
+  
+  // Need submission data from webform_submission_data table
+  $sql = "SELECT * FROM {webform_submitted_data} WHERE sid = :sid";
+  $submission_query = db_query($sql, array(':sid' => $sid));
+  
+  
+ while ($submission_data = $submission_query->fetchObject() ){
+    // Need the proper name of the parameter name and step number from webform_component table
+    $sql = "SELECT * FROM {webform_component} WHERE nid = :nid AND cid = :cid";
+    $component_query = db_query($sql, array(':nid' => $nid, ':cid' =>$submission_data->cid ));
+    $component_data = $component_query->fetchObject();
+
+    $form_key = $component_data->form_key;  
       
-      $dataset_name = $component->name;
-    
-      // Now iterate through the current history contents on the galaxy server to 
-      // Obtain the name of this dataset
-      foreach($current_history_contents as $current_content){
-        dpm("history contents:");
-        dpm($current_content);
-         if($current_content['name'] == $dataset_name){
-           $dataset_ids[] = $current_content['id'];
-           break;
-         }
-      }
+     // if a form key does not have dataset_ in the form_key, RUN
+    if(strpos($form_key, "dataset_") === FALSE){
       continue;
     }
-  }
+    
+    // Input the dataset id into the dataset_ids array() and continue.
+    $dataset_id = $submission_data->data;
+    $dataset_ids[$input_num] = $dataset_id;
+    $input_num++;
+    continue;
+    
+ }
   
   return $dataset_ids;  
 }
@@ -446,11 +423,13 @@ function tripal_galaxy_gather_params($form, &$form_state) {
 
     $form_key = $component_data->form_key;
     
-    // 1) Obtain the index of the tool
-    $matches = array();
+    // if a form key does not have Step_ in the form_key, RUN
     if(strpos($form_key, "Step_") === FALSE){
       continue;
     }
+    
+    // 1) Obtain the index of the tool, if we are not dealing with
+    $matches = array();
     $tool_index = preg_match ( '/^Step_(\d+)/', $form_key, $matches );
     $tool_index = $matches[1];
     $tool_index --;
