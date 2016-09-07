@@ -79,6 +79,81 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
 }
 
 /**
+ * Add wf submission table, the table responsible for recording submitted 
+ * Workflow data
+ * @param unknown $schema
+ */
+function tripal_galaxy_add_wf_submission_table(&$schema){
+  
+  $schema['tripal_galaxy_wf_submission'] = array(
+    'table' => 'tripal_galaxy_wf_submission',
+    'fields' => array (
+      
+      'galaxy_wf_submission_id' => array(
+        'type' => 'serial',
+        'not_null' => TRUE
+      ),
+      
+      'galaxy_id' => array(
+        'type' => 'varchar',
+      	'length' => 1024,
+        'not_null' => TRUE
+      ),
+      
+      'workflow_id' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not_null' => TRUE
+      ),
+      
+      'inputs' => array(
+        'type' => 'text',
+        'not_null' => TRUE
+      ), 
+      
+      'parameters' => array(
+        'type' => 'text',
+        'not_null' => TRUE
+      ), 
+      
+      'errors' => array(
+        'type' => 'text',
+      ), 
+      
+      'results' => array(
+        'type' => 'text',
+      ), 
+
+      'status' => array(
+        'type' => 'varchar',
+        'length ' => 1024,
+        'not_null'=> TRUE
+      ),
+      
+      'start_time' => array(
+        'type' => 'varchar',
+        'length ' => 1024,
+        'not_null'=> TRUE
+      ),
+      
+      'end_time' => array(
+        'type' => 'varchar',
+        'length ' => 1024,
+      ),
+      
+      'uid' => array(
+        'type' => 'int',
+        'length ' => 1024,
+      ),
+      
+    ),
+    'primary key' => array(
+      0 => 'galaxy_wf_submission_id',
+    ),
+  );
+}
+
+/**
  * Adds the 'tripal_galaxy_wf' table to Drupal schema.
  */
 function tripal_galaxy_add_wf_table(&$schema){

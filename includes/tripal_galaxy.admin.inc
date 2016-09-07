@@ -535,12 +535,7 @@ function tripal_galaxy_admin_usage_form_validate() {
 function tripal_galaxy_admin_usage_form_submit() {
 }
 
-// TODO: Generates a table that provides a listing of the Galaxy workflows that
-// have been executed
-// and submitted by the user for the data to be incorporated into the site.
-// The table should provide links to download and view the results.
-function tripal_galaxy_admin_submitted_list() {
-}
+
 
 function tripal_galaxy_admin_file_listing() {
   $output = '';

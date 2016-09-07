@@ -160,17 +160,6 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
   );
   
-/*     // Test the invoke functionalityw
-  $items['test_invoke'] = array(
-    'title' => 'Testing_Invoke',
-    'description' => 'Testing the invoke function with a wbeform nid of 223',
-    'page callback' => 'tripal_galaxy_invoke',
-    'access arguments' => array('administer galaxy'),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'includes/tripal_galaxy.webform.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy' )
-  ); */
-
   // Usage
   $items['admin/tripal/extension/galaxy/usage'] = array (
     'title' => 'Usage',
@@ -190,13 +179,13 @@ function tripal_galaxy_menu() {
     'title' => 'Submitted',
     'description' => 'View Submitted workflows',
     // Are we sure about this?
-    'page callback' => 'tripal_galaxy_admin_submitted_list',
+    'page callback' => 'tripal_galaxy_submitted_list',
     'access arguments' => array (
-      'administer galaxy'
+      'administer galaxy',
     ),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.admin.inc',
-    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
+    'file' => 'includes/tripal_galaxy.user_queue.inc',
+    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' ),
   );
 
   // Workflow
@@ -261,7 +250,11 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
 
     'tripal_galaxy_admin_available_wf_form_rows' => array(
       'render element' => 'form'
-    )
+    ),
+    
+    'tripal_galaxy_submitted_list' => array(
+      'render element' => 'element'
+    ),
 
   );
   return $items;
@@ -315,14 +308,13 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
   
   //$inputs = tripal_galaxy_temp_inputs(); 
   $inputs = tripal_galaxy_default_inputs($form, $form_state);
-
+  dpm($inputs);
+  
   /*
    * This section is hardcoded! Please remove before it becomes
    * too late to do so. 
    */
-  
   $workflow_id = 'd413a19dec13d11e';
-  
   $library = libraries_load('blend4php');
   $galaxy_instance = new GalaxyInstance('localhost', '8080');
   $galaxy_instance->setAPIKey('a50cc79c4f0aac014831256c8c00c1cb');
@@ -335,6 +327,19 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
   );
   
   $workflow->invoke($array); 
+  $start_time = date("D M d, Y G:i");
+  $data = array(
+    'galaxy_id' => '999',
+    'workflow_id' => $workflow_id,
+    'inputs' => implode("", $inputs),
+    'parameters' => implode("", $parameters),
+    'status' => 'not yet implemented',
+    'start_time' => $start_time,
+  );
+  // Now insert the submission into the database
+  $workflow_submission = drupal_write_record('tripal_galaxy_wf_submission', $data);
+  
+  
 }
 
 /*
