@@ -174,7 +174,7 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
   );
 
-  // Submitted
+  // submission queue
   $items['admin/tripal/extension/galaxy/submitted'] = array (
     'title' => 'Submitted',
     'description' => 'View Submitted workflows',
@@ -184,9 +184,21 @@ function tripal_galaxy_menu() {
       'administer galaxy',
     ),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.user_queue.inc',
+    'file' => 'includes/tripal_galaxy.admin_queue.inc',
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' ),
   );
+
+ // Edit workflow submission
+  $items['admin/tripal/extension/galaxy/submitted/view/%'] = array (
+    'description' => 'Edit a galaxy instance',
+    'page callback' => 'tripal_galaxy_submission_view',
+    'page arguments' => array (6),
+    'access arguments' => array ('administer galaxy'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_queue.inc',
+    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
+  );
+  
 
   // Workflow
   $items['workflows'] = array (
@@ -272,22 +284,18 @@ function tripal_galaxy_form_alter(&$form, &$form_state, $form_id ) {
   
   // Check to make sure the form_state has the following keys
   if(!array_key_exists('webform', $form_state )){
-    dpm("nope1");
     return;  
   }
   if(!array_key_exists('component_tree', $form_state['webform'])){
-    dpm("nope2");
     return;
   }
   if(!array_key_exists('children',$form_state['webform']['component_tree'])){
-    dpm("nope3");
     return;
   }
   
   $webform = $form_state['webform']['component_tree']['children'];
   
   // If the form is a galaxy webform, it should have a [Galaxy Webfo
-
   if ($webform[1]['form_key'] == 'galaxy_webform') {
     $form['#submit'][] = 'tripal_galaxy_webform_client_submit';
   }
@@ -327,12 +335,15 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
   );
   
   $workflow->invoke($array); 
+  
+  // To be implemented more properly once inputs are generated
   $start_time = date("D M d, Y G:i");
   $data = array(
     'galaxy_id' => '999',
     'workflow_id' => $workflow_id,
-    'inputs' => implode("", $inputs),
-    'parameters' => implode("", $parameters),
+    'workflow_name' => 'Test Workflow',
+    'inputs' => JSon_encode ($inputs),
+    'parameters' => json_encode ($parameters),
     'status' => 'not yet implemented',
     'start_time' => $start_time,
   );

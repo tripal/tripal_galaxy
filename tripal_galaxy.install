@@ -15,6 +15,7 @@ function tripal_galaxy_schema() {
   tripal_galaxy_add_galaxy_table($schema);
   tripal_galaxy_add_wf_table($schema);
   tripal_galaxy_add_galaxy_wf_job_table($schema);
+  tripal_galaxy_add_wf_submission_table($schema);
 
   return $schema;
 }
@@ -105,6 +106,7 @@ function tripal_galaxy_add_wf_submission_table(&$schema){
         'length' => 1024,
         'not_null' => TRUE
       ),
+      
       
       'inputs' => array(
         'type' => 'text',
