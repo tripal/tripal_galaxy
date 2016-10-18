@@ -238,19 +238,32 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
 
     // Obtain the hostname and port from the url
     $matches = array();
+    $use_https = FALSE;
     $http_regex = "((https|http):\/\/)?";
-    $host_regex = "([a-z0-9-.]*)";
+    $host_regex = "([a-z0-9-.]*).([a-z0-9-.]*)";
     $port_regex = "(:)?([0-9]*)?";
     $regex = $http_regex . $host_regex . $port_regex;
     preg_match("/^$regex$/", $data['url'], $matches);
     $hostname = $matches[3];
     $port = $matches[5];
+    
+    if($matches[2] == "https")
+    {
+      $use_https = TRUE;
+    }
+    
+    dpm($port);
+    dpm($matches);
+    dpm($use_https);
 
+    
     // Create a new galaxy instance using the obtained hostname and port
     // Then Authenticate
     $library = libraries_load('blend4php');
-    $galaxy_instance = new GalaxyInstance($hostname, $port);
+    $galaxy_instance = new GalaxyInstance($hostname, $port, $use_https);
+    dpm($galaxy_instance);
     $galaxy_instance->setAPIKey($data['api_key']);
+    dpm($galaxy_instance->getErrorMessage());
 
     // Tell the user wether the connection was successful based on
     // getVersion()

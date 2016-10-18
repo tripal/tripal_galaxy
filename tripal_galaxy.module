@@ -267,6 +267,10 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
     'tripal_galaxy_submitted_list' => array(
       'render element' => 'element'
     ),
+    
+    'tripal_galaxy_submission_view' => array(
+      'render element' => 'element'
+    ),
 
   );
   return $items;
@@ -319,17 +323,21 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
   dpm($inputs);
   
   /*
+   * TODO:
    * This section is hardcoded! Please remove before it becomes
    * too late to do so. 
    */
-  $workflow_id = 'd413a19dec13d11e';
+  $workflow_id = 'd84e07b01ec5caba';
+  $hist_id = '09658f204da1f8d3';
+  
+  //$galaxy_id = 
   $library = libraries_load('blend4php');
-  $galaxy_instance = new GalaxyInstance('localhost', '8080');
-  $galaxy_instance->setAPIKey('a50cc79c4f0aac014831256c8c00c1cb');
+  $galaxy_instance = new GalaxyInstance('usegalaxy.org', '', TRUE);
+  $galaxy_instance->setAPIKey('70f542823a971738015b28e6282f5e6d');
   $workflow = new GalaxyWorkflows($galaxy_instance);
   $array = array(
     'workflow_id' => $workflow_id,
-    'hist_id' => 'c9468fdb6dc5c5f1', 
+    'hist_id' => $hist_id, 
     'input_dataset_ids' => $inputs,
     'parameters' => $parameters,
   );

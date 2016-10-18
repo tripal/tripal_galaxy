@@ -61,19 +61,29 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
 
     // Obtain the hostname and port from the url
     $matches = array();
-    $regex = "((https|http):\/\/)?"; // SCHEME
-    $regex .= "([a-z0-9-.]*)"; // Host or IP
-    $regex .= "(:)?([0-9]*)?"; // Port
-    preg_match ( "/^$regex$/", $galaxy_server->url, $matches );
+    $use_https = FALSE;
+    $http_regex = "((https|http):\/\/)?";
+    $host_regex = "([a-z0-9-.]*).([a-z0-9-.]*)";
+    $port_regex = "(:)?([0-9]*)?";
+    $regex = $http_regex . $host_regex . $port_regex;
+    preg_match("/^$regex$/", $galaxy_server->url, $matches);
     $hostname = $matches[3];
     $port = $matches[5];
-
-    // TODO: HTTP vs HTTPS
+    
+    dpm($galaxy_server->url);
+    if($matches[2] == "https")
+    {
+      $use_https = TRUE;
+    }
+    
+    dpm($port);
+    dpm($matches);
+    dpm($use_https);
 
     // Create a new galaxy instance using the obtained hostname and port
     // Then Authenticate
     libraries_load('blend4php');
-    $galaxy_instance = new GalaxyInstance($hostname, $port);
+    $galaxy_instance = new GalaxyInstance($hostname, $port, $use_https);
     $galaxy_instance->setAPIKey($galaxy_server->api_key);
 
     // Check to make sure the connection is good.

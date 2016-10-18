@@ -37,18 +37,29 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $galaxy_server = db_query($sql, array(':galaxy_id' => $galaxy_id));
   $galaxy_server = $galaxy_server->fetchObject ();
 
-  // Obtain the hostname and port from the url.
-  $matches = array ();
-  $regex = "((https|http):\/\/)?"; // SCHEME
-  $regex .= "([a-z0-9-.]*)"; // Host or IP
-  $regex .= "(:)?([0-9]*)?"; // Port
-  preg_match ( "/^$regex$/", $galaxy_server->url, $matches );
-  $hostname = $matches[3];
-  $port = $matches[5];
+    // Obtain the hostname and port from the url
+    $matches = array();
+    $use_https = FALSE;
+    $http_regex = "((https|http):\/\/)?";
+    $host_regex = "([a-z0-9-.]*).([a-z0-9-.]*)";
+    $port_regex = "(:)?([0-9]*)?";
+    $regex = $http_regex . $host_regex . $port_regex;
+    preg_match("/^$regex$/", $galaxy_server->url, $matches);
+    $hostname = $matches[3];
+    $port = $matches[5];
+    
+    if($matches[2] == "https")
+    {
+      $use_https = TRUE;
+    }
+    
+    //dpm($port);
+    dpm($matches);
+    dpm($use_https);
 
   // Load the blend4php library into scope and create the Galaxy instance.
   $library = libraries_load('blend4php');
-  $galaxy_instance = new GalaxyInstance($hostname, $port);
+  $galaxy_instance = new GalaxyInstance($hostname, $port, $use_https);
 
   // Check to make sure we have a valid connection.
   if($galaxy_instance->getVersion() == NULL){
@@ -71,8 +82,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // The history_id is required for retrieving tool information for a workflow.
   // Also, the workflow must be owned by the user.
   $history_instance = new GalaxyHistories($galaxy_instance);
-  $histories = $history_instance->index();
-  $target_history = $histories[0];
+  $target_history = $history_instance->getMostRecentlyUsed();
 
   // Construct web form components based on workflow steps.
   $i = 1;
@@ -87,9 +97,12 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     if ($tool_id) {
       $tool_instance = new GalaxyTools($galaxy_instance);
       $tool = $tool_instance->build(array(
-        'tool_id' => urlencode ($tool_id),
-        'history_id' => $target_history['id']
+        'tool_id' => $tool_id,
+        'history_id' => $target_history['id'],
       ));
+      
+      dpm("Errors: ");
+      dpm($galaxy_instance->getErrorMessage());
 
       // Make sure tool informaiton is correct.
       if (!$tool) {
