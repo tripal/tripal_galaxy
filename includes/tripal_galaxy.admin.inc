@@ -190,8 +190,10 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
 
    // Initialize the data to be sent to the tripal_galaxy table
   $data = array('servername' => $form_state['values']['servername'],
-    'description' => $form_state['values']['description'], 'url' => $form_state['values']['url'],
-    'username' => $form_state['values']['username'], 'api_key' => $form_state['values']['api_key']);
+    'description' => $form_state['values']['description'],
+  	'url' => $form_state['values']['url'],
+    'username' => $form_state['values']['username'],
+  	'api_key' => $form_state['values']['api_key']);
 
   // If we are deleting the given instance, go through the appropriate
   // motions...
@@ -223,7 +225,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
 
     // Insert the new Galaxy Instance into Drupal, return where appropriate.
     if (!$galaxy_instance) {
-      drupal_set_message(t('problem inserting galaxy instance'), 'error');
+      drupal_set_message(t('Problem inserting galaxy instance'), 'error');
       return;
     }
 
@@ -246,17 +248,15 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
     preg_match("/^$regex$/", $data['url'], $matches);
     $hostname = $matches[3];
     $port = $matches[5];
-    
+
     if($matches[2] == "https")
-    {
       $use_https = TRUE;
-    }
-    
+
     dpm($port);
     dpm($matches);
     dpm($use_https);
 
-    
+
     // Create a new galaxy instance using the obtained hostname and port
     // Then Authenticate
     $library = libraries_load('blend4php');
@@ -273,7 +273,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
     else {
       drupal_set_message(t('Connection successful'));
     }
-  } 
+  }
 }
 
 
@@ -311,7 +311,7 @@ function tripal_galaxy_admin_available_wf_form($form, &$form_state) {
     $form['rows'][$i]['workflow_name-' . $i] = array(
       '#type' => 'value',
       '#value' => $workflow->workflow_name
-    );   
+    );
     $form['rows'][$i]['workflow_name-user' . $i] = array(
       '#type' => 'item',
       '#markup' => $workflow->workflow_name
@@ -381,13 +381,13 @@ function theme_tripal_galaxy_admin_available_wf_form_rows($variables) {
 
   // The apparopriate headers for this form's table.
   $headers = array(
-    'Enabled', 
-    'Workflow Name', 
-    'Description', 
-    'Onsite Label', 
-    'Galaxy Server', 
-    'Workflow ID', 
-    
+    'Enabled',
+    'Workflow Name',
+    'Description',
+    'Onsite Label',
+    'Galaxy Server',
+    'Workflow ID',
+
   'Remove');
 
   // Theme the rows of this form's table.
@@ -477,10 +477,10 @@ function tripal_galaxy_admin_available_wf_form_validate($form, &$form_state) {
 function tripal_galaxy_admin_available_wf_form_submit($form, &$form_state) {
   $i = 0;
   $form_rows = $form_state['values']['rows'];
-  
+
   // Go through all of the row entries.
   foreach ($form_rows as $i => $row) {
-      
+
       // Select the workflow being edited
     $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_id = :workflow_id AND galaxy_id = :galaxy_id";
     $galaxy = $form_rows[$i]['galaxy-' . $i];
@@ -491,10 +491,10 @@ function tripal_galaxy_admin_available_wf_form_submit($form, &$form_state) {
     );
     $workflow_instance = db_query ( $sql, $args );
     $workflow_instance = $workflow_instance->fetchObject ();
-    
+
     // If the workflow has changed values, update it
-    if ($workflow_instance->label != $form_rows[$i]['label-' . $i] 
-        || $workflow_instance->description != $form_rows[$i]['description-' . $i]) {   
+    if ($workflow_instance->label != $form_rows[$i]['label-' . $i]
+        || $workflow_instance->description != $form_rows[$i]['description-' . $i]) {
       $data = array (
         'status' => $form_rows[$i]['enabled-' . $i],
         'galaxy_wf_id' => $workflow_instance->galaxy_wf_id,
@@ -537,7 +537,7 @@ function tripal_galaxy_admin_remove_wf($galaxy_wf_id) {
 // This is a form because it should provide filters (i.e to filter rows by user,
 // etc.).
 function tripal_galaxy_admin_usage_form() {
-  
+
 }
 
 // TODO: Validates the tripal galaxy usage from.

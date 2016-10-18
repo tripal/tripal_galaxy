@@ -351,6 +351,7 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
     'workflow_id' => $workflow_id,
     'workflow_name' => 'Test Workflow',
     'inputs' => JSon_encode ($inputs),
+  		// issues with param encoding
     'parameters' => json_encode ($parameters),
     'status' => 'not yet implemented',
     'start_time' => $start_time,
