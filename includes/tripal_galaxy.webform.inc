@@ -411,14 +411,16 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     
 
     
-    // Iterate over each webform parameter  
+    // Iterate over each webform parameter, we want to add the appropriate webform parameter to the value of the component  
     foreach($webform_params as $index => $value )
     {
       dpm($index);
+      
       if($index == $tool_input["name"])
       {
         dpm('$webform_params[$tool_input["name"]=' );
         dpm($webform_params[$tool_input["name"]]);
+        
         // We have found the value of this tool! 
         if(!is_array($value))
         {
@@ -441,7 +443,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       
     
     
-    if($webform_params)
+    //if($webform_params)
     
     if(!$in_webform_params)
     {
