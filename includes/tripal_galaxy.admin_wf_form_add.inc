@@ -26,6 +26,9 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
   while ($galaxy = $results->fetchObject()) {
     $galaxies[$galaxy->galaxy_id] = $galaxy->servername;
   }
+  //dpm($galaxies);
+  //dpm($galaxy_id);
+  
   $i = 0;
 
   // Select which galaxy server to choose the workflows from
@@ -40,7 +43,7 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
       'method' => 'replace',
       'effect' => 'fade'
     ),
-    '#default_value' => $galaxy_id
+    '#default_value' => 2,
   );
 
   $form['#prefix'] = '<div id="tripal-galaxy-admin-wf-available-form-rows">';
@@ -265,6 +268,7 @@ function tripal_galaxy_admin_add_wf_form_submit($form, &$form_state) {
           'galaxy_id' => $form_state['values']['galaxy_id-server'],
           'available' => $form_rows[$i]['available-' . $i]
         );
+        
         $workflow = drupal_write_record('tripal_galaxy_wf', $data);
   
         // Create the appropriate node for this workflow

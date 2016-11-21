@@ -318,6 +318,16 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
   
   $parameters = tripal_galaxy_gather_params($form, $form_state);
   
+  dpm("Here are the parameters: " );
+  dpm($parameters);
+  foreach($parameters as &$parameter)
+  {
+    if($parameter == 'f')
+    {
+      $parameter = 'false';
+    }
+  }
+  
   //$inputs = tripal_galaxy_temp_inputs(); 
   $inputs = tripal_galaxy_default_inputs($form, $form_state);
   dpm($inputs);
@@ -328,7 +338,7 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
    * too late to do so. 
    */
   $workflow_id = 'd84e07b01ec5caba';
-  $hist_id = '09658f204da1f8d3';
+  $hist_id = 'c93e108253461dfe';
   
   //$galaxy_id = 
   $library = libraries_load('blend4php');
@@ -339,7 +349,7 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
     'workflow_id' => $workflow_id,
     'hist_id' => $hist_id, 
     'input_dataset_ids' => $inputs,
-    'parameters' => $parameters,
+    //'parameters' => $parameters,
   );
   
   $workflow->invoke($array); 
