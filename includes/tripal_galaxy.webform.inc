@@ -41,6 +41,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     $matches = array();
     $use_https = FALSE;
     $http_regex = "((https|http):\/\/)?";
+// $host_regex = "([a-z0-9-.]*).([a-z0-9-.]*)";
     $host_regex = "([a-z0-9-.]*)";
     $port_regex = "(:)?([0-9]*)?";
     $regex = $http_regex . $host_regex . $port_regex;
@@ -146,7 +147,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'required' => '0',
       'weight' => $cid,
     );
-
+    
     // Add the tool help as a collapsed fieldset
     if ($tool) {
       $icid = count($components) + 1;
@@ -168,7 +169,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'required' => '0',
         'weight' => $icid,
       );
-
+      
       $hcid = count($components) + 1;
       $components[] = array(
         'cid' => $hcid,
@@ -216,6 +217,14 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     }
     // Increment the step counter;
     $i ++;
+  }
+  
+  // clear any null inputs.
+  foreach($components as $component) {
+    if($component == '' || $component == "" || $component == NULL) {
+      $index = array_search($component, $components);
+      unset($components[$index]);
+    }
   }
 
   // Default values for the node
@@ -333,21 +342,27 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
  *   An array suitable for the 'components' webform array
  *   False otherwise.
  */
-function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $tool_input, $steps, $step_index, $pid = 0) {
+function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $tool_input, $steps, $step_index, $webform_params, $pid = 0) {
 
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
 	$items = '';
+	$webfrom_params_to_pass = $webform_params;
+	
   if(array_key_exists('options', $tool_input)) {
-
+    
     // Generate the options that will be put under
     foreach ($tool_input['options'] as $key => $val) {
       // The val is now that sub-array containing the human readable option
       // (index 0) as well as the unique key-name (index 1).
       if(is_array($val) and !empty($val) and count($val) >= 2) {
-        $items .= $val[1] . '|' . $val[0] . "\r\n";
+        if(!is_array($val[1]) && !is_array($val[0]))
+        {
+          $items .= $val[1] . '|' . $val[0] . "\r\n";
+        }
+        
       }
-
+      
     }
   }
 
@@ -364,7 +379,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
   $webform_value = "";
   $webform_type = 'select';
   $input_name = '';
-  $is_required = 0;
+  $is_required = 1;
   $extra = array(
     'title_display' => 'before',
     'description_above' => 1,
@@ -373,10 +388,54 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
   );
 
   // Set the default value accordingly.
-
-
   if(array_key_exists('value', $tool_input)){
-    $webform_value = $tool_input['value'];
+    
+    $in_webform_params = FALSE; 
+    
+    dpm("web form params = ");
+    dpm($webform_params);
+    
+
+    
+    // Iterate over each webform parameter, we want to add the appropriate webform parameter to the value of the component  
+    foreach($webform_params as $index => $value )
+    {
+      dpm($index);
+      
+      if($index == $tool_input["name"])
+      {
+        dpm('$webform_params[$tool_input["name"]=' );
+        dpm($webform_params[$tool_input["name"]]);
+        
+        // We have found the value of this tool! 
+        if(!is_array($value))
+        {
+          $in_webform_params = TRUE;
+          $webform_value = $value;
+          dpm("Adding value: ");
+          dpm($value);
+          break;
+        }else {
+          
+          // The value of this tool rests in another layer of abstraction
+           $webfrom_params_to_pass = $webform_params[$index];
+           break;
+        }
+          
+          
+        }
+        
+      }
+      
+    
+    
+    //if($webform_params)
+    
+    if(!$in_webform_params)
+    {
+       $webform_value = $tool_input['value'];
+    }
+    
   }
 
   // Find the options.
@@ -489,8 +548,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       // create the conditional rules that webforms will use to show the
       // conditional fields.
 
-      // First add the test param as this is used for the conditional
-      tripal_galaxy_add_webform_tool_input($components, $conditionals, $tool_input['test_param'], $steps, $step_index, $pid);
+      // First add the test param as this is used for the conditional Edit: Not always
+      tripal_galaxy_add_webform_tool_input($components, $conditionals, $tool_input['test_param'], $steps, $step_index, $webform_params_to_pass, $pid);
       $num_components = count($components);
       $source_id = $components[$num_components - 1]['cid'];
 
