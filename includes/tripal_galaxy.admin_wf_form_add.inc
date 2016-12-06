@@ -63,17 +63,17 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
     $matches = array();
     $use_https = FALSE;
     $http_regex = "((https|http):\/\/)?";
-    $host_regex = "([a-z0-9-.]*).([a-z0-9-.]*)";
+    $host_regex = "([a-z0-9-.]*)";
     $port_regex = "(:)?([0-9]*)?";
     $regex = $http_regex . $host_regex . $port_regex;
     preg_match("/^$regex$/", $galaxy_server->url, $matches);
     $hostname = $matches[3];
     $port = $matches[5];
-    
+
     dpm($galaxy_server->url);
     if($matches[2] == "https")
       $use_https = TRUE;
-    
+
     dpm($port);
     dpm($matches);
     dpm($use_https);
@@ -82,14 +82,14 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
     // Then Authenticate
     libraries_load('blend4php');
     $galaxy_instance = new GalaxyInstance($hostname, $port, $use_https);
-    
+
     $galaxy_instance->setAPIKey($galaxy_server->api_key);
 
-    
+
     // Check to make sure the connection is good.
-    if ($galaxy_instance->getVersion() == NULL) {
+    if ($galaxy_instance->getVersion() == NULL)
       drupal_set_message('Cannot connect to Galaxy Instance', 'error');
-    }
+
 
     // Obtain the workflows
     $workflows = new GalaxyWorkflows($galaxy_instance);
@@ -114,10 +114,10 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
         ':galaxy_id' => $galaxy_id
       ) );
       $workflow_instance = $workflow_instance->fetchObject ();
-      if ($workflow_instance == NULL || $workflow_instance == FALSE) {
+      if ($workflow_instance == NULL || $workflow_instance == FALSE)
         $workflow_exists = 0;
-      }
-      else {
+      else
+      {
         $default_label = $workflow_instance->label;
         $default_description = $workflow_instance->description;
       }
@@ -266,7 +266,7 @@ function tripal_galaxy_admin_add_wf_form_submit($form, &$form_state) {
           'available' => $form_rows[$i]['available-' . $i]
         );
         $workflow = drupal_write_record('tripal_galaxy_wf', $data);
-  
+
         // Create the appropriate node for this workflow
         module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.webform');
         $success = tripal_galaxy_build_webform($data['galaxy_id'], $data['workflow_id']);
