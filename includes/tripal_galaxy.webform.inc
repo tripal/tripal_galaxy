@@ -54,10 +54,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       $use_https = TRUE;
     }
 
-    //dpm($port);
-    //dpm($matches);
-    //dpm($use_https);
-
   // Load the blend4php library into scope and create the Galaxy instance.
   $library = libraries_load('blend4php');
   $galaxy_instance = new GalaxyInstance($hostname, $port, $use_https);
@@ -89,31 +85,46 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $i = 1;
   $steps = $workflow['steps'];
 
-  foreach ($steps as $step_index => $step) {
+  foreach ($steps as $step_index => $step)
+  {
 
     // Get the tool for this step.  Some steps don't have tools so the tool_id
     // stays as null if there isn't one.
     $tool = NULL;
+    // if a given step does the have the key 'tool_id' it will be placed here
     $tool_id = $step['tool_id'];
-    dpm($step);
-    if ($tool_id) {
+
+    //dpm($step);
+    // TODO: The params specific to a workflow will be found here under the
+    // key tool_inputs
+    // TODO: ADD this as an input param to the
+    $defaults = array();
+
+    // Grabs tool defaults if any
+    if(array_key_exists("tool_inputs", $step))
+    {
+      foreach($step["tool_inputs"] as $key => $default)
+        $defaults[$key] = json_decode($default);
+    }
+
+    // dpm($defaults);
+
+    // Generate the vanilla tool to then be placed on the form
+    if ($tool_id)
+    {
       $tool_instance = new GalaxyTools($galaxy_instance);
-      $tool = $tool_instance->build(array(
+      $tool = $tool_instance->build(
+        array(
         'tool_id' => $tool_id,
-        'history_id' => $target_history['id'],
-      ));
+        'history_id' => $target_history['id'])
+      );
 
-//       dpm("Errors: ");
-//       dpm($galaxy_instance->getErrorMessage());
-
-      // Make sure tool informaiton is correct.
-      if (!$tool) {
+      if (!$tool)
+      {
         drupal_set_message('Cannot retrieve tool information from Galaxy: ' . $tool_id, 'Error' );
         return FALSE;
       }
     }
-
-
 
     // Each step is contained in a fieldset. We'll name the field set after
     // it's step and if a tool is present we'll include the tool info.
@@ -126,8 +137,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       $fieldset_desc = $tool['description'];
     }
 
-      // Add the fieldset to the components list.
-
+    // Add the fieldset to the components list.
 
     $components[] = array(
       'cid' => $cid,
@@ -215,24 +225,12 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     // Otherwise, iterate over tool inputs and add webform components.
     else
     {
-       dpm($tool);
        // if we do 'inputs' we are including the vanilla inputs and NOT the
        // pre designed
       foreach ( $tool["inputs"] as $tool_input )
       {
         tripal_galaxy_add_webform_tool_input ($components, $conditionals,
-        		$tool_input, $steps, $i, $cid );
-      }
-
-
-      // Grab the true defaults from tool_inputs of th
-      if(array_key_exists("tool_inputs", $tool_input))
-      {
-        foreach ( $tool["tool_inputs"] as $tool_input )
-        {
-          tripal_galaxy_add_webform_tool_input ($components, $conditionals,
-              $tool_input, $steps, $i, $cid );
-        }
+        		$tool_input, $steps, $i, $cid, $defaults);
       }
 
     }
@@ -356,6 +354,10 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
  * A function to construct a web form component based on
  *   A given tool input.
  *
+ * Some of these workflows will have its 'vanilla' inputs and others will have
+ * its inputs already chosen (workflow might have been constructed on the
+ * galaxy server or imported)
+ *
  * @param $tool_input
  *   The tool input to build the component for. Must have Key 'type'.
  * @param $index
@@ -366,56 +368,30 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
  *   False otherwise.
  */
 function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
-		$tool_input, $steps, $step_index, $pid = 0) {
+		$tool_input, $steps, $step_index, $pid = 0, $defaults)
+{
 
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
-
   $items = '';
-//   $webfrom_params_to_pass = $webform_params;
 
-  // if (array_key_exists('tool_id', $tool_input))
+  if(array_key_exists('options', $tool_input))
   {
-    //dpm($tool_input);
-  }
-
-
-  if(array_key_exists('options', $tool_input)) {
-
-    // TODO: Within each tool of the imported workflow there is a tool_state
-    //       I need to find that 'manifestation' in the workflow when I grab The
-    //       options and place them here instead
-
-
-    // Do an API call here to then populate the options (we don't want the
-    // options from the vanilla tool we want the options from the workflow on
-    // that specific tool)
-
-    // Generate the options that will be put under
-
     foreach ($tool_input['options'] as $key => $val)
     {
-
       // The val is now that sub-array containing the human readable option
       // (index 0) as well as the unique key-name (index 1).
       if(is_array($val) and !empty($val) and count($val) >= 2)
       {
+        // dpm($val);
         if(!is_array($val[1]) && !is_array($val[0]))
           $items .= $val[1] . '|' . $val[0] . "\r\n";
       }
     }
   }
 
-  // If there are no options for the tool then set the items to the
-  // default value if one is provided.
-  if(array_key_exists('text_value', $tool_input))
-  {
-    $items = $tool_input['text_value'];
-  }
-
-
   $options = array();
-  $component = array ();
+  $component = array();
   $is_list = 1;
   $webform_value = "";
   $webform_type = 'select';
@@ -429,42 +405,24 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
   );
 
   // Set the default value accordingly.
+  // TODO: I need to pass in the defaults as an input param
   if(array_key_exists('value', $tool_input))
-  {
      $webform_value = $tool_input['value'];
-  }
 
-  // Find the options.
-  if (array_key_exists('options', $tool_input))
-  {
-    $options = $tool_input['options'];
-  }
-
-  // Is this field required?
-  // if (array_key_exists('optional', $tool_input) and $tool_input['optional'])
-  // {
-  //   $is_required = 1;
-  // }
-
-  // Is this a private field?
-  // if (array_key_exists('hidden', $tool_input) and $tool_input['hidden']) {
-  //   $extra['private'] = 1;
-  // }
-
-  if (array_key_exists('multiple', $tool_input) and $tool_input['multiple']) {
+  if (array_key_exists('multiple', $tool_input) and $tool_input['multiple'])
     $extra['multiple'] = 1;
-  }
 
-  if (array_key_exists('help', $tool_input) and $tool_input['help']) {
+  if (array_key_exists('help', $tool_input) and $tool_input['help'])
     $extra['description'] = $tool_input['help'];
-  }
 
   // Extract tool input form information to a drupal webform component.
-  switch ($tool_input['type']) {
+  switch ($tool_input['type'])
+  {
     case 'text':
       // Text should be the webform equivalent of textfield.
       $webform_type = 'textfield';
-      if(array_key_exists('value', $tool_input)){
+      if(array_key_exists('value', $tool_input))
+      {
         $webform_value = $tool_input['value'];
       }
       break;
@@ -472,7 +430,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     case 'select':
       // Select should be the default list drop-down. Unless it has a display
       // of Checkbox
-      if ($tool_input['display'] == "checkboxes") {
+      if ($tool_input['display'] == "checkboxes")
+      {
         $extra['aslist'] = 0;
         $extra['multiple'] = 1;
       }
@@ -490,8 +449,10 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // Data appears to be a file selection of files that already
       // exists in the user's history.
       $webform_type = 'select';
-      foreach ($tool_input['options'] as $key => $vals) {
-        foreach ($vals as $details) {
+      foreach ($tool_input['options'] as $key => $vals)
+      {
+        foreach ($vals as $details)
+        {
           $extra['items'] .= $details['id'] . '|' . $details['name'] . "\n";
         }
       }
@@ -539,6 +500,9 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     case 'repeat':
       break;
 
+    case 'float':
+      break;
+
     case 'conditional':
       // A conditional case contains nested components but those components
       // should only be shown when specific selections are made in other
@@ -547,7 +511,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // conditional fields.
 
       // First add the test param as this is used for the conditional Edit: Not always
-      tripal_galaxy_add_webform_tool_input($components, $conditionals, $tool_input['test_param'], $steps, $step_index, $pid);
+      tripal_galaxy_add_webform_tool_input($components, $conditionals, $tool_input['test_param'], $steps, $step_index, $pid, $defaults);
       $num_components = count($components);
       $source_id = $components[$num_components - 1]['cid'];
 
@@ -569,21 +533,21 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
           'actions' => array(),
         );
 
-        if ($case['inputs']) {
-
+        if ($case['inputs'])
+        {
         	$component_conditionals = array();
 
 	        // Iterate through the cases and add a new component and a new
 	        // conditional action.
-	        foreach ($case['inputs'] as $cindex => $input) {
+	        foreach ($case['inputs'] as $cindex => $input)
+          {
 
 	          // The index for the taret component is the very next component. Since
 	          // the components array is zero-bsed we can just get the total componetns
 	          // an that becomes our index.
 	          $target_component_index = count($components);
-	          tripal_galaxy_add_webform_tool_input($components, $component_conditionals, $input, $steps, $step_index, $pid);
+	          tripal_galaxy_add_webform_tool_input($components, $component_conditionals, $input, $steps, $step_index, $pid, $defaults);
 	          $target_id = $components[$target_component_index]['cid'];
-
 
 	          $conditional['actions'][] = array(
 	            'target_type' => 'component',
@@ -598,7 +562,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 	        // happen we save the recursive conditionals in the $sub_condtiions array and then add those
 	        // after we add the current conditional.
 	        $conditionals[] = $conditional;
-	        foreach ($component_conditionals as $component_conditional) {
+	        foreach ($component_conditionals as $component_conditional)
+          {
 	        	$conditionals[] = $component_conditional;
 	        }
 
@@ -616,16 +581,15 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 
   // Get the input name.
   $input_name = NULL;
-  if (array_key_exists('label', $tool_input)) {
+  if (array_key_exists('label', $tool_input))
     $input_name = $tool_input['label'];
-  }
-  else if(array_key_exists('title', $tool_input)) {
+  else if(array_key_exists('title', $tool_input))
     $input_name = $tool_input['title'];
-  }
 
   // If this field recieves it's value from a previous step then we want
   // to set the type as markup and print that information
   $tool_name = $tool_input['name'];
+
   if (array_key_exists($tool_name, $steps[$step_index-1]['input_steps'])){
     $source_step = $steps[$step_index-1]['input_steps'][$tool_name]['source_step'];
     $step_output = $steps[$step_index-1]['input_steps'][$tool_name]['step_output'];
