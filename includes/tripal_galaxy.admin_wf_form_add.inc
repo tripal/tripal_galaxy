@@ -28,7 +28,7 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
   }
   //dpm($galaxies);
   //dpm($galaxy_id);
-  
+
   $i = 0;
 
   // Select which galaxy server to choose the workflows from
@@ -73,13 +73,13 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
     $hostname = $matches[3];
     $port = $matches[5];
 
-    dpm($galaxy_server->url);
+    // dpm($galaxy_server->url);
     if($matches[2] == "https")
       $use_https = TRUE;
 
-    dpm($port);
-    dpm($matches);
-    dpm($use_https);
+    // dpm($port);
+    // dpm($matches);
+    // dpm($use_https);
 
     // Create a new galaxy instance using the obtained hostname and port
     // Then Authenticate
@@ -268,7 +268,7 @@ function tripal_galaxy_admin_add_wf_form_submit($form, &$form_state) {
           'galaxy_id' => $form_state['values']['galaxy_id-server'],
           'available' => $form_rows[$i]['available-' . $i]
         );
-        
+
         $workflow = drupal_write_record('tripal_galaxy_wf', $data);
 
         // Create the appropriate node for this workflow
