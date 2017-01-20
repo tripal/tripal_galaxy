@@ -231,14 +231,14 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   }
 
   // clear any null inputs.
-  foreach($components as $component)
-  {
-    if($component == '' || $component == "" || $component == NULL)
-    {
-      $index = array_search($component, $components);
-      unset($components[$index]);
-    }
-  }
+  // foreach($components as $component)
+  // {
+  //   if($component == '' || $component == "" || $component == NULL)
+  //   {
+  //     $index = array_search($component, $components);
+  //     unset($components[$index]);
+  //   }
+  // }
 
   // Default values for the node
   $node = new stdClass ();
@@ -362,8 +362,9 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
 function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 		$tool_input, $steps, $step_index, $pid = 0)
 {
+
   dpm($tool_input);
-  dpm($steps);
+
   // when we are in here we have 'this' tool's particular defaults to use
 
   // Initiate variables. By default, these variables will create
@@ -384,8 +385,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     }
   }
 
-  $options = array();
-  $component = array();
   $is_list = 1;
   $webform_value = "";
   $webform_type = 'select';
@@ -503,6 +502,12 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // conditional fields.
 
       // First add the test param as this is used for the conditional
+
+
+
+
+      dpm(count($components));
+
       tripal_galaxy_add_webform_tool_input($components, $conditionals,
                                            $tool_input['test_param'], $steps,
                                            $step_index, $pid);
@@ -560,6 +565,11 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 	          );
 	        }
 
+          /*
+          Keep in mind that the steps's contain the defualts of a particular
+          step ()
+          */
+
 	        // In order to get the conditionals in the proper order, we need to
           // add those that are higher up in the tree first, and those that
           // occur lower in the tree later. To make this happen we save the
@@ -567,10 +577,10 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
           // those after we add the current conditional.
 
           // TODO: this particular line is what is messing things up
-	        //$conditionals[] = $conditional;
-
-	        foreach ($component_conditionals as $component_conditional)
-	        	$conditionals[] = $component_conditional;
+	        // $conditionals[] = $conditional;
+          //
+	        // foreach ($component_conditionals as $component_conditional)
+	        // 	$conditionals[] = $component_conditional;
         }
       }
 
@@ -612,7 +622,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     'name' => $input_name,
     'form_key' => "Step_" . $step_index ."_" . $tool_name,
     'type' => $webform_type,
-    // 'value' => ,
     'value' => $webform_value,
     'extra' => $extra,
     'weight' => $cid,
