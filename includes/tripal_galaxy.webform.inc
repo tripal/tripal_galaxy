@@ -265,7 +265,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     'submit_notice' => '1',
     'confidential' => '0',
     'submit_text' => '',
-    'submit_limit' => '-1', // User can submit more than once.
+    'submit_limit' => '-1',
     'submit_interval' => '-1',
     'total_submit_limit' => '-1',
     'total_submit_interval' => '-1',
@@ -409,6 +409,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     $extra['description'] = $tool_input['help'];
 
   // Extract tool input form information to a drupal webform component.
+  dpm($tool_input['type']);
+
   switch ($tool_input['type'])
   {
     case 'text':
@@ -433,9 +435,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     case 'data_column':
       // Data_column should be the default list drop-down.
       $extra['multiple'] = 0;
-      break;
-
-    case 'genomebuild':
       break;
 
     case 'data':
@@ -467,15 +466,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       //$extra['aslist'] = 0;
       break;
 
-    case 'drill_down':
-      break;
-
-    case 'color':
-      break;
-
-    case 'hidden':
-      break;
-
     case 'hidden_data':
       break;
 
@@ -489,9 +479,10 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       break;
 
     case 'repeat':
-      break;
-
-    case 'float':
+    // This case is important for tools that can have multiple operations
+    // being executed within the particular tool (this type is found in the
+    // trimmomatic)
+    
       break;
 
     case 'conditional':
