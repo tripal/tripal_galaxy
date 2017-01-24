@@ -286,6 +286,10 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     'conditionals' => $conditionals
   );
 
+
+  // dpm($components);
+  // dpm($conditionals);
+
   // Save the node.
   node_save($node);
   return TRUE;
@@ -359,27 +363,26 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 		$tool_input, $steps, $step_index, $pid = 0)
 {
 
-   dpm($tool_input);
+  // dpm($tool_input);
 
   // when we are in here we have 'this' tool's particular defaults to use
 
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
-  $items = '';
 
-  if(array_key_exists('options', $tool_input))
-  {
-    foreach ($tool_input['options'] as $key => $val)
-    {
-      // The val is now that sub-array containing the human readable option
-      // (index 0) as well as the unique key-name (index 1).
-      if(!empty($val) and count($val) >= 2)
-      {
-        if(!is_array($val[1]) && !is_array($val[0]))
-          $items .= $val[1] . '|' . $val[0] . "\r\n";
-      }
-    }
-  }
+  // if(array_key_exists('options', $tool_input))
+  // {
+  //   foreach ($tool_input['options'] as $key => $val)
+  //   {
+  //     // The val is now that sub-array containing the human readable option
+  //     // (index 0) as well as the unique key-name (index 1).
+  //     if(!empty($val) and count($val) >= 2)
+  //     {
+  //       if(!is_array($val[1]) && !is_array($val[0]))
+  //         $items .= $val[1] . '|' . $val[0] . "\r\n";
+  //     }
+  //   }
+  // }
 
   $is_list = 1;
   $webform_value = "";
@@ -389,7 +392,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
   $extra = array(
     'title_display' => 'before',
     'description_above' => 1,
-    'items' => $items,
+    'items' => '',
     'aslist' => $is_list,
   );
 
@@ -398,8 +401,12 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
   // if(array_key_exists('value', $tool_input))
   //    $webform_value = $tool_input['value'];
 
-  if ( array_key_exists('multiple', $tool_input) and $tool_input['multiple'])
-    $extra['multiple'] = 1;
+  if(array_key_exists('optional', $tool_input) and $tool_input['optional']){
+    $is_required = 0;
+  }
+
+  // if ( array_key_exists('multiple', $tool_input) and $tool_input['multiple'])
+  //   $extra['multiple'] = 1;
 
   if (array_key_exists('help', $tool_input) and $tool_input['help'])
     $extra['description'] = $tool_input['help'];
@@ -407,7 +414,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
   // Extract tool input form information to a drupal webform component.
   switch ($tool_input['type'])
   {
-    
+
     case 'text':
       // Text should be the webform equivalent of textfield.
       $webform_type = 'textfield';
@@ -420,16 +427,25 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     case 'select':
       // Select should be the default list drop-down. Unless it has a display
       // of Checkbox
-      if ($tool_input['display'] == "checkboxes")
+      if(array_key_exists('options', $tool_input))
       {
-        $extra['aslist'] = 0;
-        $extra['multiple'] = 1;
+        foreach ($tool_input['options'] as $key => $val)
+        {
+          // The val is now that sub-array containing the human readable option
+          // (index 0) as well as the unique key-name (index 1).
+          if(!empty($val) and count($val) >= 2)
+          {
+            if(!is_array($val[1]) && !is_array($val[0]))
+              $extra['items'] .= $val[1] . '|' . $val[0] . "\r\n";
+          }
+        }
       }
       break;
 
     case 'data_column':
       // Data_column should be the default list drop-down.
       $extra['multiple'] = 0;
+      dpm($tool_input);
       break;
 
     case 'data':
@@ -445,6 +461,19 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       break;
 
     case 'data_collection':
+    if(array_key_exists('options', $tool_input))
+    {
+      foreach ($tool_input['options'] as $key => $val)
+      {
+        // The val is now that sub-array containing the human readable option
+        // (index 0) as well as the unique key-name (index 1).
+        if(!empty($val) and count($val) >= 2)
+        {
+          if(!is_array($val[1]) && !is_array($val[0]))
+            $extra['items'] .= $val[1] . '|' . $val[0] . "\r\n";
+        }
+      }
+    }
       break;
 
     case 'integer':
@@ -452,13 +481,14 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       break;
 
     case 'float':
+    $webform_type = 'number';
       break;
 
     case 'boolean':
       // Boolean should have a single true/false value. It is also likely to
-      // not have 'options' So we must invent our own
-      $extra['items'] = "true|True\nfalse|False";
-      //$extra['aslist'] = 0;
+      // not have 'options' so we must invent our own
+      $extra['items'] = "true|Yes\nfalse|No";
+      $extra['aslist'] = 0;
       break;
 
     case 'hidden_data':
@@ -487,80 +517,78 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
                                            $tool_input['test_param'], $steps,
                                            $step_index, $pid);
 
-      // $num_components = count($components);
-      // $source_id = $components[$num_components - 1]['cid'];
+      $num_components = count($components);
+      // This source_id is referring to the options that are found in the test
+      // param
+      $source_id = $components[$num_components - 1]['cid'];
       //
       // // Add the case paramters.
-      // foreach ($tool_input['cases'] as $case)
-      // {
-      //   $conditional = array(
-      //     'andor' => NULL,
-      //     'rules' => array(
-      //       array(
-      //         'source_type' => 'component',
-      //         // The conditional's parent
-      //         'source' => $source_id,
-      //         // This means the element will be listening for the 'value'
-      //         // (see the next element in this array)
-      //         'operator' => 'equal',
-      //         // This is the option for which this conditional is activated.
-      //         'value' => $case['value'],
-      //       ),
-      //     ),
-      //     'actions' => array()
-      //   );
-      //
-      //
-      //     // this is empty ... and it's not populated by the next recursive
-      //     // function call
-      //   	$component_conditionals = array();
-      //
-	    //     // Iterate through the cases and add a new component and a new
-	    //     // conditional action.
-	    //     foreach ($case['inputs'] as $cindex => $input)
-      //     {
-	    //       // The index for the target component is the very next component.
-      //       // Since the components array is zero-based we can just get the
-      //       // total components and that becomes our index.
-	    //       $target_component_index = count($components);
-      //
-	    //       tripal_galaxy_add_webform_tool_input($components,
-      //                                            $component_conditionals,
-      //                                            $input, $steps, $step_index,
-      //                                            $pid);
-      //
-	    //       $target_id = $components[$target_component_index]['cid'];
-      //
-      //
-      //       // there are edge cases where the 'actions' key is not added to ...
-      //       $conditional['actions'][] = array(
-      //         'target_type' => 'component',
-      //         'target' => $target_id,
-      //         'action' => 'show',
-      //         'argument' => '',
-      //       );
-	    //     }
-      //
-      //
-      //
-      // //     /*
-      // //     Keep in mind that the steps's contain the defaults of a particular
-      // //     step ()
-      // //     */
-      // //
-	    // //     // In order to get the conditionals in the proper order, we need to
-      // //     // add those that are higher up in the tree first, and those that
-      // //     // occur lower in the tree later. To make this happen we save the
-      // //     // recursive conditionals in the $sub_conditions array and then add
-      // //     // those after we add the current conditional.
-      // //
-      // //     // TODO: this particular line is what is messing things up
-      // //
-      //   $conditionals[] = $conditional;
-      //
-      //   foreach ($component_conditionals as $component_conditional)
-      //     $conditionals[] = $component_conditional;
-      // }
+      foreach ($tool_input['cases'] as $case_num => $case)
+      {
+        $conditional = array(
+          'andor' => NULL,
+          'rules' => array(
+            array(
+              'source_type' => 'component',
+              // The conditional's parent
+              'source' => $source_id,
+              // This means the element will be listening for the 'value'
+              // (see the next element in this array)
+              'operator' => 'equal',
+              // This is the option for which this conditional is activated.
+              'value' => $case['value'],
+            ),
+          ),
+          'actions' => array()
+        );
+
+        if($case['inputs']){
+
+          $component_conditionals = array();
+
+          // Iterate through the cases and add a new component and a new
+          // conditional action.
+          foreach ($case['inputs'] as $cindex => $input)
+          {
+            // The index for the target component is the very next component.
+            // Since the components array is zero-based we can just get the
+            // total components and that becomes our index.
+            $target_component_index = count($components);
+
+
+            tripal_galaxy_add_webform_tool_input($components,
+                                                 $component_conditionals,
+                                                 $input, $steps, $step_index,
+                                                 $pid);
+
+
+            $target_id = $components[$target_component_index]['cid'];
+
+
+            // there are edge cases where the 'actions' key is not added to ...
+            $conditional['actions'][] = array(
+              'target_type' => 'component',
+              'target' => $target_id,
+              'action' => 'show',
+              'argument' => '',
+            );
+          }
+          // In order to get the conditionals in the proper order, we need to
+          // add those that are higher up in the tree first, and those that
+          // occur lower in the tree later. To make this happen we save the
+          // recursive conditionals in the $sub_conditions array and then add
+          // those after we add the current conditional.
+
+          // TODO: this particular line is what is messing things up
+
+          $conditionals[] = $conditional;
+
+          foreach ($component_conditionals as $component_conditional){
+            $conditionals[] = $component_conditional;
+          }
+        }
+
+      }
       //
       // // We won't add a 'conditional' as a component so we can short circuit
       // // this function and return.
