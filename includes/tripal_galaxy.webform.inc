@@ -97,8 +97,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     // if a given step does the have the key 'tool_id' it will be placed here
     $tool_id = $step['tool_id'];
 
-    //dpm($step);
-
     // Generate the vanilla tool to then be placed on the form
     if ($tool_id)
     {
@@ -122,10 +120,16 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     $fieldset_key = "Step_" . $i . "_fieldset";
     $fieldset_name = 'Step ' . $i;
     $fieldset_desc = '';
+
     if ($tool)
     {
       $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
       $fieldset_desc = $tool['description'];
+    }
+
+    else if($step['annotation'])
+    {
+      $fieldset_name .=  ': ' . $step['annotation'];
     }
 
     // Add the fieldset to the components list.
@@ -221,6 +225,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
        // pre designed
       foreach ( $tool["inputs"] as $tool_input )
       {
+
         tripal_galaxy_add_webform_tool_input ($components, $conditionals,
         		$tool_input, $steps, $i, $cid);
       }
@@ -229,16 +234,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     // Increment the step counter;
     $i++;
   }
-
-  // clear any null inputs.
-  // foreach($components as $component)
-  // {
-  //   if($component == '' || $component == "" || $component == NULL)
-  //   {
-  //     $index = array_search($component, $components);
-  //     unset($components[$index]);
-  //   }
-  // }
 
   // Default values for the node
   $node = new stdClass ();
@@ -321,8 +316,9 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
 
   $cid = count ( $components ) + 1;
   switch ($step['type']) {
-    case 'data_input' :
 
+    // If this is for a data 'file' input
+    case 'data_input' :
       $components[] = array (
         'cid' => $cid,
         'pid' => $pid,
@@ -363,7 +359,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 		$tool_input, $steps, $step_index, $pid = 0)
 {
 
-  dpm($tool_input);
+   dpm($tool_input);
 
   // when we are in here we have 'this' tool's particular defaults to use
 
@@ -409,10 +405,9 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     $extra['description'] = $tool_input['help'];
 
   // Extract tool input form information to a drupal webform component.
-  dpm($tool_input['type']);
-
   switch ($tool_input['type'])
   {
+    
     case 'text':
       // Text should be the webform equivalent of textfield.
       $webform_type = 'textfield';
@@ -469,20 +464,11 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     case 'hidden_data':
       break;
 
-    case 'baseurl':
-      break;
-
-    case 'library_data':
-      break;
-
-    case 'ftpfile':
-      break;
-
     case 'repeat':
     // This case is important for tools that can have multiple operations
     // being executed within the particular tool (this type is found in the
     // trimmomatic)
-    
+
       break;
 
     case 'conditional':
@@ -492,96 +478,98 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // create the conditional rules that webforms will use to show the
       // conditional fields.
 
-      // First add the test param as this is used for the conditional
-
-
-
-
-      dpm(count($components));
-
+      // First add the 'test_param' element from the conditional
+      // There will be 'options' within this tool UNLESS 'model_class' element
+      // is of the type BooleanToolParameter
+      // This implies there are two options with the following associations
+      // yes|true\nno|false
       tripal_galaxy_add_webform_tool_input($components, $conditionals,
                                            $tool_input['test_param'], $steps,
                                            $step_index, $pid);
 
-      $num_components = count($components);
-      $source_id = $components[$num_components - 1]['cid'];
-
-      // Add the case paramters.
-      foreach ($tool_input['cases'] as $case)
-      {
-        $conditional = array(
-          'andor' => NULL,
-          'rules' => array(
-            array(
-              'source_type' => 'component',
-              // The conditional's parent
-              'source' => $source_id,
-              // This means the element will be listening for the 'value'
-              // (see the next element in this array)
-              'operator' => 'equal',
-              // This is the option for which this conditional is activated.
-              'value' => $case['value'],
-            ),
-          ),
-          'actions' => array(),
-        );
-
-        if (array_key_exists('inputs', $case))
-        {
-          // this is empty ... and it's not populated by the next recursive
-          // function call
-        	$component_conditionals = array();
-
-	        // Iterate through the cases and add a new component and a new
-	        // conditional action.
-	        foreach ($case['inputs'] as $cindex => $input)
-          {
-	          // The index for the target component is the very next component.
-            // Since the components array is zero-based we can just get the
-            // total components and that becomes our index.
-	          $target_component_index = count($components);
-
-	          tripal_galaxy_add_webform_tool_input($components,
-                                                 $component_conditionals,
-                                                 $input, $steps, $step_index,
-                                                 $pid);
-
-	          $target_id = $components[$target_component_index]['cid'];
-
-	          $conditional['actions'][] = array(
-	            'target_type' => 'component',
-	            'target' => $target_id,
-	            'action' => 'show',
-	            'argument' => '',
-	          );
-	        }
-
-          /*
-          Keep in mind that the steps's contain the defualts of a particular
-          step ()
-          */
-
-	        // In order to get the conditionals in the proper order, we need to
-          // add those that are higher up in the tree first, and those that
-          // occur lower in the tree later. To make this happen we save the
-          // recursive conditionals in the $sub_conditions array and then add
-          // those after we add the current conditional.
-
-          // TODO: this particular line is what is messing things up
-	        // $conditionals[] = $conditional;
-          //
-	        // foreach ($component_conditionals as $component_conditional)
-	        // 	$conditionals[] = $component_conditional;
-        }
-      }
-
-      // We won't add a 'conditional' as a component so we can short circuit
-      // this function and return.
+      // $num_components = count($components);
+      // $source_id = $components[$num_components - 1]['cid'];
+      //
+      // // Add the case paramters.
+      // foreach ($tool_input['cases'] as $case)
+      // {
+      //   $conditional = array(
+      //     'andor' => NULL,
+      //     'rules' => array(
+      //       array(
+      //         'source_type' => 'component',
+      //         // The conditional's parent
+      //         'source' => $source_id,
+      //         // This means the element will be listening for the 'value'
+      //         // (see the next element in this array)
+      //         'operator' => 'equal',
+      //         // This is the option for which this conditional is activated.
+      //         'value' => $case['value'],
+      //       ),
+      //     ),
+      //     'actions' => array()
+      //   );
+      //
+      //
+      //     // this is empty ... and it's not populated by the next recursive
+      //     // function call
+      //   	$component_conditionals = array();
+      //
+	    //     // Iterate through the cases and add a new component and a new
+	    //     // conditional action.
+	    //     foreach ($case['inputs'] as $cindex => $input)
+      //     {
+	    //       // The index for the target component is the very next component.
+      //       // Since the components array is zero-based we can just get the
+      //       // total components and that becomes our index.
+	    //       $target_component_index = count($components);
+      //
+	    //       tripal_galaxy_add_webform_tool_input($components,
+      //                                            $component_conditionals,
+      //                                            $input, $steps, $step_index,
+      //                                            $pid);
+      //
+	    //       $target_id = $components[$target_component_index]['cid'];
+      //
+      //
+      //       // there are edge cases where the 'actions' key is not added to ...
+      //       $conditional['actions'][] = array(
+      //         'target_type' => 'component',
+      //         'target' => $target_id,
+      //         'action' => 'show',
+      //         'argument' => '',
+      //       );
+	    //     }
+      //
+      //
+      //
+      // //     /*
+      // //     Keep in mind that the steps's contain the defaults of a particular
+      // //     step ()
+      // //     */
+      // //
+	    // //     // In order to get the conditionals in the proper order, we need to
+      // //     // add those that are higher up in the tree first, and those that
+      // //     // occur lower in the tree later. To make this happen we save the
+      // //     // recursive conditionals in the $sub_conditions array and then add
+      // //     // those after we add the current conditional.
+      // //
+      // //     // TODO: this particular line is what is messing things up
+      // //
+      //   $conditionals[] = $conditional;
+      //
+      //   foreach ($component_conditionals as $component_conditional)
+      //     $conditionals[] = $component_conditional;
+      // }
+      //
+      // // We won't add a 'conditional' as a component so we can short circuit
+      // // this function and return.
       return;
       break;
 
     default :
-      drupal_set_message('Unhandled tool input type: ' . $tool_input['type'], 'error');
+      drupal_set_message('Unhandled tool input type: ' . $tool_input['type'],
+      'error');
       break;
   }
 
