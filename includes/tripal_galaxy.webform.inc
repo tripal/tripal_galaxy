@@ -287,8 +287,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   );
 
 
-  // dpm($components);
-  // dpm($conditionals);
+  dpm($components);
+  dpm($conditionals);
 
   // Save the node.
   node_save($node);
@@ -363,7 +363,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 		$tool_input, $steps, $step_index, $pid = 0)
 {
 
-  // dpm($tool_input);
+  dpm($tool_input);
 
   // when we are in here we have 'this' tool's particular defaults to use
 
@@ -436,7 +436,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
           if(!empty($val) and count($val) >= 2)
           {
             if(!is_array($val[1]) && !is_array($val[0]))
-              $extra['items'] .= $val[1] . '|' . $val[0] . "\r\n";
+              $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
           }
         }
       }
@@ -461,9 +461,9 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       foreach ($tool_input['options'] as $key => $vals)
       {
         foreach ($vals as $details)
-          $extra['items'] .= $details['id'] . '|' . $details['name'] . "\n";
+          $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
       }
-      $webform_value = '';
+      // $webform_value = '';
       break;
 
     case 'data_collection':
@@ -476,7 +476,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
         if(!empty($val) and count($val) >= 2)
         {
           if(!is_array($val[1]) && !is_array($val[0]))
-            $extra['items'] .= $val[1] . '|' . $val[0] . "\r\n";
+            $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
         }
       }
     }
@@ -528,7 +528,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // This source_id is referring to the options that are found in the test
       // param
       $source_id = $components[$num_components - 1]['cid'];
-      //
+
       // // Add the case paramters.
       foreach ($tool_input['cases'] as $case_num => $case)
       {
@@ -571,8 +571,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 
             $target_id = $components[$target_component_index]['cid'];
 
-
-            // there are edge cases where the 'actions' key is not added to ...
             $conditional['actions'][] = array(
               'target_type' => 'component',
               'target' => $target_id,
