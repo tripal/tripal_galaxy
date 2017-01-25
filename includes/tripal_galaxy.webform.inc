@@ -452,6 +452,12 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // Data appears to be a file selection of files that already
       // exists in the user's history.
       $webform_type = 'select';
+
+      if(!$tool_input['options']){
+        // $extra['items'] .= "na|N/A\n";
+        dpm($tool_input);
+      }
+
       foreach ($tool_input['options'] as $key => $vals)
       {
         foreach ($vals as $details)
@@ -486,8 +492,9 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 
     case 'boolean':
       // Boolean should have a single true/false value. It is also likely to
-      // not have 'options' so we must invent our own
-      $extra['items'] = "true|Yes\nfalse|No";
+      // not have 'options' so we must invent our own (galaxy uses 'no' as The
+      // false value and 'yes' as the true value)
+      $extra['items'] = "yes|Yes\nno|No";
       $extra['aslist'] = 0;
       break;
 
@@ -498,7 +505,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     // This case is important for tools that can have multiple operations
     // being executed within the particular tool (this type is found in the
     // trimmomatic)
-
+    // TODO: Finish this
       break;
 
     case 'conditional':
@@ -570,7 +577,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
               'target_type' => 'component',
               'target' => $target_id,
               'action' => 'show',
-              'argument' => '',
+              //'argument' => '',
             );
           }
           // In order to get the conditionals in the proper order, we need to
@@ -578,9 +585,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
           // occur lower in the tree later. To make this happen we save the
           // recursive conditionals in the $sub_conditions array and then add
           // those after we add the current conditional.
-
-          // TODO: this particular line is what is messing things up
-
           $conditionals[] = $conditional;
 
           foreach ($component_conditionals as $component_conditional){
@@ -589,9 +593,11 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
         }
 
       }
-      //
-      // // We won't add a 'conditional' as a component so we can short circuit
-      // // this function and return.
+
+      // We won't add a 'conditional' as a component so we can short circuit
+      // this function and return.
+
+      // TODO: is there something wrong with this?
       return;
       break;
 
