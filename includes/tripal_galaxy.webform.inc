@@ -287,8 +287,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   );
 
 
-  dpm($components);
-  dpm($conditionals);
+  // dpm($components);
+  // dpm($conditionals);
 
   // Save the node.
   node_save($node);
@@ -362,28 +362,12 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
 function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 		$tool_input, $steps, $step_index, $pid = 0)
 {
-
-  dpm($tool_input);
+  // dpm($tool_input);
 
   // when we are in here we have 'this' tool's particular defaults to use
 
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
-
-  // if(array_key_exists('options', $tool_input))
-  // {
-  //   foreach ($tool_input['options'] as $key => $val)
-  //   {
-  //     // The val is now that sub-array containing the human readable option
-  //     // (index 0) as well as the unique key-name (index 1).
-  //     if(!empty($val) and count($val) >= 2)
-  //     {
-  //       if(!is_array($val[1]) && !is_array($val[0]))
-  //         $items .= $val[1] . '|' . $val[0] . "\r\n";
-  //     }
-  //   }
-  // }
-
   $is_list = 1;
   $webform_value = "";
   $webform_type = 'select';
@@ -433,10 +417,14 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
         {
           // The val is now that sub-array containing the human readable option
           // (index 0) as well as the unique key-name (index 1).
-          if(!empty($val) and count($val) >= 2)
+          //if(!empty($val) and count($val) >= 2)
           {
-            if(!is_array($val[1]) && !is_array($val[0]))
+            //if(!is_array($val[1]) && !is_array($val[0]))
+            if($val[1])
               $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
+            else
+              $extra['items'] .= $step_index . "|" . $val[0] . "\n";
+
           }
         }
       }
@@ -453,33 +441,34 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // exists in the user's history.
       $webform_type = 'select';
 
-      if(!$tool_input['options']){
-        // $extra['items'] .= "na|N/A\n";
-        dpm($tool_input);
-      }
-
       foreach ($tool_input['options'] as $key => $vals)
       {
+        if(empty($vals))
+          $extra['items'] .=  "na|N\A\n";
+
         foreach ($vals as $details)
-          $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
+        {
+            $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
+        }
+
       }
       // $webform_value = '';
       break;
 
     case 'data_collection':
-    if(array_key_exists('options', $tool_input))
-    {
-      foreach ($tool_input['options'] as $key => $val)
+      $webform_type = 'select';
+
+      foreach ($tool_input['options'] as $key => $vals)
       {
-        // The val is now that sub-array containing the human readable option
-        // (index 0) as well as the unique key-name (index 1).
-        if(!empty($val) and count($val) >= 2)
+        if(empty($vals))
+          $extra['items'] .=  "na|N\A\n";
+
+        foreach ($vals as $details)
         {
-          if(!is_array($val[1]) && !is_array($val[0]))
-            $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
+            $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
         }
+
       }
-    }
       break;
 
     case 'integer':
@@ -625,13 +614,15 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       "Output from step " . ($source_step + 1);
   }
 
-  // Default component. Defaults to a drop-down list component.
+
   $cid = count($components) + 1;
   $components[] = array(
     'cid' => $cid,
     'pid' => $pid,
     'name' => $input_name,
-    'form_key' => "Step_" . $step_index ."_" . $tool_name,
+    // This form_key has to be unique from ANYTHING else, otherwise the
+    // component will not be presented
+    'form_key' => "Step_" . $step_index ."_" . $tool_name . $cid,
     'type' => $webform_type,
     'value' => $webform_value,
     'extra' => $extra,
