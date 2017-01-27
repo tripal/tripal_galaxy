@@ -362,8 +362,17 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
 function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 		$tool_input, $steps, $step_index, $pid = 0)
 {
-  // dpm($tool_input);
+  dpm($steps);
 
+  $def = array();
+  foreach($steps[$step_index - 1]['tool_inputs'] as $k => $v){
+    // dpm($k);
+    // dpm($v);
+    $def = array($k => json_decode($v));
+  }
+    //$def = json_decode($v);
+
+   dpm($def);
   // when we are in here we have 'this' tool's particular defaults to use
 
   // Initiate variables. By default, these variables will create
