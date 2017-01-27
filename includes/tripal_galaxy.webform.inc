@@ -36,7 +36,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   // Obtain the galaxy server details using the galaxy id.
   $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
   $galaxy_server = db_query($sql, array(':galaxy_id' => $galaxy_id));
-  $galaxy_server = $galaxy_server->fetchObject ();
+  $galaxy_server = $galaxy_server->fetchObject();
 
     // Obtain the hostname and port from the url
     $matches = array();
@@ -362,15 +362,12 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
 function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 		$tool_input, $steps, $step_index, $pid = 0)
 {
-  dpm($steps);
+  dpm($tool_input);
 
   $def = array();
   foreach($steps[$step_index - 1]['tool_inputs'] as $k => $v){
-    // dpm($k);
-    // dpm($v);
-    $def = array($k => json_decode($v));
+    $def[$k] = json_decode($v);
   }
-    //$def = json_decode($v);
 
    dpm($def);
   // when we are in here we have 'this' tool's particular defaults to use
@@ -442,7 +439,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     case 'data_column':
       // Data_column should be the default list drop-down.
       $extra['multiple'] = 0;
-      dpm($tool_input);
+      // dpm($tool_input);
       break;
 
     case 'data':
@@ -455,8 +452,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
         if(empty($vals))
           $extra['items'] .=  "na|N\A\n";
 
-        foreach ($vals as $details)
-        {
+        foreach ($vals as $details){
             $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
         }
 
@@ -467,16 +463,13 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     case 'data_collection':
       $webform_type = 'select';
 
-      foreach ($tool_input['options'] as $key => $vals)
-      {
+      foreach ($tool_input['options'] as $key => $vals){
         if(empty($vals))
           $extra['items'] .=  "na|N\A\n";
 
-        foreach ($vals as $details)
-        {
+        foreach ($vals as $details){
             $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
         }
-
       }
       break;
 
@@ -494,6 +487,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // false value and 'yes' as the true value)
       $extra['items'] = "yes|Yes\nno|No";
       $extra['aslist'] = 0;
+      
       break;
 
     case 'hidden_data':
