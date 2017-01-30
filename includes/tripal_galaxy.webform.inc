@@ -362,14 +362,18 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
 function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 		$tool_input, $steps, $step_index, $pid = 0)
 {
-  dpm($tool_input);
+  // dpm($tool_input);
 
   $def = array();
   foreach($steps[$step_index - 1]['tool_inputs'] as $k => $v){
     $def[$k] = json_decode($v);
   }
 
-   dpm($def);
+ // dpm($def);
+ // foreach($def as $key2 => $val2)
+ // {
+ //    dpm($key2);
+ // }
   // when we are in here we have 'this' tool's particular defaults to use
 
   // Initiate variables. By default, these variables will create
@@ -412,7 +416,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // {
       //   $webform_value = $tool_input['value'];
       // }
-      break;
+      // break;
 
     case 'select':
       // Select should be the default list drop-down. Unless it has a display
@@ -423,17 +427,23 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
         {
           // The val is now that sub-array containing the human readable option
           // (index 0) as well as the unique key-name (index 1).
-          //if(!empty($val) and count($val) >= 2)
-          {
-            //if(!is_array($val[1]) && !is_array($val[0]))
             if($val[1])
               $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
             else
               $extra['items'] .= $step_index . "|" . $val[0] . "\n";
 
+           // Check for default params
+           foreach($def as $key2 => $defaults){
+             foreach ($defaults as $subkey => $default_value) {
+               if($tool_input['name'] == $subkey){
+                 $webform_value = $default_value;
+               }
+             }
+
+           }
+
           }
         }
-      }
       break;
 
     case 'data_column':
@@ -487,7 +497,23 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // false value and 'yes' as the true value)
       $extra['items'] = "yes|Yes\nno|No";
       $extra['aslist'] = 0;
-      
+
+      // Check defaults
+      foreach($def as $key => $defaults){
+        foreach ($defaults as $subkey => $default_value) {
+          if($tool_input['name'] == $subkey){
+            if($default_value == 'true'){
+              $webform_value = 'yes';
+            }
+            else {
+              $webform_value = 'no';
+            }
+          }
+        }
+
+      }
+
+
       break;
 
     case 'hidden_data':
