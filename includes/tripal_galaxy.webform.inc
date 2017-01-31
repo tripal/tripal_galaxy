@@ -402,6 +402,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
   // if ( array_key_exists('multiple', $tool_input) and $tool_input['multiple'])
   //   $extra['multiple'] = 1;
 
+
   if (array_key_exists('help', $tool_input) and $tool_input['help'])
     $extra['description'] = $tool_input['help'];
 
@@ -416,7 +417,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // {
       //   $webform_value = $tool_input['value'];
       // }
-      // break;
+      break;
 
     case 'select':
       // Select should be the default list drop-down. Unless it has a display
@@ -432,14 +433,27 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
             else
               $extra['items'] .= $step_index . "|" . $val[0] . "\n";
 
+
+
            // Check for default params
            foreach($def as $key2 => $defaults){
-             foreach ($defaults as $subkey => $default_value) {
-               if($tool_input['name'] == $subkey){
-                 $webform_value = $default_value;
+             if(is_object($defaults)){
+               foreach ($defaults as $subkey => $default_value) {
+                 if(is_object($subkey)){
+                   // Terrible programming I know this needs to be generalized
+                   foreach($subkey as $sub => )
+                 }
+                 if($tool_input['name'] == $subkey){
+                   $webform_value = $default_value;
+                 }
                }
              }
-
+             else{
+               if($tool_input['name'] == $key2){
+                 $webform_value = $defaults;
+               }
+              //  dpm($defaults);
+             }
            }
 
           }
@@ -536,8 +550,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // First add the 'test_param' element from the conditional
       // There will be 'options' within this tool UNLESS 'model_class' element
       // is of the type BooleanToolParameter
-      // This implies there are two options with the following associations
-      // yes|true\nno|false
       tripal_galaxy_add_webform_tool_input($components, $conditionals,
                                            $tool_input['test_param'], $steps,
                                            $step_index, $pid);
@@ -658,5 +670,65 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     'weight' => $cid,
     'required' => $is_required,
   );
+
+}
+
+/*
+* Unpack a default array from the steps of a given workflow
+*
+* Due to the recursive nature of the conditionals in generating this webform
+* there must a function
+*
+* This is being designed for the 'select' tool_type first
+*
+* $default_obj: The defualt array that was acquired from a particular step
+*               within the workflow
+*
+* $tool_component: The tool key to search for inside of the defaults to
+*                  associate the
+*
+* This is to be used in the switch statement cases while determining what
+* defualt value to add to the specific component of a tool_input
+*
+* Returns: The particular value of the component (if it exists) to use
+*
+*/
+public function extract_defaults($default_obj, $tool_component){
+
+// This will be recursive
+// Base case will be if the current val of the key => val pair IF the val is
+// not an object or array
+foreach($default_obj as $key => $val){
+  if(is_object($val) || is_array($val)){
+    extract_defaults($val);
+  }
+  // If we're out here then we have decompressed such that the val is not
+  // another nested object to access so now we can do the iterations
+}
+
+// Recursive step checks if the val IS an object or array
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
