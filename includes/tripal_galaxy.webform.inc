@@ -513,19 +513,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       $extra['aslist'] = 0;
 
       // Check defaults
-      foreach($def as $key => $defaults){
-        foreach ($defaults as $subkey => $default_value) {
-          if($tool_input['name'] == $subkey){
-            if($default_value == 'true'){
-              $webform_value = 'yes';
-            }
-            else {
-              $webform_value = 'no';
-            }
-          }
-        }
 
-      }
 
 
       break;
@@ -624,8 +612,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 
       // We won't add a 'conditional' as a component so we can short circuit
       // this function and return.
-
-      // TODO: is there something wrong with this?
       return;
       break;
 
@@ -693,7 +679,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 * Returns: The particular value of the component (if it exists) to use
 *
 */
-public function extract_defaults($default_obj, $tool_component){
+public function extract_defaults($default_obj, $tool_input){
 
 // This will be recursive
 // Base case will be if the current val of the key => val pair IF the val is
@@ -702,6 +688,49 @@ foreach($default_obj as $key => $val){
   if(is_object($val) || is_array($val)){
     extract_defaults($val);
   }
+
+  // Switch on the $tool_component for the tool_type
+  switch($tool_input['type']){
+    case 'integer':
+      break;
+    case 'float':
+      break;
+    case 'text':
+      break;
+    case 'select':
+      if()
+      break;
+    case 'data':
+      break;
+    case 'boolean':
+    if($val == 'true'){
+      return 'yes';
+    }
+    else{
+      return 'no';
+    }
+      break;
+    case 'data_collection':
+      break;
+    case 'repeat':
+      break;
+    default:
+      break;
+  }
+
+  // foreach($def as $key => $defaults){
+  //   foreach ($defaults as $subkey => $default_value) {
+  //     if($tool_input['name'] == $subkey){
+  //       if($default_value == 'true'){
+  //         $webform_value = 'yes';
+  //       }
+  //       else {
+  //         $webform_value = 'no';
+  //       }
+  //     }
+  //   }
+  //
+  // }
   // If we're out here then we have decompressed such that the val is not
   // another nested object to access so now we can do the iterations
 }
