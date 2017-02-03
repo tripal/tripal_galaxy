@@ -42,6 +42,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     $matches = array();
     $use_https = FALSE;
     $http_regex = "((https|http):\/\/)?";
+    // TODO: this host_regex is dependent on whether the server is
+    // something.com or the server's address is simply localhost
   //$host_regex = "([a-z0-9-.]*).([a-z0-9-.]*)";
     $host_regex = "([a-z0-9-.]*)";
     $port_regex = "(:)?([0-9]*)?";
@@ -50,8 +52,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     $hostname = $matches[3];
     $port = $matches[5];
 
-    if($matches[2] == "https")
-    {
+    if($matches[2] == "https"){
       $use_https = TRUE;
     }
 
@@ -60,8 +61,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   $galaxy_instance = new GalaxyInstance($hostname, $port, $use_https);
 
   // Check to make sure we have a valid connection.
-  if($galaxy_instance->getVersion() == NULL)
-  {
+  if($galaxy_instance->getVersion() == NULL){
     drupal_set_message(t('Cannot connect to galaxy instance'), 'error');
     return FALSE;
   }
@@ -72,8 +72,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   // Create the workflow instance.
   $workflow_instance = new GalaxyWorkflows($galaxy_instance);
   $workflow = $workflow_instance->show(array('workflow_id' => $workflow_id));
-  if (!$workflow)
-  {
+  if (!$workflow){
     drupal_set_message('Cannot find workflow. ' . $galaxy_instance->getErrorMessage(), 'error');
     return FALSE;
   }
@@ -88,8 +87,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   $i = 1;
   $steps = $workflow['steps'];
 
-  foreach ($steps as $step_index => $step)
-  {
+  foreach ($steps as $step_index => $step){
 
     // Get the tool for this step.  Some steps don't have tools so the tool_id
     // stays as null if there isn't one.
@@ -98,8 +96,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     $tool_id = $step['tool_id'];
 
     // Generate the vanilla tool to then be placed on the form
-    if ($tool_id)
-    {
+    if ($tool_id){
       $tool_instance = new GalaxyTools($galaxy_instance);
       $tool = $tool_instance->build(
         array(
@@ -107,8 +104,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
         'history_id' => $target_history['id'])
       );
 
-      if (!$tool)
-      {
+      if (!$tool){
         drupal_set_message('Cannot retrieve tool information from Galaxy: ' . $tool_id, 'Error' );
         return FALSE;
       }
@@ -121,14 +117,12 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     $fieldset_name = 'Step ' . $i;
     $fieldset_desc = '';
 
-    if ($tool)
-    {
+    if ($tool){
       $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
       $fieldset_desc = $tool['description'];
     }
 
-    else if($step['annotation'])
-    {
+    else if($step['annotation']){
       $fieldset_name .=  ': ' . $step['annotation'];
     }
 
@@ -155,8 +149,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     );
 
     // Add the tool help as a collapsed fieldset
-    if ($tool)
-    {
+    if ($tool){
       $icid = count($components) + 1;
       $components[] = array(
         'cid' => $icid,
@@ -197,8 +190,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     }
 
       // If this step isn't a tool then handle it appropriately.
-    if (!$tool)
-    {
+    if (!$tool){
       // We want to add the contents of the current history as potential items to add to the queue
       $galaxy_history = new GalaxyHistories ( $galaxy_instance );
 
@@ -219,19 +211,22 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     }
 
     // Otherwise, iterate over tool inputs and add webform components.
-    else
-    {
-       // if we do 'inputs' we are including the vanilla inputs and NOT the
-       // pre designed
-      foreach ( $tool["inputs"] as $tool_input )
-      {
-
+    else{
+      foreach ( $tool['inputs'] as $tool_input){
         tripal_galaxy_add_webform_tool_input ($components, $conditionals,
         		$tool_input, $steps, $i, $cid);
       }
-
     }
-    // Increment the step counter;
+    // Increment the step counter
+    // TODO: At this point a page_break form element needs to be snuck in
+    $components[] = array(
+      'cid' => count($components) + 1,
+      'pid' => 0,
+      'name' => "Step" . ($step_index + 1),
+      'form_key' => "Step_" . $step_index ."_pagebreak",
+      'type' => 'pagebreak',
+      'weight' => count($components) + 1
+    );
     $i++;
   }
 
@@ -359,9 +354,7 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
  *   An array suitable for the 'components' webform array
  *   False otherwise.
  */
-function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
-		$tool_input, $steps, $step_index, $pid = 0)
-{
+function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $tool_input, $steps, $step_index, $pid = 0){
   // dpm($tool_input);
 
   $def = array();
@@ -413,10 +406,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
     case 'text':
       // Text should be the webform equivalent of textfield.
       $webform_type = 'textfield';
-      // if(array_key_exists('value', $tool_input))
-      // {
-      //   $webform_value = $tool_input['value'];
-      // }
+      extract_defaults($def, $tool_input, $webform_value);
       break;
 
     case 'select':
@@ -432,32 +422,10 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
               $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
             else
               $extra['items'] .= $step_index . "|" . $val[0] . "\n";
-
-
-
-           // Check for default params
-           foreach($def as $key2 => $defaults){
-             if(is_object($defaults)){
-               foreach ($defaults as $subkey => $default_value) {
-                 if(is_object($subkey)){
-                   // Terrible programming I know this needs to be generalized
-                   foreach($subkey as $sub => )
-                 }
-                 if($tool_input['name'] == $subkey){
-                   $webform_value = $default_value;
-                 }
-               }
-             }
-             else{
-               if($tool_input['name'] == $key2){
-                 $webform_value = $defaults;
-               }
-              //  dpm($defaults);
-             }
-           }
-
           }
         }
+        // Check for default params
+        extract_defaults($def, $tool_input, $webform_value );
       break;
 
     case 'data_column':
@@ -470,16 +438,17 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       // Data appears to be a file selection of files that already
       // exists in the user's history.
       $webform_type = 'select';
-
       foreach ($tool_input['options'] as $key => $vals)
       {
-        if(empty($vals))
+        if(empty($vals)){
           $extra['items'] .=  "na|N\A\n";
-
-        foreach ($vals as $details){
-            $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
         }
 
+        else{
+          foreach ($vals as $details){
+              $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
+          }
+        }
       }
       // $webform_value = '';
       break;
@@ -490,19 +459,23 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       foreach ($tool_input['options'] as $key => $vals){
         if(empty($vals))
           $extra['items'] .=  "na|N\A\n";
-
-        foreach ($vals as $details){
-            $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
+        else{
+          foreach ($vals as $details){
+              $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
+          }  
         }
+
       }
       break;
 
     case 'integer':
     	$webform_type = 'number';
+      extract_defaults($def, $tool_input, $webform_value );
       break;
 
     case 'float':
     $webform_type = 'number';
+    extract_defaults($def, $tool_input, $webform_value );
       break;
 
     case 'boolean':
@@ -513,9 +486,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       $extra['aslist'] = 0;
 
       // Check defaults
-
-
-
+      extract_defaults($def, $tool_input, $webform_value );
       break;
 
     case 'hidden_data':
@@ -548,8 +519,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
       $source_id = $components[$num_components - 1]['cid'];
 
       // // Add the case paramters.
-      foreach ($tool_input['cases'] as $case_num => $case)
-      {
+      foreach ($tool_input['cases'] as $case_num => $case){
         $conditional = array(
           'andor' => NULL,
           'rules' => array(
@@ -573,8 +543,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 
           // Iterate through the cases and add a new component and a new
           // conditional action.
-          foreach ($case['inputs'] as $cindex => $input)
-          {
+          foreach ($case['inputs'] as $cindex => $input){
             // The index for the target component is the very next component.
             // Since the components array is zero-based we can just get the
             // total components and that becomes our index.
@@ -670,7 +639,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 * $default_obj: The defualt array that was acquired from a particular step
 *               within the workflow
 *
-* $tool_component: The tool key to search for inside of the defaults to
+* $tool_input: The tool key to search for inside of the defaults to
 *                  associate the
 *
 * This is to be used in the switch statement cases while determining what
@@ -679,85 +648,64 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals,
 * Returns: The particular value of the component (if it exists) to use
 *
 */
-public function extract_defaults($default_obj, $tool_input){
+function extract_defaults($default_obj, $tool_input, &$webform_value){
 
 // This will be recursive
 // Base case will be if the current val of the key => val pair IF the val is
 // not an object or array
-foreach($default_obj as $key => $val){
-  if(is_object($val) || is_array($val)){
-    extract_defaults($val);
+  foreach($default_obj as $key => $val){
+    if(is_object($val)){
+      extract_defaults($val, $tool_input, $webform_value);
+    }
+    switch($tool_input['type']){
+      case 'integer':
+        if($tool_input['name'] == $key){
+          $webform_value = (int)$val;
+        }
+        break;
+      case 'float':
+      if($tool_input['name'] == $key){
+        $webform_value = (float)$val;
+      }
+        break;
+      case 'text':
+      if($tool_input['name'] == $key){
+        $webform_value = $val;
+      }
+        break;
+      case 'select':
+        if($tool_input['name'] == $key){
+          $webform_value = $val;
+        }
+        break;
+      case 'data':
+        // return;
+        break;
+      case 'boolean':
+      if($tool_input['name'] == $key){
+        if($val == 'true'){
+          $webform_value = 'yes';
+        }
+        else{
+          $webform_value = 'no';
+        }
+    }
+        break;
+      case 'data_collection':
+      // return;
+        break;
+      case 'repeat':
+      // return;
+        break;
+      default:
+        break;
+    }
+
+    // dpm($val);
   }
 
-  // Switch on the $tool_component for the tool_type
-  switch($tool_input['type']){
-    case 'integer':
-      break;
-    case 'float':
-      break;
-    case 'text':
-      break;
-    case 'select':
-      if()
-      break;
-    case 'data':
-      break;
-    case 'boolean':
-    if($val == 'true'){
-      return 'yes';
-    }
-    else{
-      return 'no';
-    }
-      break;
-    case 'data_collection':
-      break;
-    case 'repeat':
-      break;
-    default:
-      break;
-  }
 
-  // foreach($def as $key => $defaults){
-  //   foreach ($defaults as $subkey => $default_value) {
-  //     if($tool_input['name'] == $subkey){
-  //       if($default_value == 'true'){
-  //         $webform_value = 'yes';
-  //       }
-  //       else {
-  //         $webform_value = 'no';
-  //       }
-  //     }
-  //   }
-  //
-  // }
+
   // If we're out here then we have decompressed such that the val is not
   // another nested object to access so now we can do the iterations
-}
-
-// Recursive step checks if the val IS an object or array
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
