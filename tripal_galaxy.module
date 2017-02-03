@@ -318,19 +318,19 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
 
   $parameters = tripal_galaxy_gather_params($form, $form_state);
 
-  dpm("Here are the parameters: " );
-  dpm($parameters);
-  foreach($parameters as &$parameter)
-  {
-    if($parameter == 'f')
-    {
-      $parameter = 'false';
-    }
-  }
+  // dpm("Here are the parameters: " );
+  // dpm($parameters);
+  // foreach($parameters as &$parameter)
+  // {
+  //   if($parameter == 'f')
+  //   {
+  //     $parameter = 'false';
+  //   }
+  // }
 
   //$inputs = tripal_galaxy_temp_inputs();
   $inputs = tripal_galaxy_default_inputs($form, $form_state);
-  dpm($inputs);
+  // dpm($inputs);
 
   /*
    * TODO:
@@ -393,8 +393,8 @@ function tripal_galaxy_default_inputs($form, &$form_state){
   $dataset_ids = array();
 
   // Obtain submission id and node id.
-  $sid = $form_state['storage']['details']['sid'];
-  $nid = $form_state['storage']['details']['nid'];
+  // $sid = $form_state['storage']['details']['sid'];
+  // $nid = $form_state['storage']['details']['nid'];
 
   // Need submission data from webform_submission_data table
   $sql = "SELECT * FROM {webform_submitted_data} WHERE sid = :sid";
@@ -443,8 +443,8 @@ function tripal_galaxy_gather_params($form, &$form_state) {
 
   // Obtain submission id and node id.
   dpm($form_state);
-  $sid = $form_state['storage']['details']['sid'];
-  $nid = $form_state['storage']['details']['nid'];
+  // $sid = $form_state['storage']['details']['sid'];
+  // $nid = $form_state['storage']['details']['nid'];
 
   // Need submission data from webform_submission_data table
   $sql = "SELECT * FROM {webform_submitted_data} WHERE sid = :sid";
