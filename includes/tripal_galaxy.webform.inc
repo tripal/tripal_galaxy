@@ -231,6 +231,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   }
 
   // Default values for the node
+
+  // How do I extend the node type?
   $node = new stdClass ();
   $node->type = 'webform';
   node_object_prepare($node);
@@ -362,13 +364,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     $def[$k] = json_decode($v);
   }
 
- // dpm($def);
- // foreach($def as $key2 => $val2)
- // {
- //    dpm($key2);
- // }
-  // when we are in here we have 'this' tool's particular defaults to use
-
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
   $is_list = 1;
@@ -391,10 +386,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
   if(array_key_exists('optional', $tool_input) and $tool_input['optional']){
     $is_required = 0;
   }
-
-  // if ( array_key_exists('multiple', $tool_input) and $tool_input['multiple'])
-  //   $extra['multiple'] = 1;
-
 
   if (array_key_exists('help', $tool_input) and $tool_input['help'])
     $extra['description'] = $tool_input['help'];

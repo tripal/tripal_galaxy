@@ -371,7 +371,7 @@ function tripal_galaxy_admin_available_wf_form($form, &$form_state) {
 }
 
 /**
- * The themable fuinction for the available workflow form
+ * The themable function for the available workflow form
  *
  * @param $form
  * @param $form_state
@@ -620,4 +620,3 @@ function tripal_galaxy_admin() {
  */
 function tripal_galaxy_admin_validate($form, &$form_state) {
 }
-

@@ -276,6 +276,13 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
   return $items;
 }
 
+// https://www.sitepoint.com/creating-a-new-drupal-node-type/
+
+function tripal_galaxy_form($node, $form_state)
+{
+  dpm("How did I get here?");
+}
+
 
 /**
  * Implements a pseudo hook on the submit button of the webform.
@@ -296,9 +303,9 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
  *  Identifier for drupal
  */
 function tripal_galaxy_form_alter(&$form, &$form_state, $form_id ) {
-  // dpm($form);
+  dpm($form);
   // dpm($form_state);
-
+  dpm(node_type_get_types());
   dpm($form_id);
   // $form['actions']['submit']['#submit'][] = 'tripal_galaxy_webform_client_submit';
 
