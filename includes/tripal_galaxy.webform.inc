@@ -223,7 +223,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
       'cid' => count($components) + 1,
       'pid' => 0,
       'name' => "Step" . ($step_index + 1),
-      'form_key' => "Step_" . $step_index ."_pagebreak",
+      'form_key' => "Step_" . ($step_index + 1) ."_pagebreak",
       'type' => 'pagebreak',
       'weight' => count($components) + 1
     );
@@ -462,7 +462,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
         else{
           foreach ($vals as $details){
               $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
-          }  
+          }
         }
 
       }
@@ -618,7 +618,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     'name' => $input_name,
     // This form_key has to be unique from ANYTHING else, otherwise the
     // component will not be presented
-    'form_key' => "Step_" . $step_index ."_" . $tool_name . $cid,
+    'form_key' => "Step_" . $step_index ."_" . $tool_name . "_" . $cid,
     'type' => $webform_type,
     'value' => $webform_value,
     'extra' => $extra,
