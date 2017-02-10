@@ -299,21 +299,16 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
   // At each 'turn of the page' of the particular webform this is being called
   if($form['#node']->webform['components'][1]['form_key'] == 'galaxy_webform'){
     $form['#submit'][] = 'tripal_galaxy_gather_input';
-
-    // $form['#process'][] = 'tripal_galaxy_webform_client_submit';
+    // $form['actions']['submit']['#submit'][] = 'tripal_galaxy_webform_client_submit';
   }
+  // dpm(drupal_get_messages());
 
-  if($form_state['clicked_button']['#value'] == 'Submit'){
-    dpm($form_state);
-    // tripal_galaxy_webform_client_submit($form, $form_state);
-  }
-
-  dpm($form);
-  dpm($form_state);
+  // dpm($form);
+  // dpm($form_state);
 
 }
 
-function tripal_galaxy_webform_client_submit($form, &$form_state){
+function tripal_galaxy_webform_client_submit(){
   dpm("test");
 }
 
@@ -325,6 +320,11 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
  * @param $form_state
  */
 function tripal_galaxy_gather_input($form, &$form_state){
+
+  if($form_state['webform_completed'] == TRUE){
+    tripal_galaxy_webform_client_submit();
+  }
+
   // This funciton is being called each time the 'next page' is being clicked
   //
 
