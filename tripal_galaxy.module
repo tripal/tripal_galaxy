@@ -276,16 +276,8 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
   return $items;
 }
 
-// https://www.sitepoint.com/creating-a-new-drupal-node-type/
-
-function tripal_galaxy_form($node, $form_state)
-{
-  dpm("How did I get here?");
-}
-
-
 /**
- * Implements a pseudo hook on the submit button of the webform.
+ * Implements a pseudo hook on the submit button of the galaxy webform.
  *
  * Along with inserting the options selected on the webform to the tripal db
  * this function also calls the tripal_galaxy_webform_client_submit function
@@ -302,67 +294,65 @@ function tripal_galaxy_form($node, $form_state)
  * @param $form_id
  *  Identifier for drupal
  */
-function tripal_galaxy_form_alter(&$form, &$form_state, $form_id ) {
+function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $form_id ) {
+  // Check if this particular webform really is a galaxy webform
+  // At each 'turn of the page' of the particular webform this is being called
+  if($form['#node']->webform['components'][1]['form_key'] == 'galaxy_webform'){
+    $form['#submit'][] = 'tripal_galaxy_gather_input';
+
+    // $form['#process'][] = 'tripal_galaxy_webform_client_submit';
+  }
+
+  if($form_state['clicked_button']['#value'] == 'Submit'){
+    dpm($form_state);
+    // tripal_galaxy_webform_client_submit($form, $form_state);
+  }
+
   dpm($form);
-  // dpm($form_state);
-  dpm(node_type_get_types());
-  dpm($form_id);
-  // $form['actions']['submit']['#submit'][] = 'tripal_galaxy_webform_client_submit';
+  dpm($form_state);
 
 }
 
-// function tripal_galaxy_
+function tripal_galaxy_webform_client_submit($form, &$form_state){
+  dpm("test");
+}
 
 
 /**
- * The function responsible for overriding the webform's submit handler
+ * This function adds the values from the webform to the galaxy workflow invoke
  *
  * @param $form
  * @param $form_state
  */
-function tripal_galaxy_webform_client_submit($form, &$form_state){
+function tripal_galaxy_gather_input($form, &$form_state){
+  // This funciton is being called each time the 'next page' is being clicked
+  //
 
-  dpm("HELLO");
-  dpm($form);
-  dpm($form_state);
+  // dpm($form);
 
-  //$parameters = tripal_galaxy_gather_params($form, $form_state);
-
-  // dpm("Here are the parameters: " );
-  // dpm($parameters);
-  // foreach($parameters as &$parameter)
-  // {
-  //   if($parameter == 'f')
-  //   {
-  //     $parameter = 'false';
-  //   }
-  // }
-
-  //$inputs = tripal_galaxy_temp_inputs();
-  //$inputs = tripal_galaxy_default_inputs($form, $form_state);
+  // $inputs = tripal_galaxy_gather_params($form, $form_state);
   // dpm($inputs);
 
-  /*
-   * TODO:
-   * This section is hardcoded! Please remove before it becomes
-   * too late to do so.
-   */
-//   $workflow_id = 'd84e07b01ec5caba';
-//   $hist_id = '09658f204da1f8d3';
+  //  $workflow_id = $form['#node']->webform['components'][1]['extra']['wfid'];
+  //  $hist_id = $form['#node']->webform['components'][1]['extra']['hid'];
+  //  $host = $form['#node']->webform['components'][1]['extra']['host'];
+  //  $port = $form['#node']->webform['components'][1]['extra']['port'];
+  //  $https = $form['#node']->webform['components'][1]['extra']['https'];
+  //  $api_key = $form['#node']->webform['components'][1]['extra']['api_key'];
 
-//   //$galaxy_id =
-//   $library = libraries_load('blend4php');
-//   $galaxy_instance = new GalaxyInstance('usegalaxy.org', '', TRUE);
-//   $galaxy_instance->setAPIKey('70f542823a971738015b28e6282f5e6d');
+
+  //  $library = libraries_load('blend4php');
+  //  $galaxy_instance = new GalaxyInstance($host, $port, $https);
+  //  $galaxy_instance->setAPIKey($api_key);
 //   $workflow = new GalaxyWorkflows($galaxy_instance);
-//   $array = array(
+//   $params = array(
 //     'workflow_id' => $workflow_id,
 //     'hist_id' => $hist_id,
 //     'input_dataset_ids' => $inputs,
 //     'parameters' => $parameters,
 //   );
 
-//   $workflow->invoke($array);
+//   $workflow->invoke($params);
 
 //   // To be implemented more properly once inputs are generated
 //   $start_time = date("D M d, Y G:i");
@@ -378,8 +368,6 @@ function tripal_galaxy_webform_client_submit($form, &$form_state){
 //   );
 //   // Now insert the submission into the database
 //   $workflow_submission = drupal_write_record('tripal_galaxy_wf_submission', $data);
-
-
 }
 
 /*

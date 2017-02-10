@@ -12,49 +12,28 @@
 function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
 {
 
-  // The array of components for the webform.
-  $components = array ();
-  $components[] = array (
-    'cid' => 1,
-    'pid' => 0,
-    'form_key' => 'galaxy_webform',
-    'name' => 'galaxy_webform',
-    'type' => 'hidden',
-    'value' => $galaxy_id,
-    'extra' => array (
-      'private' => 0,
-      'hidden_type' => 'value',
-      'analysis' => FALSE
-    ),
-    'required' => '0',
-    'weight' => 0
-  );
-
-  // The conditionals array for the webform
-  $conditionals = array();
-
   // Obtain the galaxy server details using the galaxy id.
   $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
   $galaxy_server = db_query($sql, array(':galaxy_id' => $galaxy_id));
   $galaxy_server = $galaxy_server->fetchObject();
 
-    // Obtain the hostname and port from the url
-    $matches = array();
-    $use_https = FALSE;
-    $http_regex = "((https|http):\/\/)?";
-    // TODO: this host_regex is dependent on whether the server is
-    // something.com or the server's address is simply localhost
+  // Obtain the hostname and port from the url
+  $matches = array();
+  $use_https = FALSE;
+  $http_regex = "((https|http):\/\/)?";
+  // TODO: this host_regex is dependent on whether the server is
+  // something.com or the server's address is simply localhost
   //$host_regex = "([a-z0-9-.]*).([a-z0-9-.]*)";
-    $host_regex = "([a-z0-9-.]*)";
-    $port_regex = "(:)?([0-9]*)?";
-    $regex = $http_regex . $host_regex . $port_regex;
-    preg_match("/^$regex$/", $galaxy_server->url, $matches);
-    $hostname = $matches[3];
-    $port = $matches[5];
+  $host_regex = "([a-z0-9-.]*)";
+  $port_regex = "(:)?([0-9]*)?";
+  $regex = $http_regex . $host_regex . $port_regex;
+  preg_match("/^$regex$/", $galaxy_server->url, $matches);
+  $hostname = $matches[3];
+  $port = $matches[5];
 
-    if($matches[2] == "https"){
-      $use_https = TRUE;
-    }
+  if($matches[2] == "https"){
+    $use_https = TRUE;
+  }
 
   // Load the blend4php library into scope and create the Galaxy instance.
   $library = libraries_load('blend4php');
@@ -80,8 +59,46 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   // Select a target history by using the first history owned by the user.
   // The history_id is required for retrieving tool information for a workflow.
   // Also, the workflow must be owned by the user.
-  $history_instance = new GalaxyHistories($galaxy_instance);
-  $target_history = $history_instance->getMostRecentlyUsed();
+  $galaxy_history = new GalaxyHistories ($galaxy_instance);
+
+  // Obtain the current history
+  $galaxy_current_history = $galaxy_history->getMostRecentlyUsed();
+
+  // Obtain history contents for the current history
+  $history_id = $galaxy_current_history['id'];
+
+  // Obtain a galaxy history contents object
+  $galaxy_history_contents = new GalaxyHistoryContents ($galaxy_instance);
+
+  // Current history contents is
+  $current_history_contents = $galaxy_history_contents->index(array('history_id' => $history_id));
+
+  // The array of components for the webform.
+  $components = array ();
+  $components[] = array (
+    'cid' => 1,
+    'pid' => 0,
+    'form_key' => 'galaxy_webform',
+    'name' => 'galaxy_webform',
+    'type' => 'hidden',
+    // 'value' => $galaxy_id,
+    'extra' => array (
+      'private' => 1,
+      'hidden_type' => 'value',
+      'analysis' => FALSE,
+      'wfid' => $workflow_id,
+      'hid' => $history_id,
+      'host' => $hostname,
+      'port' => $port,
+      'https' => $use_https,
+      'api_key' => $galaxy_server->api_key
+    ),
+    'required' => '0',
+    'weight' => 0
+  );
+
+  // The conditionals array for the webform
+  $conditionals = array();
 
   // Construct web form components based on workflow steps.
   $i = 1;
@@ -92,7 +109,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     // Get the tool for this step.  Some steps don't have tools so the tool_id
     // stays as null if there isn't one.
     $tool = NULL;
-    // if a given step does the have the key 'tool_id' it will be placed here
+    // If a given step does the have the key 'tool_id' it will be placed here
     $tool_id = $step['tool_id'];
 
     // Generate the vanilla tool to then be placed on the form
@@ -101,7 +118,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
       $tool = $tool_instance->build(
         array(
         'tool_id' => $tool_id,
-        'history_id' => $target_history['id'])
+        'history_id' => $history_id)
       );
 
       if (!$tool){
@@ -127,7 +144,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     }
 
     // Add the fieldset to the components list.
-
     $components[] = array(
       'cid' => $cid,
       'pid' => '0',
@@ -191,22 +207,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
 
       // If this step isn't a tool then handle it appropriately.
     if (!$tool){
-      // We want to add the contents of the current history as potential items to add to the queue
-      $galaxy_history = new GalaxyHistories ( $galaxy_instance );
-
-      // Obtain a galaxy history contents object
-      $galaxy_history_contents = new GalaxyHistoryContents ( $galaxy_instance );
-
-      // Obtain the current history
-      $galaxy_current_history = $galaxy_history->getMostRecentlyUsed();
-
-      // Obtain history contents for the current history
-      $history_id = $galaxy_current_history['id'];
-
-      // Current history contents is
-      $current_history_contents =
-      $galaxy_history_contents->index( array('history_id' => $history_id));
-
       tripal_galaxy_add_webform_non_tool_input ( $components, $step, $i, $cid, $current_history_contents );
     }
 
@@ -218,7 +218,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
       }
     }
     // Increment the step counter
-    // TODO: At this point a page_break form element needs to be snuck in
     $components[] = array(
       'cid' => count($components) + 1,
       'pid' => 0,
@@ -230,9 +229,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     $i++;
   }
 
-  // Default values for the node
-
-  // How do I extend the node type?
+  // How do I extend the node type so it tells me in the form id that this
+  // is a 'galaxy' webform?
   $node = new stdClass ();
   $node->type = 'webform';
   node_object_prepare($node);
@@ -340,8 +338,7 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
 
 
 /**
- * A function to construct a web form component based on
- *   A given tool input.
+ * A function to construct a web form component based on a given tool input
  *
  * Some of these workflows will have its 'vanilla' inputs and others will have
  * its inputs already chosen (workflow might have been constructed on the
@@ -357,8 +354,6 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
  *   False otherwise.
  */
 function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $tool_input, $steps, $step_index, $pid = 0){
-  // dpm($tool_input);
-
   $def = array();
   foreach($steps[$step_index - 1]['tool_inputs'] as $k => $v){
     $def[$k] = json_decode($v);
