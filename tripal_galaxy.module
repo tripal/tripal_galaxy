@@ -298,14 +298,11 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
   // Check if this particular webform really is a galaxy webform
   // At each 'turn of the page' of the particular webform this is being called
   if($form['#node']->webform['components'][1]['form_key'] == 'galaxy_webform'){
-    $form['#submit'][] = 'tripal_galaxy_gather_input';
-    // $form['actions']['submit']['#submit'][] = 'tripal_galaxy_webform_client_submit';
+    $form['#submit'][] = 'tripal_galaxy_workflow_invoke';
   }
-  // dpm(drupal_get_messages());
 
   // dpm($form);
-  // dpm($form_state);
-
+  dpm($form_state);
 }
 
 function tripal_galaxy_webform_client_submit(){
@@ -314,18 +311,106 @@ function tripal_galaxy_webform_client_submit(){
 
 
 /**
- * This function adds the values from the webform to the galaxy workflow invoke
+ * This function listening for the webform to be completed.
+ *
+ * When the completed field of the $form_state is set to true this function
+ * gather all of the inputs at once and acquire the id's needed to invoke the
+ * workflow on the galaxy side
  *
  * @param $form
  * @param $form_state
  */
-function tripal_galaxy_gather_input($form, &$form_state){
+function tripal_galaxy_workflow_invoke($form, &$form_state){
 
   if($form_state['webform_completed'] == TRUE){
-    tripal_galaxy_webform_client_submit();
-  }
+    // Grab the submitted data from the form_state
+    // The result will be an associative array with the keys being the cid's
+    // (component id's) of the webform and the value being the option/value
+    // selected
+    $inputs = $form_state['values']['submitted'];
+    dpm($inputs);
+    // There will be cid's with no value so get rid of them (these are usually
+    // the page breaks as they are treated as a seperate component of the
+    // webform)
+    foreach($inputs as $cid => $value){
+      if(is_empty($value)){
+        unset($cid);
+      }
+    }
 
-  // This funciton is being called each time the 'next page' is being clicked
+    dpm($inputs);
+
+    // Next the inputs need to be formatted to galaxy's workflow invoke
+    // NOTE: The entire form can be found within form_state under
+    // $form_state['build_info']['args'][0]['webform']
+    foreach($inputs as $cid => $value){
+      // NOTE: The step id's on the server side are offset by 1 so subtract
+      // 1 from the form_key step #
+      // Grab the component from the webform
+      $component = $form_state['build_info']['args'][0]['webform']['components'][$cid];
+
+
+    }
+
+    /*REFERENCE*/
+    // From blend4php/src/Workflows.inc
+    // $inputs (associative array with the following elements)
+    //  - 'workflow_id'
+    //    The ID of the workflow to invoke.
+    //  - 'input_dataset_ids'
+    //    The list of id's of the datasets to enter into the workflow.
+    //    These id's can be found using the dataset class's index() function.
+    //    The dataset must be present in a history, and the dataset 'state' must
+    //    be 'ok' and 'deleted' must be set to FALSE.
+    //  - 'parameters'
+    //    A mapping of tool parameters that are non-datasets parameters. The map
+    //    must be in the following format:
+    //    @code
+    //    'parameters' = array(
+    //      [step_id_or_UUID] => array([param_name] => [value]),
+    //      [step_id_or_UUID] => array([param_name] => [value])
+    //    );
+    //    @endcode
+    //  - 'hist_id'
+    //    Optional. The id of the history to export the results to.
+    //    If a new history is not created. Leave this ommitted if a new history
+    //    is to be created.
+
+
+
+    // The [1] is the galaxy webform element that we created during the webform
+    // construction
+
+    // These are for finding the correct history and workflow to couple and
+    // invoke
+    // $workflow_id = $form['#node']->webform['components'][1]['extra']['wfid'];
+    // $hist_id = $form['#node']->webform['components'][1]['extra']['hid'];
+
+    // These are for setting up the instance to access the particular galaxy
+    // server
+    // $host = $form['#node']->webform['components'][1]['extra']['host'];
+    // $port = $form['#node']->webform['components'][1]['extra']['port'];
+    // $https = $form['#node']->webform['components'][1]['extra']['https'];
+    // $api_key = $form['#node']->webform['components'][1]['extra']['api_key'];
+
+
+    //  $library = libraries_load('blend4php');
+    //  $galaxy_instance = new GalaxyInstance($host, $port, $https);
+    //  $galaxy_instance->setAPIKey($api_key);
+  //   $workflow = new GalaxyWorkflows($galaxy_instance);
+  //   $params = array(
+  //     'workflow_id' => $workflow_id,
+  //     'hist_id' => $hist_id,
+         // These are the inputs gathered by the webform
+  //     'input_dataset_ids' => $inputs,
+  //     'parameters' => $parameters,
+  //   );
+
+  //   $workflow->invoke($params);
+  dpm("test");
+
+    // tripal_galaxy_webform_client_submit();
+  }
   //
 
   // dpm($form);
@@ -333,26 +418,7 @@ function tripal_galaxy_gather_input($form, &$form_state){
   // $inputs = tripal_galaxy_gather_params($form, $form_state);
   // dpm($inputs);
 
-  //  $workflow_id = $form['#node']->webform['components'][1]['extra']['wfid'];
-  //  $hist_id = $form['#node']->webform['components'][1]['extra']['hid'];
-  //  $host = $form['#node']->webform['components'][1]['extra']['host'];
-  //  $port = $form['#node']->webform['components'][1]['extra']['port'];
-  //  $https = $form['#node']->webform['components'][1]['extra']['https'];
-  //  $api_key = $form['#node']->webform['components'][1]['extra']['api_key'];
 
-
-  //  $library = libraries_load('blend4php');
-  //  $galaxy_instance = new GalaxyInstance($host, $port, $https);
-  //  $galaxy_instance->setAPIKey($api_key);
-//   $workflow = new GalaxyWorkflows($galaxy_instance);
-//   $params = array(
-//     'workflow_id' => $workflow_id,
-//     'hist_id' => $hist_id,
-//     'input_dataset_ids' => $inputs,
-//     'parameters' => $parameters,
-//   );
-
-//   $workflow->invoke($params);
 
 //   // To be implemented more properly once inputs are generated
 //   $start_time = date("D M d, Y G:i");
@@ -377,7 +443,7 @@ function tripal_galaxy_gather_input($form, &$form_state){
  *  and then place these inputs in the invocation of the workflow on the galaxy
  *  server
  */
-function tripal_galaxy_gather_inputs($form, &$form_state){
+function tripal_galaxy_store_inputs(&$inputs){
 
 
 }

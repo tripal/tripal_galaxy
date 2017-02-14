@@ -281,10 +281,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     'conditionals' => $conditionals
   );
 
-
-  // dpm($components);
-  // dpm($conditionals);
-
   // Save the node.
   node_save($node);
   return TRUE;
@@ -374,10 +370,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
   );
 
   // Set the default value accordingly.
-  // TODO: I need to pass in the defaults as an input param
-  // if(array_key_exists('value', $tool_input))
-  //    $webform_value = $tool_input['value'];
-
   if(array_key_exists('optional', $tool_input) and $tool_input['optional']){
     $is_required = 0;
   }
@@ -587,6 +579,9 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
   // to set the type as markup and print that information
   $tool_name = $tool_input['name'];
 
+
+  // TODO: There a is a problem here  in the defualt generation where Output
+  // steps are not being associated
   if (array_key_exists($tool_name, $steps[$step_index-1]['input_steps'])){
     $source_step = $steps[$step_index-1]['input_steps'][$tool_name]['source_step'];
     $step_output = $steps[$step_index-1]['input_steps'][$tool_name]['step_output'];
