@@ -333,7 +333,7 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
     // the page breaks as they are treated as a seperate component of the
     // webform)
     foreach($inputs as $cid => $value){
-      if(is_empty($value)){
+      if(empty($value)){
         unset($cid);
       }
     }
