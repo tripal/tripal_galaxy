@@ -380,7 +380,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
   // Extract tool input form information to a drupal webform component.
   switch ($tool_input['type'])
   {
-
     case 'text':
       // Text should be the webform equivalent of textfield.
       $webform_type = 'textfield';
@@ -591,6 +590,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       "Output from step " . ($source_step + 1);
   }
 
+  $extra['param_name'] = $tool_input['name'];
 
   $cid = count($components) + 1;
   $components[] = array(
