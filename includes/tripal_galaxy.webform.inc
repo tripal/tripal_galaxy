@@ -11,7 +11,6 @@
  */
 function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
 {
-
   // Obtain the galaxy server details using the galaxy id.
   $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
   $galaxy_server = db_query($sql, array(':galaxy_id' => $galaxy_id));
@@ -405,6 +404,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
         extract_defaults($def, $tool_input, $webform_value );
       break;
 
+
+      // TODO: Error here
     case 'data_column':
       // Data_column should be the default list drop-down.
       $extra['multiple'] = 0;
@@ -483,9 +484,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       // create the conditional rules that webforms will use to show the
       // conditional fields.
 
-      // First add the 'test_param' element from the conditional
-      // There will be 'options' within this tool UNLESS 'model_class' element
-      // is of the type BooleanToolParameter
       tripal_galaxy_add_webform_tool_input($components, $conditionals,
                                            $tool_input['test_param'], $steps,
                                            $step_index, $pid);
@@ -613,7 +611,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
 * Unpack a default array from the steps of a given workflow
 *
 * Due to the recursive nature of the conditionals in generating this webform
-* there must a function
+* there must a function that also recursively renders each component's defaults
 *
 * This is being designed for the 'select' tool_type first
 *
