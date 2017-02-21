@@ -354,6 +354,13 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     $def[$k] = json_decode($v);
   }
 
+  $def_files = array();
+  foreach($steps[$step_index - 1]['input_steps'] as $k => $v){
+    // $v is an array that holds the output files of a given tool to be
+    // consumed by the proper in
+    $def_files[$k] = $v;
+  }
+
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
   $is_list = 1;
@@ -419,7 +426,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       foreach ($tool_input['options'] as $key => $vals)
       {
         if(empty($vals)){
-          $extra['items'] .=  "na|N\A\n";
+          $extra['items'] .=  "na|Not Available\n";
         }
 
         else{
@@ -435,8 +442,10 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       $webform_type = 'select';
 
       foreach ($tool_input['options'] as $key => $vals){
-        if(empty($vals))
-          $extra['items'] .=  "na|N\A\n";
+        if(empty($vals)){
+          $extra['items'] .=  "na|Not Available\n";
+        }
+
         else{
           foreach ($vals as $details){
               $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
@@ -577,15 +586,14 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
   $tool_name = $tool_input['name'];
 
 
-  // TODO: There a is a problem here  in the defualt generation where Output
+  // TODO: There a is a problem here in the default generation where Output
   // steps are not being associated
   if (array_key_exists($tool_name, $steps[$step_index-1]['input_steps'])){
     $source_step = $steps[$step_index-1]['input_steps'][$tool_name]['source_step'];
     $step_output = $steps[$step_index-1]['input_steps'][$tool_name]['step_output'];
     $webform_type = 'markup';
     $extra['format'] = 'full_html';
-    $webform_value =  "<label>" . $input_name . "</label>" .
-      "Output from step " . ($source_step + 1);
+    $webform_value =  "<label>" . $input_name . "</label>" . "Output from step " . ($source_step + 1);
   }
 
   $extra['param_name'] = $tool_input['name'];
@@ -608,6 +616,23 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
 }
 
 /*
+* This is for tools that have their input files determined by the output of a
+* preceding tool.
+*
+*
+*/
+function input_steps($def_files, $tool_input, &$webform_type, &$webform_value, &$extra){
+  // The tool input type will be select, if there is a key in the $def_files
+  // that matches the $tool_input name then we change the webform_type to
+  // markup and the value to the name of the step's output that this
+  // particular input file is taking in
+  foreach($def_files as $key => $val){
+    // Again $val will be an array containing the elements
+    // step_output AND (more importantly) source_step
+  }
+}
+
+/*
 * Unpack a default array from the steps of a given workflow
 *
 * Due to the recursive nature of the conditionals in generating this webform
@@ -615,11 +640,11 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
 *
 * This is being designed for the 'select' tool_type first
 *
-* $default_obj: The defualt array that was acquired from a particular step
-*               within the workflow
+* @param $default_obj: The defualt array that was acquired from a particular
+*                      step within the workflow
 *
-* $tool_input: The tool key to search for inside of the defaults to
-*                  associate the
+* @param $tool_input: The tool key to search for inside of the defaults to
+*                     associate the
 *
 * This is to be used in the switch statement cases while determining what
 * defualt value to add to the specific component of a tool_input
