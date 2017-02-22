@@ -350,16 +350,23 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
  */
 function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $tool_input, $steps, $step_index, $pid = 0){
   $def = array();
-  foreach($steps[$step_index - 1]['tool_inputs'] as $k => $v){
-    $def[$k] = json_decode($v);
+  if(array_key_exists('tool_inputs', $steps[$step_index - 1])){
+    foreach($steps[$step_index - 1]['tool_inputs'] as $k => $v){
+      $def[$k] = json_decode($v);
+    }
   }
 
   $def_files = array();
-  foreach($steps[$step_index - 1]['input_steps'] as $k => $v){
-    // $v is an array that holds the output files of a given tool to be
-    // consumed by the proper in
-    $def_files[$k] = $v;
+  if(array_key_exists('input_steps', $steps[$step_index - 1])){
+    foreach($steps[$step_index - 1]['input_steps'] as $k => $v){
+      // $v is an array that holds the output files of a given tool to be
+      // consumed by the proper in
+      $def_files[$k] = $v;
+    }
   }
+
+  dpm($def_files);
+
 
   // Initiate variables. By default, these variables will create
   // A drop-down list webform component.
@@ -389,7 +396,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     case 'text':
       // Text should be the webform equivalent of textfield.
       $webform_type = 'textfield';
-      extract_defaults($def, $tool_input, $webform_value);
+      extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
       break;
 
     case 'select':
@@ -408,7 +415,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
           }
         }
         // Check for default params
-        extract_defaults($def, $tool_input, $webform_value );
+        extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
       break;
 
 
@@ -435,6 +442,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
           }
         }
       }
+
       // $webform_value = '';
       break;
 
@@ -457,12 +465,12 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
 
     case 'integer':
     	$webform_type = 'number';
-      extract_defaults($def, $tool_input, $webform_value );
+      extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
       break;
 
     case 'float':
     $webform_type = 'number';
-    extract_defaults($def, $tool_input, $webform_value );
+    extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
       break;
 
     case 'boolean':
@@ -473,7 +481,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       $extra['aslist'] = 0;
 
       // Check defaults
-      extract_defaults($def, $tool_input, $webform_value );
+      extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
       break;
 
     case 'hidden_data':
@@ -652,34 +660,42 @@ function input_steps($def_files, $tool_input, &$webform_type, &$webform_value, &
 * Returns: The particular value of the component (if it exists) to use
 *
 */
-function extract_defaults($default_obj, $tool_input, &$webform_value){
+function extract_defaults($default_obj, $tool_input, &$webform_value, &$webform_type, &$extra){
 
 // This will be recursive
 // Base case will be if the current val of the key => val pair IF the val is
 // not an object or array
   foreach($default_obj as $key => $val){
     if(is_object($val)){
-      extract_defaults($val, $tool_input, $webform_value);
+      extract_defaults($val, $tool_input, $webform_value, $webform_type, $extra);
     }
     switch($tool_input['type']){
       case 'integer':
         if($tool_input['name'] == $key){
           $webform_value = (int)$val;
+          // $webform_type = 'markup';
+          // $extra['format'] = 'full_html';
         }
         break;
       case 'float':
       if($tool_input['name'] == $key){
         $webform_value = (float)$val;
+        // $webform_type = 'markup';
+        // $extra['format'] = 'full_html';
       }
         break;
       case 'text':
       if($tool_input['name'] == $key){
         $webform_value = $val;
+        // $webform_type = 'markup';
+        // $extra['format'] = 'full_html';
       }
         break;
       case 'select':
         if($tool_input['name'] == $key){
           $webform_value = $val;
+          // $webform_type = 'markup';
+          // $extra['format'] = 'full_html';
         }
         break;
       case 'data':
@@ -693,7 +709,9 @@ function extract_defaults($default_obj, $tool_input, &$webform_value){
         else{
           $webform_value = 'no';
         }
-    }
+        // $webform_type = 'markup';
+        // $extra['format'] = 'full_html';
+      }
         break;
       case 'data_collection':
       // return;
