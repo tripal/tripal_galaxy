@@ -165,43 +165,43 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
 
     // Add the tool help as a collapsed fieldset
     if ($tool){
-      $icid = count($components) + 1;
-      $components[] = array(
-        'cid' => $icid,
-        'pid' => $cid,
-        'form_key' => $fieldset_key . '_help',
-        'name' => 'About ' . $tool['name'],
-        'type' => 'fieldset',
-        'value' => '',
-        'extra' => array(
-          'description_above' => 1,
-          'private' => 0,
-          'css_classes' => '',
-          'title_display' => 1,
-          'collapsible' => 1,
-          'collapsed' => 1,
-        ),
-        'required' => '0',
-        'weight' => $icid,
-      );
-
-      $hcid = count($components) + 1;
-      $components[] = array(
-        'cid' => $hcid,
-        'pid' => $icid,
-        'form_key' => $fieldset_key . '_help_details',
-        'name' => $tool['name'] . ' Help',
-        'type' => 'markup',
-        'value' => $tool['help'],
-        'extra' => array(
-          'format' => 'full_html',
-          'private' => 0,
-          'css_classes' => '',
-          'title_display' => 0,
-        ),
-        'required' => '0',
-        'weight' => $icid,
-      );
+      // $icid = count($components) + 1;
+      // $components[] = array(
+      //   'cid' => $icid,
+      //   'pid' => $cid,
+      //   'form_key' => $fieldset_key . '_help',
+      //   'name' => 'About ' . $tool['name'],
+      //   'type' => 'fieldset',
+      //   'value' => '',
+      //   'extra' => array(
+      //     'description_above' => 1,
+      //     'private' => 0,
+      //     'css_classes' => '',
+      //     'title_display' => 1,
+      //     'collapsible' => 1,
+      //     'collapsed' => 1,
+      //   ),
+      //   'required' => '0',
+      //   'weight' => $icid,
+      // );
+      //
+      // $hcid = count($components) + 1;
+      // $components[] = array(
+      //   'cid' => $hcid,
+      //   'pid' => $icid,
+      //   'form_key' => $fieldset_key . '_help_details',
+      //   'name' => $tool['name'] . ' Help',
+      //   'type' => 'markup',
+      //   'value' => $tool['help'],
+      //   'extra' => array(
+      //     'format' => 'full_html',
+      //     'private' => 0,
+      //     'css_classes' => '',
+      //     'title_display' => 0,
+      //   ),
+      //   'required' => '0',
+      //   'weight' => $icid,
+      // );
     }
 
       // If this step isn't a tool then handle it appropriately.
@@ -319,7 +319,7 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
         'name' => $step['tool_inputs']['name'],
         'form_key' => 'dataset_' . $step_index,
         'type' => 'select',
-        'value' => "",
+        // 'value' => "",
         'extra' => $extra,
         'weight' => $cid,
         'required' => 1
@@ -330,7 +330,6 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
       break;
   }
 }
-
 
 /**
  * A function to construct a web form component based on a given tool input
@@ -350,22 +349,20 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
  */
 function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $tool_input, $steps, $step_index, $pid = 0){
   $def = array();
-  if(array_key_exists('tool_inputs', $steps[$step_index - 1])){
-    foreach($steps[$step_index - 1]['tool_inputs'] as $k => $v){
-      $def[$k] = json_decode($v);
-    }
+  foreach($steps[$step_index - 1]['tool_inputs'] as $k => $v){
+    $def[$k] = json_decode($v);
   }
+
 
   $def_files = array();
-  if(array_key_exists('input_steps', $steps[$step_index - 1])){
-    foreach($steps[$step_index - 1]['input_steps'] as $k => $v){
-      // $v is an array that holds the output files of a given tool to be
-      // consumed by the proper in
-      $def_files[$k] = $v;
-    }
+  foreach($steps[$step_index - 1]['input_steps'] as $k => $v){
+    // $v is an array that holds the output files of a given tool to be
+    // consumed by the proper in
+    $def_files[$k] = $v;
   }
 
-  dpm($def_files);
+  // dpm($def);
+  // dpm($def_files);
 
 
   // Initiate variables. By default, these variables will create
@@ -469,8 +466,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       break;
 
     case 'float':
-    $webform_type = 'number';
-    extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
+      $webform_type = 'number';
+      extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
       break;
 
     case 'boolean':
@@ -501,9 +498,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       // create the conditional rules that webforms will use to show the
       // conditional fields.
 
-      tripal_galaxy_add_webform_tool_input($components, $conditionals,
-                                           $tool_input['test_param'], $steps,
-                                           $step_index, $pid);
+      tripal_galaxy_add_webform_tool_input($components, $conditionals, $tool_input['test_param'], $steps, $step_index, $pid);
 
       $num_components = count($components);
       // This source_id is referring to the options that are found in the test
@@ -530,7 +525,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
         );
 
         if($case['inputs']){
-
           $component_conditionals = array();
 
           // Iterate through the cases and add a new component and a new
@@ -541,12 +535,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
             // total components and that becomes our index.
             $target_component_index = count($components);
 
-
-            tripal_galaxy_add_webform_tool_input($components,
-                                                 $component_conditionals,
-                                                 $input, $steps, $step_index,
-                                                 $pid);
-
+            tripal_galaxy_add_webform_tool_input($components, $component_conditionals, $input, $steps, $step_index, $pid);
 
             $target_id = $components[$target_component_index]['cid'];
 
@@ -629,7 +618,7 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
 *
 *
 */
-function input_steps($def_files, $tool_input, &$webform_type, &$webform_value, &$extra){
+function input_steps($def_files, $tool_input, &$webform_value, &$webform_type, &$extra){
   // The tool input type will be select, if there is a key in the $def_files
   // that matches the $tool_input name then we change the webform_type to
   // markup and the value to the name of the step's output that this
@@ -678,18 +667,18 @@ function extract_defaults($default_obj, $tool_input, &$webform_value, &$webform_
         }
         break;
       case 'float':
-      if($tool_input['name'] == $key){
-        $webform_value = (float)$val;
-        // $webform_type = 'markup';
-        // $extra['format'] = 'full_html';
-      }
+        if($tool_input['name'] == $key){
+          $webform_value = (float)$val;
+          // $webform_type = 'markup';
+          // $extra['format'] = 'full_html';
+        }
         break;
       case 'text':
-      if($tool_input['name'] == $key){
-        $webform_value = $val;
-        // $webform_type = 'markup';
-        // $extra['format'] = 'full_html';
-      }
+        if($tool_input['name'] == $key){
+          $webform_value = $val;
+          // $webform_type = 'markup';
+          // $extra['format'] = 'full_html';
+        }
         break;
       case 'select':
         if($tool_input['name'] == $key){
@@ -702,16 +691,16 @@ function extract_defaults($default_obj, $tool_input, &$webform_value, &$webform_
         // return;
         break;
       case 'boolean':
-      if($tool_input['name'] == $key){
-        if($val == 'true'){
-          $webform_value = 'yes';
+        if($tool_input['name'] == $key){
+          if($val == 'true'){
+            $webform_value = 'yes';
+          }
+          else{
+            $webform_value = 'no';
+          }
+          // $webform_type = 'markup';
+          // $extra['format'] = 'full_html';
         }
-        else{
-          $webform_value = 'no';
-        }
-        // $webform_type = 'markup';
-        // $extra['format'] = 'full_html';
-      }
         break;
       case 'data_collection':
       // return;
@@ -722,12 +711,5 @@ function extract_defaults($default_obj, $tool_input, &$webform_value, &$webform_
       default:
         break;
     }
-
-    // dpm($val);
   }
-
-
-
-  // If we're out here then we have decompressed such that the val is not
-  // another nested object to access so now we can do the iterations
 }
