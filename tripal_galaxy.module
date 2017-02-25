@@ -161,44 +161,43 @@ function tripal_galaxy_menu() {
   );
 
   // Usage
-  $items['admin/tripal/extension/galaxy/usage'] = array (
-    'title' => 'Usage',
-    'description' => 'Explore Galaxy usage details.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => 'tripal_galaxy_admin_usage_form',
-    'access arguments' => array (
-      'administer galaxy'
-    ),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.admin.inc',
-    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
-  );
+  // $items['admin/tripal/extension/galaxy/usage'] = array (
+  //   'title' => 'Usage',
+  //   'description' => 'Explore Galaxy usage details.',
+  //   'page callback' => 'drupal_get_form',
+  //   'page arguments' => 'tripal_galaxy_admin_usage_form',
+  //   'access arguments' => array (
+  //     'administer galaxy'
+  //   ),
+  //   'type' => MENU_LOCAL_TASK,
+  //   'file' => 'includes/tripal_galaxy.admin.inc',
+  //   'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
+  // );
 
   // submission queue
-  $items['admin/tripal/extension/galaxy/submitted'] = array (
-    'title' => 'Submitted',
-    'description' => 'View Submitted workflows',
-    // Are we sure about this?
-    'page callback' => 'tripal_galaxy_submitted_list',
-    'access arguments' => array (
-      'administer galaxy',
-    ),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.admin_queue.inc',
-    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' ),
-  );
+  // $items['admin/tripal/extension/galaxy/submitted'] = array (
+  //   'title' => 'Submitted',
+  //   'description' => 'View Submitted workflows',
+  //   // Are we sure about this?
+  //   'page callback' => 'tripal_galaxy_submitted_list',
+  //   'access arguments' => array (
+  //     'administer galaxy',
+  //   ),
+  //   'type' => MENU_LOCAL_TASK,
+  //   'file' => 'includes/tripal_galaxy.admin_queue.inc',
+  //   'file path' => drupal_get_path ( 'module', 'tripal_galaxy' ),
+  // );
 
  // Edit workflow submission
-  $items['admin/tripal/extension/galaxy/submitted/view/%'] = array (
-    'description' => 'Edit a galaxy instance',
-    'page callback' => 'tripal_galaxy_submission_view',
-    'page arguments' => array (6),
-    'access arguments' => array ('administer galaxy'),
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.admin_queue.inc',
-    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
-  );
-
+  // $items['admin/tripal/extension/galaxy/submitted/view/%'] = array (
+  //   'description' => 'Edit a galaxy instance',
+  //   'page callback' => 'tripal_galaxy_submission_view',
+  //   'page arguments' => array (6),
+  //   'access arguments' => array ('administer galaxy'),
+  //   'type' => MENU_CALLBACK,
+  //   'file' => 'includes/tripal_galaxy.admin_queue.inc',
+  //   'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
+  // );
 
   // Workflow
   $items['workflows'] = array (
@@ -305,11 +304,6 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
   // dpm($form_state);
 }
 
-function tripal_galaxy_webform_client_submit(){
-  dpm("test");
-}
-
-
 /**
  * This function listening for the webform to be completed JIT style!
  *
@@ -345,12 +339,21 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
     $galaxy_inputs = array(
       'parameters' => array(),
       'workflow_id' => $form['#node']->webform['components'][1]['extra']['wfid'],
+      // TODO: Need to grab the history content id's that were selected from
+      // the history
       'input_dataset_ids' => array('d3a4d6a5256f2d9a', '8317ee2b0d0f62d9', '70eec96181a992f8'),
     );
 
     // The inputs need to be formatted to galaxy's workflow invoke
     // NOTE: The entire form can be found within form_state under
     // $form_state['build_info']['args'][0]['webform']
+
+    $node = new stdClass();
+    $node->type = 'page';
+    node_object_prepare($node);
+
+    node_save($node);
+    return TRUE;
 
     // Some components will belong to the same tool,
     // So group these param_names into the same step_id key
@@ -375,34 +378,6 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
       //
 
     }
-
-    // dpm($galaxy_inputs);
-
-    /*REFERENCE*/
-    // From blend4php/src/Workflows.inc
-    // $inputs (associative array with the following elements)
-    //  - 'workflow_id'
-    //    The ID of the workflow to invoke.
-    //  - 'input_dataset_ids'
-    //    The array of id's of the datasets to enter into the workflow.
-    //    These id's can be found using the dataset class's index() function.
-    //    The dataset must be present in a history, and the dataset 'state' must
-    //    be 'ok' and 'deleted' must be set to FALSE.
-    //  - 'parameters'
-    //    A mapping of tool parameters that are non-datasets parameters. The map
-    //    must be in the following format:
-    //    @code
-    //    'parameters' = array(
-    //      [step_id_or_UUID] => array([param_name] => [value]),
-    //      [step_id_or_UUID] => array([param_name] => [value])
-    //    );
-    //    @endcode
-    //  - 'hist_id'
-    //    Optional. The id of the history to export the results to.
-    //    If a new history is not created. Leave this ommitted if a new history
-    //    is to be created.
-
-
 
     // The [1] is the galaxy webform element that we created during the webform
     // construction
@@ -461,137 +436,6 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
 //   // Now insert the submission into the database
 //   $workflow_submission = drupal_write_record('tripal_galaxy_wf_submission', $data);
 }
-
-/*
- *  Copy inputs from webform to the galaxy server to invoke the workflow.
- *
- *  This function will screen the values inputted from the submitted webform
- *  and then place these inputs in the invocation of the workflow on the galaxy
- *  server
- */
-function tripal_galaxy_store_inputs(&$inputs){
-
-
-}
-
-/**
- * Load defauilt inputs for a workflow. The default inputs are
- * The inputs displayed on the current history whose names match that
- * which was marked on the webform.
- *
- * @param multi-variable $form_state
- */
-function tripal_galaxy_default_inputs($form, &$form_state){
-
-  // Start on the 0'th input;
- //  $input_num = 0;
- //  $dataset_ids = array();
- //
- //  // Obtain submission id and node id.
- //  // $sid = $form_state['storage']['details']['sid'];
- //  // $nid = $form_state['storage']['details']['nid'];
- //
- //  // Need submission data from webform_submission_data table
- //  $sql = "SELECT * FROM {webform_submitted_data} WHERE sid = :sid";
- //  $submission_query = db_query($sql, array(':sid' => $sid));
- //
- //
- // while ($submission_data = $submission_query->fetchObject() ){
- //    // Need the proper name of the parameter name and step number from webform_component table
- //    $sql = "SELECT * FROM {webform_component} WHERE nid = :nid AND cid = :cid";
- //    $component_query = db_query($sql, array(':nid' => $nid, ':cid' =>$submission_data->cid ));
- //    $component_data = $component_query->fetchObject();
- //
- //    $form_key = $component_data->form_key;
- //
- //     // if a form key does not have dataset_ in the form_key, RUN
- //    if(strpos($form_key, "dataset_") === FALSE){
- //      continue;
- //    }
- //
- //    // Input the dataset id into the dataset_ids array() and continue.
- //    $dataset_id = $submission_data->data;
- //    $dataset_ids[$input_num] = $dataset_id;
- //    $input_num++;
- //    continue;
- //
- // }
- //
- //  return $dataset_ids;
-}
-
-/**
- * Gathers tool parameters from a given $webform.
- *
- * @param multi-variable $webform
- *
- * @return
- *   An array of tool parameters to be used with the blend4php galaxy_invoke function
- */
-function tripal_galaxy_gather_params($form, &$form_state) {
-
-  // Variable initialization
-  // $parameters = array ();
-  // $tool_index = 0;
-  // $tool_param_name = 0;
-  // $tool_param_value = 0;
-  //
-  // // Obtain submission id and node id.
-  // //dpm($form_state);
-  // // $sid = $form_state['storage']['details']['sid'];
-  // // $nid = $form_state['storage']['details']['nid'];
-  //
-  // // Need submission data from webform_submission_data table
-  // $sql = "SELECT * FROM {webform_submitted_data} WHERE sid = :sid";
-  // $submission_query = db_query($sql, array(':sid' => $sid));
-  //
-  // // Loop through all of the submission entries for a given submission
-  // while ($submission_data = $submission_query->fetchObject() ){
-  //   // Need the proper name of the parameter name and step number from webform_component table
-  //   $sql = "SELECT * FROM {webform_component} WHERE nid = :nid AND cid = :cid";
-  //   $component_query = db_query($sql, array(':nid' => $nid, ':cid' =>$submission_data->cid ));
-  //   $component_data = $component_query->fetchObject();
-  //
-  //   $form_key = $component_data->form_key;
-  //
-  //   // if a form key does not have Step_ in the form_key, RUN
-  //   if(strpos($form_key, "Step_") === FALSE){
-  //     continue;
-  //   }
-  //
-  //   // 1) Obtain the index of the tool, if we are not dealing with
-  //   $matches = array();
-  //   $tool_index = preg_match ( '/^Step_(\d+)/', $form_key, $matches );
-  //   $tool_index = $matches[1];
-  //   $tool_index --;
-  //
-  //   // 2) Obtain tool parameter name
-  //   $tool_param_name = preg_match ( '/^Step_\d+_(.+)/', $form_key, $matches );
-  //
-  //   // Check to make sure we have a valid parameter name
-  //   if ($tool_param_name == - 1 || count ( $matches ) == 0) {
-  //     continue;
-  //   }
-  //   $tool_param_name = $matches[1];
-  //
-  //   // 3) Obtain tool_parameter data
-  //   $tool_param_value = $submission_data->data;
-  //   if($tool_param_value == '' || $tool_param_value == NULL) {
-  //     continue;
-  //   }
-  //
-  //   // Place the parameters in the appropriate format
-  //   $array2 = array($tool_param_name => $tool_param_value);
-  //       if(empty($parameters[$tool_index])){
-  //       $parameters[$tool_index] = array();
-  //     }
-  //   $parameters[$tool_index] = array_merge($parameters[$tool_index], $array2);
-  // }
-  //
-  // return $parameters;
-
-}
-
 
 
 /**

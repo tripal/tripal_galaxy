@@ -2,7 +2,7 @@
 ; Provide details about your module in this file. Instruction for setup of this
 ; file can be found here:  https:;drupal.org/node/542202
 ;
-name = Tripal galaxy
+name = Tripal Galaxy
 description = A module to run workflows.
 core = 7.x
 project = tripal_galaxy

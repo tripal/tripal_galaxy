@@ -135,7 +135,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
 
     if ($tool){
       $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
-      $fieldset_desc = $tool['description'];
+      // $fieldset_desc = $tool['description'];
     }
 
     else if($step['annotation']){
@@ -157,7 +157,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
         'title_display' => 0,
         'collapsible' => 1,
         'collapsed' => 0,
-        'description' => $fieldset_desc,
+        // 'description' => $fieldset_desc,
       ),
       'required' => '0',
       'weight' => $cid,
@@ -248,7 +248,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     'redirect_url' => '',
     'status' => '1',
     'block' => '0',
-    'teaser' => '0',
+    'teaser' => '1',
     'allow_draft' => '0',
     'auto_save' => '0',
     'submit_notice' => '1',
@@ -259,15 +259,15 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
     'total_submit_limit' => '-1',
     'total_submit_interval' => '-1',
     'progressbar_bar' => '1',
-    'progressbar_page_number' => '0',
-    'progressbar_percent' => '0',
+    'progressbar_page_number' => '1',
+    'progressbar_percent' => '1',
     'progressbar_pagebreak_labels' => '1',
     'progressbar_include_confirmation' => '1',
-    'progressbar_label_first' => 'Start',
-    'progressbar_label_confirmation' => 'Complete',
-    'preview' => '0',
-    'preview_next_button_label' => '',
-    'preview_prev_button_label' => '',
+    'progressbar_label_first' => 'Step 0',
+    'progressbar_label_confirmation' => 'Submit',
+    'preview' => '1',
+    'preview_next_button_label' => 'Next Step',
+    'preview_prev_button_label' => 'Previous Step',
     'preview_title' => '',
     'preview_message' => '',
     'preview_message_format' => NULL,
@@ -331,6 +331,7 @@ function tripal_galaxy_add_webform_non_tool_input(&$components, $step, $step_ind
   }
 }
 
+
 /**
  * A function to construct a web form component based on a given tool input
  *
@@ -384,8 +385,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     $is_required = 0;
   }
 
-  if (array_key_exists('help', $tool_input) and $tool_input['help'])
-    $extra['description'] = $tool_input['help'];
+  // if (array_key_exists('help', $tool_input) and $tool_input['help'])
+    // $extra['description'] = $tool_input['help'];
 
   // Extract tool input form information to a drupal webform component.
   switch ($tool_input['type'])
@@ -594,6 +595,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
   }
 
   $extra['param_name'] = $tool_input['name'];
+  // $extra['collapsible'] = 1;
+  // $extra['collapsed'] = 1;
 
   $cid = count($components) + 1;
   $components[] = array(
@@ -661,13 +664,20 @@ function extract_defaults($default_obj, $tool_input, &$webform_value, &$webform_
     switch($tool_input['type']){
       case 'integer':
         if($tool_input['name'] == $key){
+          $webform_type = 'fieldset';
+          $extra['collapsible'] = 1;
+          $extra['collapsed'] = 1;
+          $extra['disabled'] = 1;
           $webform_value = (int)$val;
-          // $webform_type = 'markup';
           // $extra['format'] = 'full_html';
         }
         break;
       case 'float':
         if($tool_input['name'] == $key){
+          $webform_type = 'fieldset';
+          $extra['collapsible'] = 1;
+          $extra['collapsed'] = 1;
+          $extra['disabled'] = 1;
           $webform_value = (float)$val;
           // $webform_type = 'markup';
           // $extra['format'] = 'full_html';
@@ -675,6 +685,10 @@ function extract_defaults($default_obj, $tool_input, &$webform_value, &$webform_
         break;
       case 'text':
         if($tool_input['name'] == $key){
+          $webform_type = 'textfield';
+          $extra['collapsible'] = 1;
+          $extra['collapsed'] = 1;
+          $extra['disabled'] = 1;
           $webform_value = $val;
           // $webform_type = 'markup';
           // $extra['format'] = 'full_html';
@@ -682,6 +696,10 @@ function extract_defaults($default_obj, $tool_input, &$webform_value, &$webform_
         break;
       case 'select':
         if($tool_input['name'] == $key){
+          $webform_type = 'textfield';
+          $extra['collapsible'] = 1;
+          $extra['collapsed'] = 1;
+          $extra['disabled'] = 1;
           $webform_value = $val;
           // $webform_type = 'markup';
           // $extra['format'] = 'full_html';
@@ -692,6 +710,10 @@ function extract_defaults($default_obj, $tool_input, &$webform_value, &$webform_
         break;
       case 'boolean':
         if($tool_input['name'] == $key){
+          $webform_type = 'textfield';
+          $extra['collapsible'] = 1;
+          $extra['collapsed'] = 1;
+          $extra['disabled'] = 1;
           if($val == 'true'){
             $webform_value = 'yes';
           }
