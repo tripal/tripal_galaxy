@@ -30,7 +30,8 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
     $form['rows'][$i]['workflow_name-' . $i] = array(
       '#type' => 'value',
       '#value' => $workflow->workflow_name
-    );   
+    );
+
     $form['rows'][$i]['workflow_name-user' . $i] = array(
       '#type' => 'item',
       '#markup' => $workflow->workflow_name
@@ -53,30 +54,30 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
     );
 
     // Remove link
-    $form['rows'][$i]['remove-' . $i] = array(
+    $form['rows'][$i]['actions-' . $i] = array(
       '#type' => 'item',
       '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_wf_id)
     );
 
-    // Description (Editable)
-    $form['rows'][$i]['description-' . $i] = array(
-      '#type' => 'textarea',
-      '#rows' => 1,
-      '#cols' => 20,
-      '#default_value' => $workflow->description
-    );
-    
-    if($workflow->label == NULL){
-      $workflow->label = $workflow->workflow_name;
-    }
-    
-    // Workflow_label (Editable)
-    $form['rows'][$i]['label-' . $i] = array(
-      '#type' => 'textfield',
-      '#size' => 25,
-      '#default_value' => $workflow->label,
-      '#required' => TRUE,
-    );
+    // // Description (Editable)
+    // $form['rows'][$i]['description-' . $i] = array(
+    //   '#type' => 'textarea',
+    //   '#rows' => 1,
+    //   '#cols' => 20,
+    //   '#default_value' => $workflow->description
+    // );
+
+    // if($workflow->label == NULL){
+    //   $workflow->label = $workflow->workflow_name;
+    // }
+
+    // // Workflow_label (Editable)
+    // $form['rows'][$i]['label-' . $i] = array(
+    //   '#type' => 'textfield',
+    //   '#size' => 25,
+    //   '#default_value' => $workflow->label,
+    //   '#required' => TRUE,
+    // );
 
     $i++;
   }
@@ -105,14 +106,13 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
 
   // The apparopriate headers for this form's table.
   $headers = array(
-    'Enabled', 
-    'Workflow Name', 
-    'Description', 
-    'Onsite Label', 
-    'Galaxy Server', 
-    'Workflow ID', 
-    
-  'Remove');
+    'Enabled',
+    'Workflow Name',
+    // 'Description',
+    // 'Onsite Label',
+    'Galaxy Server',
+    'Workflow ID',
+    'Remove');
 
   // Theme the rows of this form's table.
   $rows = array();
@@ -121,8 +121,8 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     $rows[] = array(
       drupal_render($row["enabled-" . $i]),
       drupal_render($row["workflow_name-user" . $i]),
-      drupal_render($row["description-" . $i]),
-      drupal_render($row["label-" . $i]),
+      // drupal_render($row["description-" . $i]),
+      // drupal_render($row["label-" . $i]),
       drupal_render($row["servername-" . $i]),
       drupal_render($row["workflow_id-user" . $i]),
       drupal_render($row["remove-" . $i])
@@ -201,10 +201,10 @@ function tripal_galaxy_admin_workflows_form_validate($form, &$form_state) {
 function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
   $i = 0;
   $form_rows = $form_state['values']['rows'];
-  
+
   // Go through all of the row entries.
   foreach ($form_rows as $i => $row) {
-      
+
       // Select the workflow being edited
     $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_id = :workflow_id AND galaxy_id = :galaxy_id";
     $galaxy = $form_rows[$i]['galaxy-' . $i];
@@ -215,12 +215,12 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
     );
     $workflow_instance = db_query ($sql, $args);
     $workflow_instance = $workflow_instance->fetchObject ();
-    
+
     // If the workflow has changed values, update it
-    if ($workflow_instance->label != $form_rows[$i]['label-' . $i] 
+    if ($workflow_instance->label != $form_rows[$i]['label-' . $i]
         || $workflow_instance->description != $form_rows[$i]['description-' . $i]
         || $workflow_instance->status != $form_rows[$i]['enabled-' . $i]
-        ) {   
+        ) {
       $data = array (
         'status' => $form_rows[$i]['enabled-' . $i],
         'galaxy_wf_id' => $workflow_instance->galaxy_wf_id,

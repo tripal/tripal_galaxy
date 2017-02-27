@@ -459,7 +459,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
               $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
           }
         }
-
       }
       break;
 
@@ -671,7 +670,7 @@ function tripal_galaxy_build_webform_get_step_defaults($default_obj, $tool_input
     switch($tool_input['type']){
       case 'integer':
         if($tool_input['name'] == $key){
-          $webform_type = 'fieldset';
+          $webform_type = 'textfield';
           $extra['collapsible'] = 1;
           $extra['collapsed'] = 1;
           $extra['disabled'] = 1;
@@ -681,7 +680,7 @@ function tripal_galaxy_build_webform_get_step_defaults($default_obj, $tool_input
         break;
       case 'float':
         if($tool_input['name'] == $key){
-          $webform_type = 'fieldset';
+          $webform_type = 'textfield';
           $extra['collapsible'] = 1;
           $extra['collapsed'] = 1;
           $extra['disabled'] = 1;
@@ -741,4 +740,29 @@ function tripal_galaxy_build_webform_get_step_defaults($default_obj, $tool_input
         break;
     }
   }
+}
+
+// TODO: This is the compound component
+
+function tripal_galaxy_compound_file_webform_component_info(){
+  $components = array();
+  $components['compound_file'] = array(
+    'label' => t('Compound File'),
+    'description' => t('Allows multiple paths (URL, upload, galaxy history) that a file may be attached.'),
+    'features' =>  array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => FALSE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => FALSE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+    ),
+    'file' => 'components/tripal_galaxy_compound_file.inc',
+  );
+  return $components;
 }
