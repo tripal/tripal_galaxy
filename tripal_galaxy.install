@@ -13,9 +13,9 @@ function tripal_galaxy_schema() {
   $schema = array();
 
   tripal_galaxy_add_galaxy_table($schema);
-  tripal_galaxy_add_wf_table($schema);
+  tripal_galaxy_add_workflow_table($schema);
   tripal_galaxy_add_galaxy_wf_job_table($schema);
-  tripal_galaxy_add_wf_submission_table($schema);
+  tripal_galaxy_add_workflow_submission_table($schema);
 
   return $schema;
 }
@@ -84,7 +84,7 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
  * Workflow data
  * @param unknown $schema
  */
-function tripal_galaxy_add_wf_submission_table(&$schema){
+function tripal_galaxy_add_workflow_submission_table(&$schema){
 
   $schema['tripal_galaxy_wf_submission'] = array(
     'table' => 'tripal_galaxy_wf_submission',
@@ -158,7 +158,7 @@ function tripal_galaxy_add_wf_submission_table(&$schema){
 /**
  * Adds the 'tripal_galaxy_wf' table to Drupal schema.
  */
-function tripal_galaxy_add_wf_table(&$schema){
+function tripal_galaxy_add_workflow_table(&$schema){
 
   $schema['tripal_galaxy_wf'] = array(
     'table' => 'tripal_galaxy_wf',

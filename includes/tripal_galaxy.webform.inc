@@ -394,7 +394,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     case 'text':
       // Text should be the webform equivalent of textfield.
       $webform_type = 'textfield';
-      extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
+      tripal_galaxy_build_webform_get_step_defaults($def, $tool_input,
+        $webform_value, $webform_type, $extra);
       break;
 
     case 'select':
@@ -413,7 +414,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
           }
         }
         // Check for default params
-        extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
+        tripal_galaxy_build_webform_get_step_defaults($def, $tool_input,
+          $webform_value, $webform_type, $extra);
       break;
 
 
@@ -462,13 +464,15 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       break;
 
     case 'integer':
-    	$webform_type = 'number';
-      extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
+      $webform_type = 'number';
+      tripal_galaxy_build_webform_get_step_defaults($def, $tool_input,
+        $webform_value, $webform_type, $extra);
       break;
 
     case 'float':
       $webform_type = 'number';
-      extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
+      tripal_galaxy_build_webform_get_step_defaults($def, $tool_input,
+        $webform_value, $webform_type, $extra);
       break;
 
     case 'boolean':
@@ -479,7 +483,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
       $extra['aslist'] = 0;
 
       // Check defaults
-      extract_defaults($def, $tool_input, $webform_value, $webform_type, $extra);
+      tripal_galaxy_build_webform_get_step_defaults($def, $tool_input,
+        $webform_value, $webform_type, $extra);
       break;
 
     case 'hidden_data':
@@ -615,13 +620,14 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
 
 }
 
-/*
-* This is for tools that have their input files determined by the output of a
-* preceding tool.
-*
-*
-*/
-function input_steps($def_files, $tool_input, &$webform_value, &$webform_type, &$extra){
+/**
+ * This is for tools that have their input files determined by the output of a
+ * preceding tool.
+ *
+ *
+ */
+function tripal_galaxy_build_webform_get_input_steps($def_files, $tool_input,
+    &$webform_value, &$webform_type, &$extra){
   // The tool input type will be select, if there is a key in the $def_files
   // that matches the $tool_input name then we change the webform_type to
   // markup and the value to the name of the step's output that this
@@ -632,34 +638,35 @@ function input_steps($def_files, $tool_input, &$webform_value, &$webform_type, &
   }
 }
 
-/*
-* Unpack a default array from the steps of a given workflow
-*
-* Due to the recursive nature of the conditionals in generating this webform
-* there must a function that also recursively renders each component's defaults
-*
-* This is being designed for the 'select' tool_type first
-*
-* @param $default_obj: The defualt array that was acquired from a particular
-*                      step within the workflow
-*
-* @param $tool_input: The tool key to search for inside of the defaults to
-*                     associate the
-*
-* This is to be used in the switch statement cases while determining what
-* defualt value to add to the specific component of a tool_input
-*
-* Returns: The particular value of the component (if it exists) to use
-*
-*/
-function extract_defaults($default_obj, $tool_input, &$webform_value, &$webform_type, &$extra){
+/**
+ * Unpack a default array from the steps of a given workflow.
+ *
+ * Due to the recursive nature of the conditionals in generating this webform
+ * there must a function that also recursively renders each component's defaults.
+ *
+ * This is to be used in the switch statement cases while determining what
+ * defualt value to add to the specific component of a tool_input.
+ *
+ * @param $default_obj
+ *   The defualt array that was acquired from a particular step within the
+ *   workflow.
+ * @param $tool_input
+ *   The tool key to search for inside of the defaults to associate the.
+ *
+ * @return
+ *   The default value of the component (if it exists).
+ *
+ */
+function tripal_galaxy_build_webform_get_step_defaults($default_obj, $tool_input,
+    &$webform_value, &$webform_type, &$extra){
 
 // This will be recursive
 // Base case will be if the current val of the key => val pair IF the val is
 // not an object or array
   foreach($default_obj as $key => $val){
     if(is_object($val)){
-      extract_defaults($val, $tool_input, $webform_value, $webform_type, $extra);
+      tripal_galaxy_build_webform_get_step_defaults($val, $tool_input,
+        $webform_value, $webform_type, $extra);
     }
     switch($tool_input['type']){
       case 'integer':

@@ -10,7 +10,7 @@
  * @param
  *          $form_state
  */
-function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
+function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
   $form['#tree'] = TRUE;
 
   // Grab the galaxy id from the form state and Obtain the default galaxy server
@@ -38,7 +38,7 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
     '#title' => t ( 'Galaxy Servers' ),
     '#description' => t ( 'Please select a galaxy instance to view it\'s workflows' ),
     '#ajax' => array(
-      'callback' => 'tripal_galaxy_admin_add_wf_form_ajax_callback',
+      'callback' => 'tripal_galaxy_admin_add_workflow_form_ajax_callback',
       'wrapper' => 'tripal-galaxy-admin-wf-available-form-rows',
       'method' => 'replace',
       'effect' => 'fade'
@@ -172,7 +172,7 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
     }
 
     // The themable funciton for the form.
-    $form['rows']['#theme'] = 'tripal_galaxy_admin_add_wf_form_rows';
+    $form['rows']['#theme'] = 'tripal_galaxy_admin_add_workflow_form_rows';
 
     // Default submit
     $form['submit'] = array(
@@ -188,7 +188,7 @@ function tripal_galaxy_admin_add_wf_form($form, &$form_state) {
 /**
  * Ajax Callback
  */
-function tripal_galaxy_admin_add_wf_form_ajax_callback(&$form, $form_state) {
+function tripal_galaxy_admin_add_workflow_form_ajax_callback(&$form, $form_state) {
   // Return the whole form.
   return $form;
 }
@@ -199,7 +199,7 @@ function tripal_galaxy_admin_add_wf_form_ajax_callback(&$form, $form_state) {
  * @param $form
  * @param $form_state
  */
-function theme_tripal_galaxy_admin_add_wf_form_rows($variables) {
+function theme_tripal_galaxy_admin_add_workflow_form_rows($variables) {
   $form = $variables['form'];
 
   // The apparopriate headers for this form's table.
@@ -238,7 +238,7 @@ function theme_tripal_galaxy_admin_add_wf_form_rows($variables) {
  * TODO:
  * Override's Drupal's Hook_form_validate
  */
-function tripal_galaxy_admin_add_wf_form_validate($form, &$form_state) {
+function tripal_galaxy_admin_add_workflow_form_validate($form, &$form_state) {
   // Not implemented yet
   return;
 }
@@ -249,7 +249,7 @@ function tripal_galaxy_admin_add_wf_form_validate($form, &$form_state) {
  * - Workflow already exists on site and needs to be updated.
  * - Workflow does not exist on site and needs to be inserted.
  */
-function tripal_galaxy_admin_add_wf_form_submit($form, &$form_state) {
+function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
   $i = 0;
   $form_rows = $form_state['values']['rows'];
 
@@ -289,6 +289,6 @@ function tripal_galaxy_admin_add_wf_form_submit($form, &$form_state) {
   }
 
   // Return to the previous page
-  drupal_goto("/admin/tripal/extension/galaxy/available_wf");
+  drupal_goto("/admin/tripal/extension/galaxy/workflows");
   return;
 }

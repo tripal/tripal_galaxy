@@ -2,7 +2,7 @@
 /** Implements Drupal's hook_form function, responsible for displaying all of the
  *  available Workflows
  */
-function tripal_galaxy_admin_available_wf_form($form, &$form_state) {
+function tripal_galaxy_admin_workflows_form($form, &$form_state) {
   $workflow_instances = db_query("SELECT * FROM {tripal_galaxy_wf}");
   $i = 0;
   $form['#tree'] = TRUE;
@@ -55,7 +55,7 @@ function tripal_galaxy_admin_available_wf_form($form, &$form_state) {
     // Remove link
     $form['rows'][$i]['remove-' . $i] = array(
       '#type' => 'item',
-      '#markup' => l('Remove', '/admin/tripal/extension/galaxy/available_wf/remove/' . $workflow->galaxy_wf_id)
+      '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_wf_id)
     );
 
     // Description (Editable)
@@ -82,7 +82,7 @@ function tripal_galaxy_admin_available_wf_form($form, &$form_state) {
   }
 
   // Theme this form
-  $form['rows']['#theme'] = 'tripal_galaxy_admin_available_wf_form_rows';
+  $form['rows']['#theme'] = 'tripal_galaxy_admin_workflows_form_rows';
 
   // Default submit
   $form['submit'] = array(
@@ -100,7 +100,7 @@ function tripal_galaxy_admin_available_wf_form($form, &$form_state) {
  * @param $form
  * @param $form_state
  */
-function theme_tripal_galaxy_admin_available_wf_form_rows($variables) {
+function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
   $form_rows = $variables['form'];
 
   // The apparopriate headers for this form's table.
@@ -142,13 +142,13 @@ function theme_tripal_galaxy_admin_available_wf_form_rows($variables) {
 }
 
 /**
- * Override's Drupal's Hook_form_validate for the available_wf form
+ * Override's Drupal's Hook_form_validate for the workflows form
  * Assures there are no duplicate labels entered for the workflows
  *
  * @param $form
  * @param $form_state
  */
-function tripal_galaxy_admin_available_wf_form_validate($form, &$form_state) {
+function tripal_galaxy_admin_workflows_form_validate($form, &$form_state) {
   $i = 0;
   $form_rows = $form_state['values']['rows'];
 
@@ -198,7 +198,7 @@ function tripal_galaxy_admin_available_wf_form_validate($form, &$form_state) {
  * @param $form
  * @param $form_state
  */
-function tripal_galaxy_admin_available_wf_form_submit($form, &$form_state) {
+function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
   $i = 0;
   $form_rows = $form_state['values']['rows'];
   
