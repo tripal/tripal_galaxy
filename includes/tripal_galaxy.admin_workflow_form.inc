@@ -40,7 +40,7 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
     // Servername that the workflow's on
     $form['rows'][$i]['servername-' . $i] = array(
       '#type' => 'item',
-      '#markup' => $galaxy_instance->servername
+      '#markup' => l($galaxy_instance->servername, '/admin/tripal/extension/galaxy')
     );
 
     // Workflow_id for user and or internal:
@@ -112,7 +112,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     // 'Onsite Label',
     'Galaxy Server',
     'Workflow ID',
-    'Remove');
+    'Actions');
 
   // Theme the rows of this form's table.
   $rows = array();
@@ -125,7 +125,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
       // drupal_render($row["label-" . $i]),
       drupal_render($row["servername-" . $i]),
       drupal_render($row["workflow_id-user" . $i]),
-      drupal_render($row["remove-" . $i])
+      drupal_render($row["actions-" . $i])
     );
   }
 
