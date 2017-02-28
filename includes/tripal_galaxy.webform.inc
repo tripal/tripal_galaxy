@@ -354,7 +354,6 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     $def[$k] = json_decode($v);
   }
 
-
   $def_files = array();
   foreach($steps[$step_index - 1]['input_steps'] as $k => $v){
     // $v is an array that holds the output files of a given tool to be

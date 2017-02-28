@@ -333,7 +333,8 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
       'workflow_id' => $form['#node']->webform['components'][1]['extra']['wfid'],
       // TODO: Need to grab the history content id's that were selected from
       // the history
-      'input_dataset_ids' => array('d3a4d6a5256f2d9a', '8317ee2b0d0f62d9', '70eec96181a992f8'),
+      // BUG:
+      //'input_dataset_ids' => array('d3a4d6a5256f2d9a', '8317ee2b0d0f62d9', '70eec96181a992f8'),
     );
 
     // The inputs need to be formatted to galaxy's workflow invoke

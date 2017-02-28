@@ -9,6 +9,7 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
 
   // Loop through each workflow to add it to the form
   while ($workflow = $workflow_instances->fetchObject()) {
+    dpm($workflow);
 
     // Obtain the corresponding Galaxy instance for the workflow
     $galaxy_instance = db_query('SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id',
@@ -29,7 +30,9 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
     // Workflow name
     $form['rows'][$i]['workflow_name-' . $i] = array(
       '#type' => 'value',
-      '#value' => $workflow->workflow_name
+      // TODO: I need to keep track of the proper node that was created when
+      // this workflow was added
+      '#value' => $workflow->workflow_name //l($workflow->workflow_name, '/admin/tripal/extension/galaxy'),
     );
 
     $form['rows'][$i]['workflow_name-user' . $i] = array(
@@ -40,7 +43,7 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
     // Servername that the workflow's on
     $form['rows'][$i]['servername-' . $i] = array(
       '#type' => 'item',
-      '#markup' => l($galaxy_instance->servername, '/admin/tripal/extension/galaxy')
+      '#markup' => $galaxy_instance->servername,
     );
 
     // Workflow_id for user and or internal:
@@ -112,7 +115,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     // 'Onsite Label',
     'Galaxy Server',
     'Workflow ID',
-    'Actions');
+    'Remove');
 
   // Theme the rows of this form's table.
   $rows = array();
