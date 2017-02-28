@@ -167,6 +167,12 @@ function tripal_galaxy_add_workflow_table(&$schema){
         'type' => 'serial',
         'not_null' => TRUE
       ),
+      // Drupal 7 specific feature
+      // TODO: For Drupal 8 this will need to be changed
+      'node' => array(
+        'type' => 'int'
+        'not_null' => TRUE
+      ),
       'galaxy_id' => array(
         'type' => 'varchar',
       	'length' => 1024,
@@ -185,14 +191,6 @@ function tripal_galaxy_add_workflow_table(&$schema){
       'workflow_name' => array(
         'type' => 'text',
         'not_null'=> TRUE,
-      ),
-      'description' => array(
-        'type' => 'text',
-      ),
-      'label' => array(
-        'type' => 'varchar',
-        'length ' => 1024,
-        'not_null'=> TRUE
       ),
     ),
     'primary key' => array(

@@ -282,6 +282,9 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
 
   // Save the node.
   node_save($node);
+  // A new node will have been created be sure to record the nid in the
+  // workflow table on the db
+  // $node->nid (this is a string but we'll want it as an int)
   return TRUE;
 }
 

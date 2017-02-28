@@ -9,7 +9,6 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
 
   // Loop through each workflow to add it to the form
   while ($workflow = $workflow_instances->fetchObject()) {
-    dpm($workflow);
 
     // Obtain the corresponding Galaxy instance for the workflow
     $galaxy_instance = db_query('SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id',
