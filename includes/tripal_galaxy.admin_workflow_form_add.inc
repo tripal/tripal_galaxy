@@ -269,14 +269,17 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
           'available' => $form_rows[$i]['available-' . $i]
         );
 
-        $workflow = drupal_write_record('tripal_galaxy_wf', $data);
-
         // Create the appropriate node for this workflow
         module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.webform');
-        $success = tripal_galaxy_build_webform($data['galaxy_id'], $data['workflow_id']);
+        $nid = 0;
+        $success = tripal_galaxy_build_webform($data['galaxy_id'], $data['workflow_id'], $nid);
         if (!$success) {
           throw new Exception('Could not create workflow');
         }
+
+        $data['node'] = $nid;
+        $workflow = drupal_write_record('tripal_galaxy_wf', $data);
+
         drupal_set_message(t('Workflow Added'));
       }
       catch (Exception $e) {

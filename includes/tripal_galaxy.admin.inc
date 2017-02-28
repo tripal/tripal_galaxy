@@ -357,18 +357,20 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
 }
 
 /**
- * Removes a workflow based on the given galaxy id and workflow id
+ * Removes a workflow based on the given workflow id and node id
  *
- * @param $galaxy_id
- * @param $workflow_id
+ * @param $galaxy_wf_id
+ * @param $node_id
  */
-function tripal_galaxy_admin_remove_wf($galaxy_wf_id) {
+function tripal_galaxy_admin_remove_wf($galaxy_wf_id, $node_id) {
   // TODO: Make sure this workflow has no jobs running
   // TODO: Make sure the galaxy_wf_id is legit
+  // TODO: Verify that the node 
 
   // Delete the table instance given the galaxy_wf_id
   $deleted = db_query("DELETE FROM {tripal_galaxy_wf} WHERE galaxy_wf_id = :wf_id",
       array(':wf_id' => $galaxy_wf_id));
+  $deleted = db_query("DELETE FROM {node} WHERE nid =:node", array(':node' => $node_id));
   if ($deleted == NULL || $deleted == FALSE) {
     drupal_set_message(t('Issues deleting the workflow'), 'error');
     return FALSE;

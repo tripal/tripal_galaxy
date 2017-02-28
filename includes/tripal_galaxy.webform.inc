@@ -9,7 +9,7 @@
 /**
  * The base function to submitted_list()
  */
-function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
+function tripal_galaxy_build_webform($galaxy_id, $workflow_id, &$nid)
 {
   // Obtain the galaxy server details using the galaxy id.
   $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
@@ -284,7 +284,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id)
   node_save($node);
   // A new node will have been created be sure to record the nid in the
   // workflow table on the db
-  // $node->nid (this is a string but we'll want it as an int)
+  $nid = (int)$node->nid; //(this is a string but we'll want it as an int)
   return TRUE;
 }
 

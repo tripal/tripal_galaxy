@@ -31,12 +31,12 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
       '#type' => 'value',
       // TODO: I need to keep track of the proper node that was created when
       // this workflow was added
-      '#value' => $workflow->workflow_name //l($workflow->workflow_name, '/admin/tripal/extension/galaxy'),
+      '#value' => $workflow->workflow_name,
     );
 
     $form['rows'][$i]['workflow_name-user' . $i] = array(
       '#type' => 'item',
-      '#markup' => $workflow->workflow_name
+      '#markup' => l($workflow->workflow_name, '/node/' . $workflow->node),
     );
 
     // Servername that the workflow's on
@@ -56,6 +56,8 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
     );
 
     // Remove link
+    // TODO: I need a confirm/validate here as seen on any generic content
+    // delete
     $form['rows'][$i]['actions-' . $i] = array(
       '#type' => 'item',
       '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_wf_id)
@@ -90,8 +92,6 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
   $headers = array(
     'Enabled',
     'Workflow Name',
-    // 'Description',
-    // 'Onsite Label',
     'Galaxy Server',
     'Workflow ID',
     'Actions');
@@ -103,8 +103,6 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     $rows[] = array(
       drupal_render($row["enabled-" . $i]),
       drupal_render($row["workflow_name-user" . $i]),
-      // drupal_render($row["description-" . $i]),
-      // drupal_render($row["label-" . $i]),
       drupal_render($row["servername-" . $i]),
       drupal_render($row["workflow_id-user" . $i]),
       drupal_render($row["actions-" . $i])

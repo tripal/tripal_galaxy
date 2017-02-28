@@ -120,7 +120,7 @@ function tripal_galaxy_menu() {
   // Available Workflows
   $items['admin/tripal/extension/galaxy/workflows'] = array(
     'title' => 'Workflows',
-    'description' => 'Lists the available workflows of the user',
+    'description' => 'Lists the available Workflows of the user',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('tripal_galaxy_admin_workflows_form'),
     'access arguments' => array('administer galaxy'),
@@ -152,19 +152,7 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
   );
 
-  // Usage
-  // $items['admin/tripal/extension/galaxy/usage'] = array (
-  //   'title' => 'Usage',
-  //   'description' => 'Explore Galaxy usage details.',
-  //   'page callback' => 'drupal_get_form',
-  //   'page arguments' => 'tripal_galaxy_admin_usage_form',
-  //   'access arguments' => array (
-  //     'administer galaxy'
-  //   ),
-  //   'type' => MENU_LOCAL_TASK,
-  //   'file' => 'includes/tripal_galaxy.admin.inc',
-  //   'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
-  // );
+  //Usage
 
   // submission queue
   // $items['admin/tripal/extension/galaxy/submitted'] = array (

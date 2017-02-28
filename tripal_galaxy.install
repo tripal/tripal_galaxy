@@ -168,9 +168,9 @@ function tripal_galaxy_add_workflow_table(&$schema){
         'not_null' => TRUE
       ),
       // Drupal 7 specific feature
-      // TODO: For Drupal 8 this will need to be changed
+      // TODO: Will this need to be changed when Drupal 8
       'node' => array(
-        'type' => 'int'
+        'type' => 'int',
         'not_null' => TRUE
       ),
       'galaxy_id' => array(
@@ -198,7 +198,6 @@ function tripal_galaxy_add_workflow_table(&$schema){
     ),
     'unique keys' => array(
       'tripal_galaxy_wf_uq1' => array('galaxy_id', 'workflow_id'),
-      'tripal_galaxy_wf_uq2' => array('label'),
     ),
   );
 }
