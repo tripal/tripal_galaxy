@@ -62,26 +62,6 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
       '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_wf_id)
     );
 
-    // // Description (Editable)
-    // $form['rows'][$i]['description-' . $i] = array(
-    //   '#type' => 'textarea',
-    //   '#rows' => 1,
-    //   '#cols' => 20,
-    //   '#default_value' => $workflow->description
-    // );
-
-    // if($workflow->label == NULL){
-    //   $workflow->label = $workflow->workflow_name;
-    // }
-
-    // // Workflow_label (Editable)
-    // $form['rows'][$i]['label-' . $i] = array(
-    //   '#type' => 'textfield',
-    //   '#size' => 25,
-    //   '#default_value' => $workflow->label,
-    //   '#required' => TRUE,
-    // );
-
     $i++;
   }
 
@@ -115,7 +95,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     // 'Onsite Label',
     'Galaxy Server',
     'Workflow ID',
-    'Remove');
+    'Actions');
 
   // Theme the rows of this form's table.
   $rows = array();
@@ -145,57 +125,6 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
 }
 
 /**
- * Override's Drupal's Hook_form_validate for the workflows form
- * Assures there are no duplicate labels entered for the workflows
- *
- * @param $form
- * @param $form_state
- */
-function tripal_galaxy_admin_workflows_form_validate($form, &$form_state) {
-  $i = 0;
-  $form_rows = $form_state['values']['rows'];
-
-  // Keeps track of all labels used.
-  $labels = array();
-
-  // Go through all of the row entries.
-  foreach ($form_rows as $i => $row) {
-    $workflow_id = $form_rows[$i]['workflow_id-' . $i];
-    $label = $form_rows[$i]['label-' . $i];
-
-    // Select the current workflow record.
-    $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_id = :wf_id";
-    $workflow_instance = db_query($sql, array(':wf_id' => $workflow_id));
-    $workflow_instance = $workflow_instance->fetchObject();
-
-    // Make sure the label isn't already being used by a different workflow
-    // other than this one.
-    if ($workflow_instance->label != $label) {
-      $sql = "
-        SELECT galaxy_wf_id
-        FROM {tripal_galaxy_wf}
-        WHERE label = :label and NOT workflow_id = :wf_id
-        LIMIT 1 OFFSET 0
-      ";
-      $args = array(':wf_id' => $workflow_id, ':label' => $label);
-      $has_match = db_query($sql, $args)->fetchField();
-      if ($has_match != FALSE && $has_match != NULL) {
-        form_set_error("rows][$i][label-$i", t('A workflow with the label, "' . $label . '", already exists.'));
-      }
-      return FALSE;
-    }
-
-    // Make sure labels aren't bein reused.
-    if (array_key_exists($label, $labels)) {
-      form_set_error("rows][$i][label-$i", t('The label, "'. $label . '", is used more than once.'));
-    }
-    $labels[$label] = TRUE;
-  }
-
-  return;
-}
-
-/**
  * Override's Drupal's Hook_form_submit for the available workflow form
  *
  * @param $form
@@ -220,16 +149,11 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
     $workflow_instance = $workflow_instance->fetchObject ();
 
     // If the workflow has changed values, update it
-    if ($workflow_instance->label != $form_rows[$i]['label-' . $i]
-        || $workflow_instance->description != $form_rows[$i]['description-' . $i]
-        || $workflow_instance->status != $form_rows[$i]['enabled-' . $i]
-        ) {
+    if ($workflow_instance->status != $form_rows[$i]['enabled-' . $i]) {
       $data = array (
         'status' => $form_rows[$i]['enabled-' . $i],
         'galaxy_wf_id' => $workflow_instance->galaxy_wf_id,
         'workflow_name' => $form_rows[$i]['workflow_name-' . $i],
-        'label' => $form_rows[$i]['label-' . $i],
-        'description' => $form_rows[$i]['description-' . $i]
       );
       $workflow = drupal_write_record ( 'tripal_galaxy_wf', $data, 'galaxy_wf_id' );
       drupal_set_message ( t ( 'Workflow information Updated' ) );
