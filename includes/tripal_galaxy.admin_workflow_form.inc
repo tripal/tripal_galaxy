@@ -1,8 +1,13 @@
 <?php
-/** Implements Drupal's hook_form function, responsible for displaying all of the
- *  available Workflows
+
+/**
+ * Implements Drupal's hook_form function, responsible for displaying all of the
+ * available Workflows
  */
 function tripal_galaxy_admin_workflows_form($form, &$form_state) {
+
+  // TODO: This is not keeping track of what workflow comes from which
+  // server
   $workflow_instances = db_query("SELECT * FROM {tripal_galaxy_wf}");
   $i = 0;
   $form['#tree'] = TRUE;

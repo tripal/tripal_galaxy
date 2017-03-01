@@ -387,8 +387,8 @@ function tripal_galaxy_add_webform_tool_input(&$components, &$conditionals, $too
     $is_required = 0;
   }
 
-  // if (array_key_exists('help', $tool_input) and $tool_input['help'])
-    // $extra['description'] = $tool_input['help'];
+   if (array_key_exists('help', $tool_input))
+     $extra['description'] = $tool_input['help'];
 
   // Extract tool input form information to a drupal webform component.
   switch ($tool_input['type'])

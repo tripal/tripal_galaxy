@@ -196,8 +196,6 @@ function tripal_galaxy_admin_add_workflow_form_ajax_callback(&$form, $form_state
 /**
  * The themable fuinction for the add workflow form
  *
- * @param $form
- * @param $form_state
  */
 function theme_tripal_galaxy_admin_add_workflow_form_rows($variables) {
   $form = $variables['form'];

@@ -180,18 +180,18 @@ function tripal_galaxy_menu() {
   // );
 
   // Workflow
-  $items['workflows'] = array (
-    'title' => 'Available Workflows',
-    'description' => 'A list of available analytical workflows for this site',
-    // Are we sure about this?
-    'page callback' => 'test_webforms',
-    'access arguments' => array (
-      'administer galaxy'
-    ),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.user.inc',
-    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
-  );
+  // $items['workflows'] = array (
+  //   'title' => 'Available Workflows',
+  //   'description' => 'A list of available analytical workflows for this site',
+  //   // Are we sure about this?
+  //   'page callback' => 'test_webforms',
+  //   'access arguments' => array (
+  //     'administer galaxy'
+  //   ),
+  //   'type' => MENU_LOCAL_TASK,
+  //   'file' => 'includes/tripal_galaxy.user.inc',
+  //   'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
+  // );
 
   // Galaxy
   $items['user/galaxy'] = array (
@@ -243,13 +243,13 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
       'render element' => 'form'
     ),
 
-    'tripal_galaxy_submitted_list' => array(
-      'render element' => 'element'
-    ),
-
-    'tripal_galaxy_submission_view' => array(
-      'render element' => 'element'
-    ),
+    // 'tripal_galaxy_submitted_list' => array(
+    //   'render element' => 'element'
+    // ),
+    //
+    // 'tripal_galaxy_submission_view' => array(
+    //   'render element' => 'element'
+    // ),
 
   );
   return $items;
