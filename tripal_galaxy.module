@@ -439,3 +439,49 @@ function tripal_galaxy_help($path, $arg) {
   }
 
 }
+
+/**
+ * Implementation of hook_webform_component_info().
+ *
+ * Describes new components for webforms that Galaxy workflows will use.
+ */
+function tripal_galaxy_webform_component_info() {
+  $components = array();
+  $components['BDSS_file'] = array(
+    'label' => t('BDSS File'),
+    'description' => t('Allows multiple paths (URL, upload, Tripal web services) that a file may be attached.'),
+    'features' =>  array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => FALSE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => FALSE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+    ),
+    'file' => 'includes/components/tripal_galaxy.BDSS_file.inc',
+  );
+  $components['fixed_value'] = array(
+    'label' => t('Fixed Value'),
+    'description' => t('A fixed value set by the workflow programmer.'),
+    'features' =>  array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => FALSE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => FALSE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+    ),
+    'file' => 'includes/components/tripal_galaxy.fixed_value.inc',
+  );
+  return $components;
+}
