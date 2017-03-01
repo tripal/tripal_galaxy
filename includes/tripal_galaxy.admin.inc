@@ -309,7 +309,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     'sticky' => TRUE,
     'caption' => '',
     'colgroups' => array(),
-    'empty' => 'No Workflows On Record',
+    'empty' => 'There are no workflows',
   ));
 }
 
@@ -365,7 +365,7 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
 function tripal_galaxy_admin_remove_wf($galaxy_wf_id, $node_id) {
   // TODO: Make sure this workflow has no jobs running
   // TODO: Make sure the galaxy_wf_id is legit
-  // TODO: Verify that the node 
+  // TODO: Verify that the node
 
   // Delete the table instance given the galaxy_wf_id
   $deleted = db_query("DELETE FROM {tripal_galaxy_wf} WHERE galaxy_wf_id = :wf_id",

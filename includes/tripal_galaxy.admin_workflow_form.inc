@@ -122,7 +122,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     'sticky' => TRUE,
     'caption' => '',
     'colgroups' => array(),
-    'empty' => 'No Workflows On Record',
+    'empty' => 'There are no workflows',
   ));
 }
 
