@@ -120,6 +120,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id, &$nid)
         'history_id' => $history_id)
       );
 
+      dpm($tool);
+
       if (!$tool){
         drupal_set_message('Cannot retrieve tool information from Galaxy: ' . $tool_id, 'Error' );
         return FALSE;
@@ -130,7 +132,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id, &$nid)
     // it's step and if a tool is present we'll include the tool info.
     $cid = count($components) + 1;
     $fieldset_key = "Step_" . $i . "_fieldset";
-    $fieldset_name = 'Step ' . $i;
+    $fieldset_name = 'Step ' . ($i + 1);
     $fieldset_desc = '';
 
     if ($tool){
@@ -413,7 +415,7 @@ function tripal_galaxy_build_webform_add_tool_input(&$components, &$conditionals
     $def_files[$k] = $v;
   }
 
-  // dpm($def);
+  // dpm($steps[$step_index -1]);
   // dpm($def_files);
 
   // Initiate variables. By default, these variables will create
@@ -436,7 +438,7 @@ function tripal_galaxy_build_webform_add_tool_input(&$components, &$conditionals
   }
 
    if (array_key_exists('help', $tool_input))
-     $extra['description'] = $tool_input['help'];
+     $extra['description'] = ucfirst($tool_input['help']);
 
   // Extract tool input form information to a drupal webform component.
   switch ($tool_input['type'])
