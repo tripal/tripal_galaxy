@@ -14,7 +14,7 @@ function tripal_galaxy_schema() {
 
   tripal_galaxy_add_galaxy_table($schema);
   tripal_galaxy_add_workflow_table($schema);
-  tripal_galaxy_add_galaxy_wf_job_table($schema);
+  tripal_galaxy_add_galaxy_workflow_job_table($schema);
   tripal_galaxy_add_workflow_submission_table($schema);
 
   return $schema;
@@ -80,17 +80,17 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
 }
 
 /**
- * Add wf submission table, the table responsible for recording submitted
+ * Add workflow submission table, the table responsible for recording submitted
  * Workflow data
  * @param unknown $schema
  */
 function tripal_galaxy_add_workflow_submission_table(&$schema){
 
-  $schema['tripal_galaxy_wf_submission'] = array(
-    'table' => 'tripal_galaxy_wf_submission',
+  $schema['tripal_galaxy_workflow_submission'] = array(
+    'table' => 'tripal_galaxy_workflow_submission',
     'fields' => array (
 
-      'galaxy_wf_submission_id' => array(
+      'galaxy_workflow_submission_id' => array(
         'type' => 'serial',
         'not_null' => TRUE
       ),
@@ -150,20 +150,20 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
 
     ),
     'primary key' => array(
-      0 => 'galaxy_wf_submission_id',
+      0 => 'galaxy_workflow_submission_id',
     ),
   );
 }
 
 /**
- * Adds the 'tripal_galaxy_wf' table to Drupal schema.
+ * Adds the 'tripal_galaxy_workflow' table to Drupal schema.
  */
 function tripal_galaxy_add_workflow_table(&$schema){
 
-  $schema['tripal_galaxy_wf'] = array(
-    'table' => 'tripal_galaxy_wf',
+  $schema['tripal_galaxy_workflow'] = array(
+    'table' => 'tripal_galaxy_workflow',
     'fields' => array (
-      'galaxy_wf_id' => array(
+      'galaxy_workflow_id' => array(
         'type' => 'serial',
         'not_null' => TRUE
       ),
@@ -194,26 +194,26 @@ function tripal_galaxy_add_workflow_table(&$schema){
       ),
     ),
     'primary key' => array(
-      0 => 'galaxy_wf_id',
+      0 => 'galaxy_workflow_id',
     ),
     'unique keys' => array(
-      'tripal_galaxy_wf_uq1' => array('galaxy_id', 'workflow_id'),
+      'tripal_galaxy_workflow_uq1' => array('galaxy_id', 'workflow_id'),
     ),
   );
 }
 
 /**
- * Adds the 'tripal_galaxy_wf_job' table to Drupal schema.
+ * Adds the 'tripal_galaxy_workflow_job' table to Drupal schema.
  */
-function tripal_galaxy_add_galaxy_wf_job_table(&$schema){
-  $schema['tripal_galaxy_wf_job'] = array(
-    'table' => 'tripal_galaxy_wf_job',
+function tripal_galaxy_add_galaxy_workflow_job_table(&$schema){
+  $schema['tripal_galaxy_workflow_job'] = array(
+    'table' => 'tripal_galaxy_workflow_job',
     'fields' => array(
-      'galaxy_wf_job_id' => array(
+      'galaxy_workflow_job_id' => array(
         'type' => 'serial',
         'not_null' => TRUE
       ),
-      'galaxy_wf_id' => array(
+      'galaxy_workflow_id' => array(
         'type' => 'int',
       ),
       'job_id' => array(
@@ -222,7 +222,7 @@ function tripal_galaxy_add_galaxy_wf_job_table(&$schema){
       ),
     ),
     'primary key' => array(
-      0 => 'galaxy_wf_job_id'
+      0 => 'galaxy_workflow_job_id'
     ),
   );
 }
