@@ -53,6 +53,15 @@ function tripal_galaxy_admin_home() {
  * @return $form
  */
 function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id = NULL) {
+  // set the breadcrumb
+  $breadcrumb = array();
+  $breadcrumb[] = l('Home', '<front>');
+  $breadcrumb[] = l('Administration', 'admin');
+  $breadcrumb[] = l('Tripal', 'admin/tripal');
+  $breadcrumb[] = l('Extensions', 'admin/tripal/extension');
+  $breadcrumb[] = l('Galaxy', 'admin/tripal/extension/galaxy');
+  drupal_set_breadcrumb($breadcrumb);
+
   $default_server_name = "";
   $default_user_name = "";
   $default_description = "";
@@ -327,7 +336,7 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
   foreach ($form_rows as $i => $row) {
 
       // Select the workflow being edited
-    $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_id = :workflow_id AND galaxy_id = :galaxy_id";
+    $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE workflow_id = :workflow_id AND galaxy_id = :galaxy_id";
     $galaxy = $form_rows[$i]['galaxy-' . $i];
     $galaxy_id = $galaxy->galaxy_id;
     $args = array (
@@ -344,12 +353,12 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
         || $workflow_instance->description != $form_rows[$i]['description-' . $i]) {
       $data = array (
         'status' => $form_rows[$i]['enabled-' . $i],
-        'galaxy_wf_id' => $workflow_instance->galaxy_wf_id,
+        'galaxy_workflow_id' => $workflow_instance->galaxy_workflow_id,
         'workflow_name' => $form_rows[$i]['workflow_name-' . $i],
         'label' => $form_rows[$i]['label-' . $i],
         'description' => $form_rows[$i]['description-' . $i]
       );
-      $workflow = drupal_write_record ( 'tripal_galaxy_wf', $data, 'galaxy_wf_id' );
+      $workflow = drupal_write_record ( 'tripal_galaxy_workflow', $data, 'galaxy_workflow_id' );
       drupal_set_message ( t ( 'Workflow information Updated' ) );
     }
     $i ++;
@@ -359,17 +368,17 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
 /**
  * Removes a workflow based on the given workflow id and node id
  *
- * @param $galaxy_wf_id
+ * @param $galaxy_workflow_id
  * @param $node_id
  */
-function tripal_galaxy_admin_remove_wf($galaxy_wf_id, $node_id) {
+function tripal_galaxy_admin_remove_wf($galaxy_workflow_id, $node_id) {
   // TODO: Make sure this workflow has no jobs running
-  // TODO: Make sure the galaxy_wf_id is legit
+  // TODO: Make sure the galaxy_workflow_id is legit
   // TODO: Verify that the node
 
-  // Delete the table instance given the galaxy_wf_id
-  $deleted = db_query("DELETE FROM {tripal_galaxy_wf} WHERE galaxy_wf_id = :wf_id",
-      array(':wf_id' => $galaxy_wf_id));
+  // Delete the table instance given the galaxy_workflow_id
+  $deleted = db_query("DELETE FROM {tripal_galaxy_workflow} WHERE galaxy_workflow_id = :wf_id",
+      array(':wf_id' => $galaxy_workflow_id));
   $deleted = db_query("DELETE FROM {node} WHERE nid =:node", array(':node' => $node_id));
   if ($deleted == NULL || $deleted == FALSE) {
     drupal_set_message(t('Issues deleting the workflow'), 'error');

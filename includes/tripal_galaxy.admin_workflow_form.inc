@@ -8,7 +8,7 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
 
   // TODO: This is not keeping track of what workflow comes from which
   // server
-  $workflow_instances = db_query("SELECT * FROM {tripal_galaxy_wf}");
+  $workflow_instances = db_query("SELECT * FROM {tripal_galaxy_workflow}");
   $i = 0;
   $form['#tree'] = TRUE;
 
@@ -65,7 +65,7 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
     // delete
     $form['rows'][$i]['actions-' . $i] = array(
       '#type' => 'item',
-      '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_wf_id)
+      '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_workflow_id)
     );
 
     $i++;
@@ -140,7 +140,7 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
   foreach ($form_rows as $i => $row) {
 
       // Select the workflow being edited
-    $sql = "SELECT * FROM {tripal_galaxy_wf} WHERE workflow_id = :workflow_id AND galaxy_id = :galaxy_id";
+    $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE workflow_id = :workflow_id AND galaxy_id = :galaxy_id";
     $galaxy = $form_rows[$i]['galaxy-' . $i];
     $galaxy_id = $galaxy->galaxy_id;
     $args = array (
@@ -154,10 +154,10 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
     if ($workflow_instance->status != $form_rows[$i]['enabled-' . $i]) {
       $data = array (
         'status' => $form_rows[$i]['enabled-' . $i],
-        'galaxy_wf_id' => $workflow_instance->galaxy_wf_id,
+        'galaxy_workflow_id' => $workflow_instance->galaxy_workflow_id,
         'workflow_name' => $form_rows[$i]['workflow_name-' . $i],
       );
-      $workflow = drupal_write_record ( 'tripal_galaxy_wf', $data, 'galaxy_wf_id' );
+      $workflow = drupal_write_record('tripal_galaxy_workflow', $data, 'galaxy_workflow_id' );
       drupal_set_message ( t ( 'Workflow information Updated' ) );
     }
     $i ++;

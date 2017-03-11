@@ -108,7 +108,7 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
       $default_description = "";
       $default_available = 0;
       $sql = "
-        SELECT * FROM {tripal_galaxy_wf}
+        SELECT * FROM {tripal_galaxy_workflow}
         WHERE workflow_id = :workflow_id
         AND galaxy_id = :galaxy_id
       ";
@@ -276,7 +276,7 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
         }
 
         $data['node'] = $nid;
-        $workflow = drupal_write_record('tripal_galaxy_wf', $data);
+        $workflow = drupal_write_record('tripal_galaxy_workflow', $data);
 
         drupal_set_message(t('Workflow Added'));
       }
