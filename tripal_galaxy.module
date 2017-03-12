@@ -1,9 +1,6 @@
 <?php
 /**
  * @file
- * This file contains all Drupal hooks for the module other than any
- * node hooks and block hooks. Those go in the [module name].chado_node.inc file
- * and [module_name].blocks.inc respectively
  *
  */
 
@@ -101,7 +98,7 @@ function tripal_galaxy_menu() {
     'page arguments' => array ('tripal_galaxy_admin_configuration_form', 5),
     'access arguments' => array ('administer galaxy'),
     'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file' => 'includes/tripal_galaxy.admin_configuration_form.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy')
   );
 
@@ -113,7 +110,7 @@ function tripal_galaxy_menu() {
     'page arguments' => array('tripal_galaxy_admin_configuration_form'),
     'access arguments' => array('administer galaxy'),
     'type' => MENU_LOCAL_ACTION,
-    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file' => 'includes/tripal_galaxy.admin_configuration_form.inc',
     'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
   );
 
@@ -147,7 +144,7 @@ function tripal_galaxy_menu() {
   // Remove Workflows
   $items['admin/tripal/extension/galaxy/workflows/remove/%'] = array (
     'description' => 'Remove a workflow from site',
-    'page callback' => 'tripal_galaxy_admin_remove_wf',
+    'page callback' => 'tripal_galaxy_admin_remove_workflow',
     'page arguments' => array(6),
     'access arguments' => array('administer galaxy'),
     'type' => MENU_CALLBACK,
@@ -166,8 +163,8 @@ function tripal_galaxy_menu() {
       'administer galaxy',
     ),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.admin_queue.inc',
-    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' ),
+    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
   // submission queue
 
@@ -289,7 +286,7 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
 }
 
 /**
- * This function listening for the webform to be completed JIT style!
+ * This function listens for the webform to be completed JIT style!
  *
  * When the completed field of the $form_state is set to true this function
  * gather all of the inputs at once and acquire the id's needed to invoke the
@@ -306,7 +303,6 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
     // (component id's) of the webform and the value being the option/value
     // selected
 
-    // dpm($form_state);
     $inputs = $form_state['values']['submitted'];
     // There will be cid's with no value so get rid of them (these are usually
     // components that either did not need a value or were hidden
@@ -316,8 +312,6 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
         unset($inputs[$cid]);
       }
     }
-
-    // dpm($inputs);
 
     // The array to pass to the workflow invoke with the proper elements
     $galaxy_inputs = array(
@@ -424,28 +418,7 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
 
 
 /**
- * Implements hook_help()
- *
- * Adds a help $formpage to the module list
- */
-function tripal_galaxy_help($path, $arg) {
-
-  // EXPLANATION: in the tripal_galaxy_menu() function above we created
-  // a menu item for the help documentation. The menu item specified
-  // a function that should be called when the menu item is clicked. This
-  // is that function. But, rather than place HTML code in this function
-  // we want to have our help documentation in a template galaxy. We
-  // specified in the tripal_galaxy.theme() function that we have a template
-  // galaxy so now we want to use get the contents of that template galaxy and
-  // return it.
-  if ($path == 'admin/help#tripal_galaxy') {
-    return theme ( 'tripal_galaxy_help', array () );
-  }
-
-}
-
-/**
- * Implementation of hook_webform_component_info().
+ * Implements of hook_webform_component_info().
  *
  * Describes new components for webforms that Galaxy workflows will use.
  */
