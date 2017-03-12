@@ -462,3 +462,121 @@ function tripal_galaxy_webform_component_info() {
   );
   return $components;
 }
+
+/**
+ * Implements hook_element_info().
+ *
+ * Used for creating new form API elements.  We nee a new fixed_value type
+ * for webforms.
+ */
+function tripal_galaxy_element_info() {
+
+  $elements['fixed_value'] = array(
+    '#input' => 'TRUE',
+    '#process' => array('tripal_galaxy_process_fixed_value'),
+  );
+  $elements['BDSS_file'] = array(
+    '#input' => 'TRUE',
+    '#process' => array('tripal_galaxy_BDSS_file_process'),
+    '#element_validate' => array('tripal_galaxy_BDSS_file_validate'),
+    '#value_callback' => 'tripal_galaxy_BDSS_file_value',
+  );
+
+  return $elements;
+}
+/**
+ *
+ */
+function tripal_galaxy_BDSS_file_process($element, $form_state, $complete_form) {
+  $file_URL = '';
+  $fid = '';
+
+  if (array_key_exists('values', $form_state)) {
+    $file_URL = array_key_exists('file_URL', $form_state['values']) ? webform_filter_xss($form_state['input']['file_URL']) : '';
+    $fid = array_key_exists('file_upload', $form_state['values']) ? webform_filter_xss($form_state['input']['file_upload']) : '';
+  }
+  $element['instructions'] = array(
+    '#type' => 'item',
+    '#title' => $element['#title'],
+    '#markup' => array_key_exists('description', $element) ? $element['description'] : t('Please provide a URL for the file on a remote server or upload the file.'),
+  );
+  $element['file_URL'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $file_URL,
+    '#description' => 'File URL',
+    '#title_display' => 'invisible',
+  );
+  $element['file_upload'] = array(
+    '#type' => 'managed_file',
+    '#default_value' => $fid,
+    '#description' => 'Upload a file',
+    '#title_display' => 'invisible',
+  );
+
+  return $element;
+}
+
+/**
+ *
+ */
+function tripal_galaxy_BDSS_file_validate($element, $form_state) {
+  $is_required = $element['#webform_component']['required'];
+  $file_URL = $element['file_URL']['#value'];
+  $file_upload = $element['file_upload']['#value'];
+
+  if (is_array($file_upload)) {
+    $file_upload = $element['file_upload']['#value']['fid'];
+  }
+  if ($file_URL and $file_upload) {
+    form_error($element, t('Please select a file URL or upload a file but not both.'));
+  }
+
+  if (!$file_upload and $file_URL and !valid_url($file_URL, TRUE)) {
+    form_error($element['file_URL'], t('The URL is not valid. Please check for errors.'));
+  }
+
+  if ($is_required and !$file_URL and !$file_upload) {
+    form_error($element, t('Please provide a file URL or upload a file.'));
+  }
+}
+
+/**
+ *
+ */
+function tripal_galaxy_BDSS_file_value($element, $input = FALSE, &$form_state) {
+  $file_URL = '';
+  $fid = '';
+
+  if (array_key_exists('values', $form_state)) {
+    $file_URL = array_key_exists('file_URL', $form_state['values']) ? webform_filter_xss($form_state['input']['file_URL']) : '';
+    $fid = array_key_exists('file_upload', $form_state['values']) ? webform_filter_xss($form_state['input']['file_upload']) : '';
+  }
+  if ($file_URL) {
+    return $file_URL;
+  }
+  if ($fid) {
+    $file = file_load($fid);
+    $url = file_create_url($file->uri);
+    dpm($url);
+    return $url;
+  }
+  return '';
+}
+/**
+ * Implements a theme for the the new fixed_value form API type.
+ *
+ * This field has a hidden value, title and markup description.
+ */
+function tripal_galaxy_process_fixed_value($element, $form_state, $complete_form) {
+
+  // add items text area element
+  $parents = $element['#parents'];
+  $parents[] = 'items';
+  $element['details'] = array(
+    '#type' => 'item',
+    '#title' => $element['#title'],
+    '#markup' => $element['#markup'],
+  );
+
+  return $element;
+}

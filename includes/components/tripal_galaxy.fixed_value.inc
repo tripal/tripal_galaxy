@@ -12,6 +12,9 @@ function _webform_defaults_fixed_value() {
     'value' => '',
     'required' => 0,
     'extra' => array(
+      'private' => FALSE,
+      'hidden_type' => 'value',
+      'analysis' => FALSE,
     ),
   );
 }
@@ -32,7 +35,27 @@ function _webform_theme_fixed_value() {
  * the edit screen of the component.
  */
 function _webform_edit_fixed_value($component) {
-  // TODO: revisit this function.
+  $form = array();
+
+  $select_options = array();
+  if(!empty($component['extra']['items'])){
+    $items = $component['extra']['items'];
+
+    $options = preg_split('/\n/', $items);
+    foreach ($options as $option) {
+      list($key, $val) = explode('|', $option);
+      $select_options[$key] = $val;
+    }
+  }
+
+  $form['value'] = array(
+    '#type' => 'select',
+    '#title' => t('Default value'),
+    '#default_value' => $component['value'],
+    '#options' => $select_options,
+  );
+
+  return $form;
 }
 
 /**
@@ -45,36 +68,39 @@ function _webform_render_fixed_value($component, $value, $filter = TRUE) {
 
   if(!empty($component['extra']['items'])){
     $items = $component['extra']['items'];
-    $pattern = $component['value'];
 
-    $value_key = array();
-    $newline = array();
-
-    preg_match('/('. $pattern .')/', $items, $value_key, PREG_OFFSET_CAPTURE);
-    preg_match('/(\n)/', $items, $newline, PREG_OFFSET_CAPTURE, $value_key[0][1]);
-
-    $length = $value_key[0][1] + strlen($pattern) + 1;
-    $human_readable = substr($items, $length, ($newline[0][1] - $length));
+    $options = preg_split('/\n/', $items);
+    foreach ($options as $option) {
+      list($key, $val) = explode('|', $option);
+      if ($key == $component['value']) {
+        $human_readable = $val;
+      }
+    }
   }
 
-  $element = array();
-
-  $element['fixed_value'] = array(
-    '#type' => 'value',
+  $element = array(
+    '#type' => 'fixed_value',
     '#value' => $component['value'],
-  );
-  $element['display'] = array(
-    '#type' => 'item',
+    '#weight' => $component['weight'],
     '#title' => $component['name'],
     '#markup' => $human_readable,
+    '#weight' => $component['weight'],
   );
   return $element;
+
 }
 /**
  * Defines how the value is displayed from the component in the various
  * reporting from webform.
  */
 function _webform_display_fixed_value($component, $value, $format = 'html') {
+  $element = array(
+    '#title' => $component['name'],
+    '#markup' => isset($value[0]) ? $value[0] : NULL,
+    '#weight' => $component['weight'],
+  );
+
+  return $element;
 
 }
 
@@ -82,6 +108,11 @@ function _webform_display_fixed_value($component, $value, $format = 'html') {
  *
  */
 function _webform_csv_headers_fixed_value($component, $export_options){
+  $header = array();
+  $header[0] = '';
+  $header[1] = '';
+  $header[2] = $export_options['header_keys'] ? $component['form_key'] : $component['name'];
+  return $header;
 
 }
 
@@ -89,5 +120,5 @@ function _webform_csv_headers_fixed_value($component, $export_options){
  *
  */
 function _webform_csv_data_fixed_value($component, $export_options, $value){
-
+  return isset($value[0]) ? $value[0] : '';
 }
