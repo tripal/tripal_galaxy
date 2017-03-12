@@ -55,7 +55,29 @@ function _webform_render_BDSS_file($component, $value = NULL, $filter = TRUE) {
  * reporting from webform.
  */
 function _webform_display_BDSS_file($component, $value, $format = 'html') {
+  $URL = '';
 
+  $file_URL =  $value['file_URL'];
+  $fid = $value['file_upload'];
+
+  if ($file_URL) {
+    $URL =  $file_URL;
+  }
+  if ($fid) {
+    $file = file_load($fid);
+    $URL = file_create_url($file->uri);
+  }
+
+
+  return array(
+    '#title' => $component['name'],
+    '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
+    '#weight' => $component['weight'],
+    '#theme' => 'webform_display_textfield',
+    '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
+    '#format' => $format,
+    '#value' => $URL,
+  );
 }
 
 /**

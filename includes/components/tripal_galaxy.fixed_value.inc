@@ -71,9 +71,11 @@ function _webform_render_fixed_value($component, $value, $filter = TRUE) {
 
     $options = preg_split('/\n/', $items);
     foreach ($options as $option) {
-      list($key, $val) = explode('|', $option);
-      if ($key == $component['value']) {
-        $human_readable = $val;
+      if (preg_match('/\|/', $option)) {
+        list($key, $val) = explode('|', $option);
+        if ($key == $component['value']) {
+          $human_readable = $val;
+        }
       }
     }
   }
@@ -85,6 +87,7 @@ function _webform_render_fixed_value($component, $value, $filter = TRUE) {
     '#title' => $component['name'],
     '#markup' => $human_readable,
     '#weight' => $component['weight'],
+    '#theme_wrappers' => array('webform_element'),
   );
   return $element;
 
@@ -94,13 +97,17 @@ function _webform_render_fixed_value($component, $value, $filter = TRUE) {
  * reporting from webform.
  */
 function _webform_display_fixed_value($component, $value, $format = 'html') {
-  $element = array(
-    '#title' => $component['name'],
-    '#markup' => isset($value[0]) ? $value[0] : NULL,
-    '#weight' => $component['weight'],
-  );
 
-  return $element;
+
+  return array(
+    '#title' => $component['name'],
+    '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
+    '#weight' => $component['weight'],
+    '#theme' => 'webform_display_textfield',
+    '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
+    '#format' => $format,
+    '#value' => isset($value[0]) ? $value[0] : NULL,
+  );
 
 }
 

@@ -479,7 +479,6 @@ function tripal_galaxy_element_info() {
     '#input' => 'TRUE',
     '#process' => array('tripal_galaxy_BDSS_file_process'),
     '#element_validate' => array('tripal_galaxy_BDSS_file_validate'),
-    '#value_callback' => 'tripal_galaxy_BDSS_file_value',
   );
 
   return $elements;
@@ -497,8 +496,8 @@ function tripal_galaxy_BDSS_file_process($element, $form_state, $complete_form) 
   }
   $element['instructions'] = array(
     '#type' => 'item',
-    '#title' => $element['#title'],
     '#markup' => array_key_exists('description', $element) ? $element['description'] : t('Please provide a URL for the file on a remote server or upload the file.'),
+    '#title_display' => 'invisible',
   );
   $element['file_URL'] = array(
     '#type' => 'textfield',
@@ -541,28 +540,6 @@ function tripal_galaxy_BDSS_file_validate($element, $form_state) {
 }
 
 /**
- *
- */
-function tripal_galaxy_BDSS_file_value($element, $input = FALSE, &$form_state) {
-  $file_URL = '';
-  $fid = '';
-
-  if (array_key_exists('values', $form_state)) {
-    $file_URL = array_key_exists('file_URL', $form_state['values']) ? webform_filter_xss($form_state['input']['file_URL']) : '';
-    $fid = array_key_exists('file_upload', $form_state['values']) ? webform_filter_xss($form_state['input']['file_upload']) : '';
-  }
-  if ($file_URL) {
-    return $file_URL;
-  }
-  if ($fid) {
-    $file = file_load($fid);
-    $url = file_create_url($file->uri);
-    dpm($url);
-    return $url;
-  }
-  return '';
-}
-/**
  * Implements a theme for the the new fixed_value form API type.
  *
  * This field has a hidden value, title and markup description.
@@ -570,12 +547,11 @@ function tripal_galaxy_BDSS_file_value($element, $input = FALSE, &$form_state) {
 function tripal_galaxy_process_fixed_value($element, $form_state, $complete_form) {
 
   // add items text area element
-  $parents = $element['#parents'];
-  $parents[] = 'items';
   $element['details'] = array(
     '#type' => 'item',
     '#title' => $element['#title'],
     '#markup' => $element['#markup'],
+    '#title_display' => 'invisible',
   );
 
   return $element;
