@@ -192,7 +192,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id, &$nid) {
           'collapsed' => 1,
         ),
         'required' => '0',
-        'weight' => '100',
+        'weight' => '1000',
       );
       $webform->current_optional_fieldset = $dcid;
 
@@ -657,22 +657,31 @@ function tripal_galaxy_build_webform_add_component($webform,
   // a fixed value. This is because a test param was set by the person
   // who created the workflow and should not be changed by the user.
   if ($fixed) {
-    $webform_type = 'fixed_value';
+    // TODO this type should be changed to our 'fixed_value' field but
+    // for some reason it isn't working in a conditional.  Anywhere a
+    // condition that refers to a component of this type then then
+    // source for the conditiong gets changed to '1'.  The source component
+    // also doesn't show up in the GUI for manually correcting :-(
+    $webform_type = 'hidden';
   }
 
   // If the input step uses an output from another tool then we need
   // to set that and not let the user change it.
+  $linked = FALSE;
   if (array_key_exists($input['full_name'], $step['input_steps'])){
     $source_step = $step['input_steps'][$input['full_name']]['source_step'];
     $step_output = $step['input_steps'][$input['full_name']]['step_output'];
-    $webform_type = 'hidden';
+    $webform_type = 'fixed_value';
     $webform_value =  "Output from step " . ($source_step + 1);
+    $linked = TRUE;
   }
 
   // If this component has a value then put it in the "Additional Settings"
   // fielset.
   if (!$is_required or $webform_value or $webform_value === 0) {
-    $pid = $webform->current_optional_fieldset;
+    if (!$linked) {
+      $pid = $webform->current_optional_fieldset;
+    }
   }
 
   $cid = count($webform->components) + 1;

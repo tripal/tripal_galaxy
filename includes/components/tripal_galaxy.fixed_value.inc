@@ -12,9 +12,6 @@ function _webform_defaults_fixed_value() {
     'value' => '',
     'required' => 0,
     'extra' => array(
-      'private' => FALSE,
-      'hidden_type' => 'value',
-      'analysis' => FALSE,
     ),
   );
 }
@@ -98,7 +95,6 @@ function _webform_render_fixed_value($component, $value, $filter = TRUE) {
  */
 function _webform_display_fixed_value($component, $value, $format = 'html') {
 
-
   return array(
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
@@ -108,7 +104,6 @@ function _webform_display_fixed_value($component, $value, $format = 'html') {
     '#format' => $format,
     '#value' => isset($value[0]) ? $value[0] : NULL,
   );
-
 }
 
 /**
@@ -129,3 +124,19 @@ function _webform_csv_headers_fixed_value($component, $export_options){
 function _webform_csv_data_fixed_value($component, $export_options, $value){
   return isset($value[0]) ? $value[0] : '';
 }
+
+/**
+ * Implements _webform_table_component().
+ */
+function _webform_table_fixed_value($component, $value) {
+  return empty($value[0]) ? '' : check_plain($value[0]);
+}
+
+/**
+ * Implements _webform_action_set_component().
+ */
+function _webform_action_set_fixed_value($component, &$element, &$form_state, $value) {
+  $element['#value'] = $value;
+  form_set_value($element, $value, $form_state);
+}
+
