@@ -88,10 +88,10 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
 }
 
 /**
- * Removes a workflow based on the given workflow id and node id
+ * Removes a workflow based on the given workflow id.
  *
- * @param $galaxy_workflow_id
- * @param $node_id
+ * This function is called by Drupal's confirm_form which is setup in the
+ * tripal_galaxy_admin_confirm_remove_workflow_form() function.
  */
 function tripal_galaxy_admin_remove_workflow($form, &$form_state) {
 
@@ -122,8 +122,8 @@ function tripal_galaxy_admin_remove_workflow($form, &$form_state) {
       ->execute();
 
     $success = db_delete('tripal_galaxy_workflow_submission')
-    ->condition('workflow_id', $workflow->galaxy_workflow_id)
-    ->execute();
+      ->condition('workflow_id', $workflow->galaxy_workflow_id)
+      ->execute();
   }
   catch (Exception $e) {
     $transaction->rollback();

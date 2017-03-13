@@ -212,6 +212,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'cid' => count($webform->components) + 1,
       'pid' => 0,
       'name' => "Step" . ($step_index + 1),
+      //'name' => $tool ? $tool['name'] : "Step" . ($step_index + 1),
       'form_key' => "Step_" . ($step_index + 1) ."_pagebreak",
       'type' => 'pagebreak',
       'weight' => count($webform->components) + 1
@@ -256,7 +257,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     'progressbar_percent' => '1',
     'progressbar_pagebreak_labels' => '1',
     'progressbar_include_confirmation' => '1',
-    'progressbar_label_first' => 'Step 0',
+    'progressbar_label_first' => 'Step 1',
     'progressbar_label_confirmation' => 'Submit',
     'preview' => '1',
     'preview_next_button_label' => 'Next Step',
