@@ -94,6 +94,22 @@ function _webform_render_fixed_value($component, $value, $filter = TRUE) {
  * reporting from webform.
  */
 function _webform_display_fixed_value($component, $value, $format = 'html') {
+  // Get the human readable value
+  $human_readable = $component['value'];
+
+  if(!empty($component['extra']['items'])){
+    $items = $component['extra']['items'];
+
+    $options = preg_split('/\n/', $items);
+    foreach ($options as $option) {
+      if (preg_match('/\|/', $option)) {
+        list($key, $val) = explode('|', $option);
+        if ($key == $component['value']) {
+          $human_readable = $val;
+        }
+      }
+    }
+  }
 
   return array(
     '#title' => $component['name'],
@@ -102,9 +118,11 @@ function _webform_display_fixed_value($component, $value, $format = 'html') {
     '#theme' => 'webform_display_textfield',
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#format' => $format,
-    '#value' => isset($value[0]) ? $value[0] : NULL,
+    '#value' => $human_readable,
   );
 }
+
+
 
 /**
  *

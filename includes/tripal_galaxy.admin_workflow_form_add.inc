@@ -269,9 +269,8 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
 
         // Create the appropriate node for this workflow
         module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.webform');
-        $nid = 0;
-        $success = tripal_galaxy_build_webform($data['galaxy_id'], $data['workflow_id'], $nid);
-        if (!$success) {
+        $nid = tripal_galaxy_build_webform($data['galaxy_id'], $data['workflow_id']);
+        if (!$nid) {
           throw new Exception('Could not create workflow');
         }
 

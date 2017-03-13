@@ -144,8 +144,8 @@ function tripal_galaxy_menu() {
   // Remove Workflows
   $items['admin/tripal/extension/galaxy/workflows/remove/%'] = array (
     'description' => 'Remove a workflow from site',
-    'page callback' => 'tripal_galaxy_admin_remove_workflow',
-    'page arguments' => array(6),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tripal_galaxy_admin_confirm_remove_workflow_form', 6),
     'access arguments' => array('administer galaxy'),
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
@@ -435,10 +435,11 @@ function tripal_galaxy_webform_component_info() {
       'required' => FALSE,
       'title_display' => FALSE,
       'title_inline' => FALSE,
-      'conditional' => FALSE,
+      'conditional' => TRUE,
       'group' => FALSE,
       'spam_analysis' => FALSE,
       'attachment' => FALSE,
+      'conditional_action_set' => TRUE,
     ),
     'file' => 'includes/components/tripal_galaxy.BDSS_file.inc',
   );
@@ -453,10 +454,11 @@ function tripal_galaxy_webform_component_info() {
       'required' => FALSE,
       'title_display' => FALSE,
       'title_inline' => FALSE,
-      'conditional' => FALSE,
+      'conditional' => TRUE,
       'group' => FALSE,
       'spam_analysis' => FALSE,
       'attachment' => FALSE,
+      'conditional_action_set' => TRUE,
     ),
     'file' => 'includes/components/tripal_galaxy.fixed_value.inc',
   );
@@ -546,13 +548,17 @@ function tripal_galaxy_BDSS_file_validate($element, $form_state) {
  */
 function tripal_galaxy_process_fixed_value($element, $form_state, $complete_form) {
 
-  // add items text area element
+  // We need to include a hidden field that contains the value so that
+  // it works with webform conditionals.
   $element['details'] = array(
     '#type' => 'item',
     '#title' => $element['#title'],
     '#markup' => $element['#markup'],
     '#title_display' => 'invisible',
   );
-
+  $element['actual_value'] = array(
+    '#type' => 'hidden',
+    '#value' => $element['#value'],
+  );
   return $element;
 }

@@ -93,21 +93,87 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
  * @param $galaxy_workflow_id
  * @param $node_id
  */
-function tripal_galaxy_admin_remove_workflow($galaxy_workflow_id, $node_id) {
-  // TODO: Make sure this workflow has no jobs running
-  // TODO: Make sure the galaxy_workflow_id is legit
-  // TODO: Verify that the node
+function tripal_galaxy_admin_remove_workflow($form, &$form_state) {
 
-  // Delete the table instance given the galaxy_workflow_id
-  $deleted = db_query("DELETE FROM {tripal_galaxy_workflow} WHERE galaxy_workflow_id = :wf_id",
-      array(':wf_id' => $galaxy_workflow_id));
-  $deleted = db_query("DELETE FROM {node} WHERE nid =:node", array(':node' => $node_id));
-  if ($deleted == NULL || $deleted == FALSE) {
-    drupal_set_message(t('Issues deleting the workflow'), 'error');
-    return FALSE;
+  $transaction = db_transaction();
+
+  try {
+
+    // Get the Node that belongs to this workflow
+    $workflow = $form['#workflow'];
+
+    if (!$workflow) {
+      drupal_set_message(t('Cannot remove the workflow, as it cannot be found'), 'error');
+      drupal_goto("/admin/tripal/extension/galaxy/workflows");
+
+      return;
+    }
+
+    // Remove the webform node that this workflow belongs to.
+    node_delete($workflow->node);
+
+    // Delete the table instance given the galaxy_workflow_id
+    $success = db_delete('tripal_galaxy_workflow')
+      ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
+      ->execute();
+
+    $success = db_delete('tripal_galaxy_workflow_job')
+      ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
+      ->execute();
+
+    $success = db_delete('tripal_galaxy_workflow_submission')
+    ->condition('workflow_id', $workflow->galaxy_workflow_id)
+    ->execute();
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    drupal_set_message($e->getMessage(), 'error');
+    drupal_set_message(t('Cannot remove the workflow'), 'error');
+    drupal_goto("/admin/tripal/extension/galaxy/workflows");
+    return;
   }
 
   // Set message and go back to the workflow page.
   drupal_set_message(t('Workflow Deleted Successfully'));
   drupal_goto("/admin/tripal/extension/galaxy/workflows");
+}
+
+
+/**
+ * Form callback: confirmation form for deleting a tripal_entity.
+ *
+ * @param $tripal_entity The
+ *          tripal_entity to delete
+ *
+ * @see confirm_form()
+ */
+function tripal_galaxy_admin_confirm_remove_workflow_form($form, &$form_state, $galaxy_workflow_id) {
+  // Get the Node that belongs to this workflow
+  $workflow = db_select('tripal_galaxy_workflow', 'tgw')
+    ->fields('tgw')
+    ->condition('galaxy_workflow_id', $galaxy_workflow_id)
+    ->execute()
+    ->fetchObject();
+
+  $form['#workflow'] = $workflow;
+  $form['#submit'][] = 'tripal_galaxy_admin_remove_workflow';
+
+  $form = confirm_form(
+    // Form.
+    $form,
+    // Question.
+    t('Confirm deletion of the workflow titled: %title', array('%title' => $workflow->workflow_name)),
+    // The page to go to if the user cancels the action.
+    '/admin/tripal/extension/galaxy/workflows',
+    // Description.
+    '<p>' . t('This action cannot be undone and all job submissions for this workflow will be lost.') .'</p>',
+    // Yes text.
+    t('Delete'),
+    // No text.
+    t('Cancel'),
+    // Internal name for this confirm_form.
+    'confirm'
+  );
+
+  return $form;
 }

@@ -68,7 +68,6 @@ function _webform_display_BDSS_file($component, $value, $format = 'html') {
     $URL = file_create_url($file->uri);
   }
 
-
   return array(
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
