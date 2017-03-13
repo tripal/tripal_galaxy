@@ -320,19 +320,19 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
       // TODO: Need to grab the history content id's that were selected from
       // the history
       // BUG:
-      //'input_dataset_ids' => array('d3a4d6a5256f2d9a', '8317ee2b0d0f62d9', '70eec96181a992f8'),
+      'input_dataset_ids' => array('6f91353f3eb0fa4a'),
     );
 
     // The inputs need to be formatted to galaxy's workflow invoke
     // NOTE: The entire form can be found within form_state under
     // $form_state['build_info']['args'][0]['webform']
 
-    $node = new stdClass();
-    $node->type = 'page';
-    node_object_prepare($node);
-
-    node_save($node);
-    return TRUE;
+    // $node = new stdClass();
+    // $node->type = 'page';
+    // node_object_prepare($node);
+    //
+    // node_save($node);
+    // return TRUE;
 
     // Some components will belong to the same tool,
     // So group these param_names into the same step_id key
@@ -378,13 +378,6 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
     $galaxy_instance = new GalaxyInstance($host, $port, $https);
     $galaxy_instance->setAPIKey($api_key);
     $workflow = new GalaxyWorkflows($galaxy_instance);
-    // $params = array(
-    //   'workflow_id' => $workflow_id,
-    //   // 'hist_id' => $hist_id,
-    //     //  These are the inputs gathered by the webform
-    //   // 'input_dataset_ids' => ,
-    //   'parameters' => $galaxy_inputs,
-    // );
 
     $workflow->invoke($galaxy_inputs);
   // dpm("test");
