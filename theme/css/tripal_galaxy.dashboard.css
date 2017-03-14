@@ -1,0 +1,38 @@
+@CHARSET "UTF-8";
+
+path {  stroke: #fff; }
+path:hover {  opacity:0.9; }
+rect:hover {  fill:blue; }
+.axis {  font: 10px sans-serif; }
+.tripal-galaxy-usage-legend tr{    border-bottom:1px solid grey; }
+.tripal-galaxy-usage-legend tr:first-child{    border-top:1px solid grey; }
+
+.tripal-galaxy-usage.axis text {
+  font: 10px sans-serif;
+}
+
+.tripal-galaxy-usage-axis path,
+.tripal-galaxy-usage-axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.tripal-galaxy-usage-legend {
+  margin-bottom:76px;
+  display:inline-block;
+  border: none;
+}
+.tripal-galaxy-usage-legend {
+  width: 150px;
+  float: left;
+}
+.tripal-galaxy-usage-legend td{
+    padding:4px 5px;
+    vertical-align:bottom;
+}
+#tripal-galaxy-usage-users {
+  clear: both;
+}
+#tripal-galaxy-usage-workflows {
+  clear: both;
+}
