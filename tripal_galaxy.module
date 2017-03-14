@@ -127,8 +127,6 @@ function tripal_galaxy_menu() {
     'weight' => 5,
   );
 
-
-
   // Add Workflows
   $items['admin/tripal/extension/galaxy/workflows/add'] = array(
     'title' => 'Add Workflows',
@@ -157,11 +155,8 @@ function tripal_galaxy_menu() {
   $items['admin/tripal/extension/galaxy/usage'] = array (
     'title' => 'Usage',
     'description' => 'View Usage of Galaxy Workflows',
-    // Are we sure about this?
-    'page callback' => 'tripal_galaxy_usage_list',
-    'access arguments' => array (
-      'administer galaxy',
-    ),
+    'page callback' => 'tripal_galaxy_admin_usage_page',
+    'access arguments' => array('administer galaxy'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.admin_usage.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
@@ -239,50 +234,62 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
     'tripal_galaxy_admin_add_workflow_form_rows' => array (
       'render element' => 'form'
     ),
-
     'tripal_galaxy_admin_workflows_form_rows' => array(
       'render element' => 'form'
     ),
-
-    // 'tripal_galaxy_submitted_list' => array(
-    //   'render element' => 'element'
-    // ),
-    //
-    // 'tripal_galaxy_submission_view' => array(
-    //   'render element' => 'element'
-    // ),
-
   );
   return $items;
 }
 
 /**
- * Implements a pseudo hook on the submit button of the galaxy webform.
+ * Implements hook_[form_id]_alter().
  *
- * Along with inserting the options selected on the webform to the tripal db
- * this function also calls the tripal_galaxy_webform_client_submit function
- * to then pull this data from the db and write it to the galaxy server for the
- * invoke (execution) of the workflow.
- *
- * @param $form
- *  A drupal form that has all the data associated to the webform (what values
- *  have been submitted, components and conditionals of the webform,
- *  information that drupal needs to present this form)
- * @param $form_state
- *  Contains interactive pieces of the form that the user can manipulate (
- *  buttons) and other data for drupal to render
- * @param $form_id
- *  Identifier for drupal
+ * Add a submit handler to the client webform form.
  */
 function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $form_id ) {
   // Check if this particular webform really is a galaxy webform
   // At each 'turn of the page' of the particular webform this is being called
   if($form['#node']->webform['components'][1]['form_key'] == 'galaxy_webform'){
-    $form['#submit'][] = 'tripal_galaxy_workflow_invoke';
+    $form['#submit'][] = 'tripal_galaxy_webform_client_form_submit';
   }
+}
 
-  //  dpm($form);
-  // dpm($form_state);
+/**
+ * Implements submit function for the webform_client_form
+ */
+function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
+
+  // Don't do anything if the webform isn't finished being filled out.
+  if ($form_state['webform_completed'] != TRUE) {
+    return;
+  }
+  try {
+    // Get the Galaxy server workflow ID from the form then
+    // lookup our internal galaxy workflow ID.
+    $workflow_id = $form['#node']->webform['components'][1]['extra']['wfid'];
+    $workflow = db_select('tripal_galaxy_workflow', 'tgw')
+      ->fields('tgw')
+      ->condition('workflow_id', $workflow_id)
+      ->execute()
+      ->fetchObject();
+    // To be implemented more properly once inputs are generated
+    $data = array(
+      'sid' => $form_state['storage']['details']['sid'],
+      'galaxy_workflow_id' => $workflow->galaxy_workflow_id,
+      'errors' => '',
+      'submit_date' => REQUEST_TIME,
+      'status' => 'Waiting',
+    );
+
+    // Now insert the submission into the database
+    drupal_write_record('tripal_galaxy_workflow_submission', $data);
+  }
+  catch (Exception $e) {
+    drupal_set_message(t('Could not copmlete workflow submission.  Please contact the web site to report this issue.'), 'error');
+    watchdog_exception('tripal_galaxy', $e);
+  }
+  drupal_set_message(t('Your job is successfully submitted to the job queue! You will be notified by email when your job begins and completes.'));
+  drupal_goto('/');
 }
 
 /**
@@ -297,123 +304,113 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
  */
 function tripal_galaxy_workflow_invoke($form, &$form_state){
 
-  if($form_state['webform_completed'] == TRUE){
-    // Grab the submitted data from the form_state
-    // The result will be an associative array with the keys being the cid's
-    // (component id's) of the webform and the value being the option/value
-    // selected
 
-    $inputs = $form_state['values']['submitted'];
-    // There will be cid's with no value so get rid of them (these are usually
-    // components that either did not need a value or were hidden
-    // due to conditionals)
-    foreach($inputs as $cid => $value){
-      if(empty($value)){
-        unset($inputs[$cid]);
-      }
+
+
+  // The array to pass to the workflow invoke with the proper elements
+
+  $galaxy_inputs = array(
+    'parameters' => array(),
+    'workflow_id' => $workflow_id,
+    'input_dataset_ids' => array(),
+  );
+
+  $galaxy_workflow = db_select('tripal_galaxy_workflow', 'tgw')
+    ->fields('tgw')
+    ->condition('workflow_id', $workflow_id)
+    ->execute()
+    ->fetchObject();
+
+  $galaxy_server = db_select('tripal_galaxy', 'tg')
+    ->fields('tg')
+    ->condition('galaxy_id', $galaxy_workflow->galaxy_id)
+    ->execute()
+    ->fetchObject();
+
+  // Grab the submitted data from the form_state.  The result will be an
+  // associative array with the keys being the cid's (component id's)
+  // of the webform and the value being the option/value selected
+  $inputs = $form_state['values']['submitted'];
+
+  // There will be cid's with no values so get rid of them (these are usually
+  // components that either did not need a value or were hidden
+  // due to conditionals)
+  foreach($inputs as $cid => $value){
+    if (empty($value)) {
+      unset($inputs[$cid]);
     }
-
-    // The array to pass to the workflow invoke with the proper elements
-    $galaxy_inputs = array(
-      'parameters' => array(),
-      'workflow_id' => $form['#node']->webform['components'][1]['extra']['wfid'],
-      // TODO: Need to grab the history content id's that were selected from
-      // the history
-      // BUG:
-      //'input_dataset_ids' => array('d3a4d6a5256f2d9a', '8317ee2b0d0f62d9', '70eec96181a992f8'),
-    );
-
-    // The inputs need to be formatted to galaxy's workflow invoke
-    // NOTE: The entire form can be found within form_state under
-    // $form_state['build_info']['args'][0]['webform']
-
-    $node = new stdClass();
-    $node->type = 'page';
-    node_object_prepare($node);
-
-    node_save($node);
-    return TRUE;
-
-    // Some components will belong to the same tool,
-    // So group these param_names into the same step_id key
-    foreach($inputs as $cid => $value){
-
-      // Grab the component from the webform
-      $component = $form_state['build_info']['args'][0]->webform['components'][$cid];
-      // Skip the pagebreaks
-      if($component['type'] == 'pagebreak'){
-        continue;
-      }
-      // NOTE: The step id's (page_num) on the server side are offset by 1
-      // so subtract 1
-      if(array_key_exists(($component['page_num'] - 1), $galaxy_inputs['parameters'])){
-        $galaxy_inputs['parameters'][($component['page_num'] - 1)][$component['extra']['param_name']] = $value;
-      }
-      else{
-        $galaxy_inputs['parameters'][($component['page_num'] - 1)] = array(
-          $component['extra']['param_name'] => $value
-        );
-      }
-      //
-
-    }
-
-    // The [1] is the galaxy webform element that we created during the webform
-    // construction
-
-    // These are for finding the correct history and workflow to couple and
-    // invoke
-    // $workflow_id = $form['#node']->webform['components'][1]['extra']['wfid'];
-    // $hist_id = $form['#node']->webform['components'][1]['extra']['hid'];
-
-    // These are for setting up the instance to access the particular galaxy
-    // server
-    $host = $form['#node']->webform['components'][1]['extra']['host'];
-    $port = $form['#node']->webform['components'][1]['extra']['port'];
-    $https = $form['#node']->webform['components'][1]['extra']['https'];
-    $api_key = $form['#node']->webform['components'][1]['extra']['api_key'];
-
-
-    $library = libraries_load('blend4php');
-    $galaxy_instance = new GalaxyInstance($host, $port, $https);
-    $galaxy_instance->setAPIKey($api_key);
-    $workflow = new GalaxyWorkflows($galaxy_instance);
-    // $params = array(
-    //   'workflow_id' => $workflow_id,
-    //   // 'hist_id' => $hist_id,
-    //     //  These are the inputs gathered by the webform
-    //   // 'input_dataset_ids' => ,
-    //   'parameters' => $galaxy_inputs,
-    // );
-
-    $workflow->invoke($galaxy_inputs);
-  // dpm("test");
-
-    // tripal_galaxy_webform_client_submit();
   }
-  //
 
-  // dpm($form);
+  // Some components will belong to the same tool, So group these param_names
+  // into the same step_id key
+  foreach($inputs as $cid => $value){
 
-  // $inputs = tripal_galaxy_gather_params($form, $form_state);
-  // dpm($inputs);
+    // Grab the component from the webform.
+    $component = $form_state['build_info']['args'][0]->webform['components'][$cid];
+
+    // Skip components that don't have an 'input_name' field as these
+    // don't correspond to workflow input components.
+    if (!array_key_exists('input_name', $component['extra'])) {
+      continue;
+    }
+
+    // Input elements of type 'fixed_value' should not be provided as
+    // input for the Galaxy workflow because the defaulst should be used
+    if ($component['type'] == 'fixed_value') {
+      continue;
+    }
+
+    // Deal with the BDSS_file type.
+    // TODO: should this happen here, or should the URL already be
+    // set in the form submit values?  We should explore that...
+    if ($component['type'] == 'BDSS_file') {
+
+      $file_URL =  $value['file_URL'];
+      $fid = $value['file_upload'];
+
+      if ($file_URL) {
+        $value = $file_URL;
+      }
+      else if ($fid) {
+        $file = file_load($fid);
+        $value = file_create_url($file->uri);
+      }
+      else {
+        $value = '';
+      }
+    }
+
+    // If we don't have a value then skip it and let the workflow use it's
+    // own defaults
+    if (!$value) {
+      continue;
+    }
+
+    // NOTE: The step id's (page_num) on the server side are offset by 1
+    // so subtract 1, then organize the input settings by their step in the
+    // $galaxy_input['parameters'] array.
+    $step_index = $component['page_num'] - 1;
+    $input_name = $component['extra']['input_name'];
+    $galaxy_inputs['parameters'][$step_index][$input_name] = $value;
+  }
+
+//   // Launch the workflow on the remote galaxy instance.
+//   $host = $galaxy_server->servername;
+//   list($url, $port) = explode(':', $galaxy_server->url);
+//   $https = FALSE;
+//   if (preg_match('/^https/', $url)) {
+//     $https = TRUE;
+//   }
+//   $api_key = $galaxy_server->api_key;
+
+//   $library = libraries_load('blend4php');
+//   $galaxy = new GalaxyInstance($host, $port, $https);
+//   $galaxy->setAPIKey($api_key);
+//   $workflow = new GalaxyWorkflows($galaxy);
+//   $workflow->invoke($galaxy_inputs);
 
 
 
-//   // To be implemented more properly once inputs are generated
-//   $start_time = date("D M d, Y G:i");
-//   $data = array(
-//     'galaxy_id' => '999',
-//     'workflow_id' => $workflow_id,
-//     'workflow_name' => 'Test Workflow',
-//     'inputs' => JSon_encode ($inputs),
-//   		// issues with param encoding
-//     'parameters' => json_encode ($parameters),
-//     'status' => 'not yet implemented',
-//     'start_time' => $start_time,
-//   );
-//   // Now insert the submission into the database
-//   $workflow_submission = drupal_write_record('tripal_galaxy_workflow_submission', $data);
 }
 
 
@@ -475,7 +472,7 @@ function tripal_galaxy_element_info() {
 
   $elements['fixed_value'] = array(
     '#input' => 'TRUE',
-    '#process' => array('tripal_galaxy_process_fixed_value'),
+    '#process' => array('tripal_galaxy_fixed_value_process'),
   );
   $elements['BDSS_file'] = array(
     '#input' => 'TRUE',
@@ -546,7 +543,7 @@ function tripal_galaxy_BDSS_file_validate($element, $form_state) {
  *
  * This field has a hidden value, title and markup description.
  */
-function tripal_galaxy_process_fixed_value($element, $form_state, $complete_form) {
+function tripal_galaxy_fixed_value_process($element, $form_state, $complete_form) {
 
   // We need to include a hidden field that contains the value so that
   // it works with webform conditionals.
@@ -556,7 +553,7 @@ function tripal_galaxy_process_fixed_value($element, $form_state, $complete_form
     '#markup' => $element['#markup'],
     '#title_display' => 'invisible',
   );
-  $element['actual_value'] = array(
+  $element['value'] = array(
     '#type' => 'hidden',
     '#value' => $element['#value'],
   );

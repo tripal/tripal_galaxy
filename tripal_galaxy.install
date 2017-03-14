@@ -14,7 +14,6 @@ function tripal_galaxy_schema() {
 
   tripal_galaxy_add_galaxy_table($schema);
   tripal_galaxy_add_workflow_table($schema);
-  tripal_galaxy_add_galaxy_workflow_job_table($schema);
   tripal_galaxy_add_workflow_submission_table($schema);
 
   return $schema;
@@ -31,11 +30,6 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
     'fields' => array(
       'galaxy_id' => array(
         'type' => 'serial',
-        'not_null' => TRUE
-      ),
-      'label' => array(
-        'type' => 'varchar',
-        'length ' => 255,
         'not_null' => TRUE
       ),
       'url' => array(
@@ -89,68 +83,45 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
   $schema['tripal_galaxy_workflow_submission'] = array(
     'table' => 'tripal_galaxy_workflow_submission',
     'fields' => array (
-
-      'galaxy_workflow_submission_id' => array(
-        'type' => 'serial',
+      'sid' => array(
+        'type' => 'int',
         'not_null' => TRUE
       ),
-
-      'galaxy_id' => array(
-        'type' => 'varchar',
-      	'length' => 1024,
+      'galaxy_workflow_id' => array(
+        'type' => 'int',
         'not_null' => TRUE
       ),
-
-      'workflow_id' => array(
-        'type' => 'varchar',
-        'length' => 1024,
-        'not_null' => TRUE
-      ),
-
-
-      'inputs' => array(
-        'type' => 'text',
-        'not_null' => TRUE
-      ),
-
-      'parameters' => array(
-        'type' => 'text',
-        'not_null' => TRUE
-      ),
-
       'errors' => array(
         'type' => 'text',
       ),
-
-      'results' => array(
-        'type' => 'text',
-      ),
-
       'status' => array(
         'type' => 'varchar',
-        'length ' => 1024,
-        'not_null'=> TRUE
+        'length' => 50,
+        'not NULL' => TRUE,
+        'default' => 'Waiting',
       ),
-
-      'start_time' => array(
-        'type' => 'varchar',
-        'length ' => 1024,
-        'not_null'=> TRUE
-      ),
-
-      'end_time' => array(
-        'type' => 'varchar',
-        'length ' => 1024,
-      ),
-
-      'uid' => array(
+      'submit_date' => array(
         'type' => 'int',
-        'length ' => 1024,
+        'not NULL' => TRUE,
+        'description' => 'UNIX integer submit time'
       ),
-
+      'start_time' => array(
+        'type' => 'int',
+        'not NULL' => FALSE,
+        'description' => 'UNIX integer start time'
+      ),
+      'end_time' => array(
+        'type' => 'int',
+        'not NULL' => FALSE,
+        'description' => 'UNIX integer end time'
+      ),
     ),
-    'primary key' => array(
-      0 => 'galaxy_workflow_submission_id',
+    'indexes' => array(
+      'sid' => array('sid'),
+      'galaxy_workflow_id' => array('galaxy_workflow_id'),
+    ),
+    'unique' => array(
+      'sid_uq1' => array('sid'),
     ),
   );
 }
@@ -167,26 +138,24 @@ function tripal_galaxy_add_workflow_table(&$schema){
         'type' => 'serial',
         'not_null' => TRUE
       ),
-      // Drupal 7 specific feature
-      // TODO: Will this need to be changed when Drupal 8
-      'node' => array(
+      'nid' => array(
         'type' => 'int',
         'not_null' => TRUE
       ),
       'galaxy_id' => array(
-        'type' => 'varchar',
-      	'length' => 1024,
+        'type' => 'int',
         'not_null' => TRUE
       ),
       'status' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'default' => 0,
+        'type' => 'varchar',
+        'length' => 1024,
+        'default' => 'Active',
       ),
       'workflow_id' => array(
         'type' => 'varchar',
         'length' => 1024,
-        'not_null' => TRUE
+        'not_null' => TRUE,
+        'description' => 'The ID of the workflow on the Galaxy server.'
       ),
       'workflow_name' => array(
         'type' => 'text',
@@ -198,31 +167,6 @@ function tripal_galaxy_add_workflow_table(&$schema){
     ),
     'unique keys' => array(
       'tripal_galaxy_workflow_uq1' => array('galaxy_id', 'workflow_id'),
-    ),
-  );
-}
-
-/**
- * Adds the 'tripal_galaxy_workflow_job' table to Drupal schema.
- */
-function tripal_galaxy_add_galaxy_workflow_job_table(&$schema){
-  $schema['tripal_galaxy_workflow_job'] = array(
-    'table' => 'tripal_galaxy_workflow_job',
-    'fields' => array(
-      'galaxy_workflow_job_id' => array(
-        'type' => 'serial',
-        'not_null' => TRUE
-      ),
-      'galaxy_workflow_id' => array(
-        'type' => 'int',
-      ),
-      'job_id' => array(
-        'type' => 'int',
-        'not_null' => TRUE
-      ),
-    ),
-    'primary key' => array(
-      0 => 'galaxy_workflow_job_id'
     ),
   );
 }

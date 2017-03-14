@@ -11,10 +11,7 @@ function _webform_defaults_BDSS_file() {
     'weight' => 0,
     'value' => '',
     'required' => 0,
-    'extra' => array(
-      'file_URL' => '',
-      'fid' => '',
-    ),
+    'extra' => array(),
   );
 }
 

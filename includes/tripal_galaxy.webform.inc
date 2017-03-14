@@ -207,16 +207,18 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       }
     }
 
-    // Add a page break after each step.
-    $webform->components[] = array(
-      'cid' => count($webform->components) + 1,
-      'pid' => 0,
-      'name' => "Step" . ($step_index + 1),
-      //'name' => $tool ? $tool['name'] : "Step" . ($step_index + 1),
-      'form_key' => "Step_" . ($step_index + 1) ."_pagebreak",
-      'type' => 'pagebreak',
-      'weight' => count($webform->components) + 1
-    );
+    // Add a page break after each step except on the last one.
+    if ($step_index < count($steps) - 1) {
+      $webform->components[] = array(
+        'cid' => count($webform->components) + 1,
+        'pid' => 0,
+        'name' => "Step" . ($step_index + 1),
+        //'name' => $tool ? $tool['name'] : "Step" . ($step_index + 1),
+        'form_key' => "Step_" . ($step_index + 1) ."_pagebreak",
+        'type' => 'pagebreak',
+        'weight' => count($webform->components) + 1
+      );
+    }
   }
 
   // Before saving the node we have to sort the conditionals.
@@ -322,7 +324,9 @@ function tripal_galaxy_build_webform_add_non_tool_input($webform, $step,
     'title_display' => 'before',
     'description_above' => 1,
     'items' => $items,
-    'aslist' => 1
+    'aslist' => 1,
+    'input_name' => $step['tool_inputs']['name'],
+    'input_full_name' => $step['tool_inputs']['name'],
   );
 
   $cid = count ( $webform->components ) + 1;
@@ -343,7 +347,7 @@ function tripal_galaxy_build_webform_add_non_tool_input($webform, $step,
       );
 
       break;
-    default :
+    default:
       break;
   }
 }
@@ -500,9 +504,10 @@ function tripal_galaxy_build_webform_add_component($webform,
     'description_above' => 1,
     'items' => '',
     'aslist' => $is_list,
-    'param_name' => $input['name'],
+    'tool_name' => $tool['name'],
+    'input_name' => $input['name'],
+    'input_full_name' => $input['full_name'],
   );
-  $tool_name = $input['name'];
 
   // Get the value of this component input.
   $webform_value = tripal_galaxy_build_webform_get_input_value($workflow, $step['id'], $input['full_name']);
@@ -646,7 +651,7 @@ function tripal_galaxy_build_webform_add_component($webform,
     'name' => $input_name,
     // This form_key has to be unique from ANYTHING else, otherwise the
     // component will not be presented
-    'form_key' => "Step_" . $step['id'] . "_" . $tool_name . "_" . $cid,
+    'form_key' => "Step_" . $step['id'] . "_" . $input['name'] . "_" . $cid,
     'type' => $webform_type,
     'value' => $webform_value,
     'extra' => $extra,

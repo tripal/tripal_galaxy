@@ -274,7 +274,7 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
           throw new Exception('Could not create workflow');
         }
 
-        $data['node'] = $nid;
+        $data['nid'] = $nid;
         $workflow = drupal_write_record('tripal_galaxy_workflow', $data);
 
         drupal_set_message(t('Workflow Added'));

@@ -105,24 +105,18 @@ function tripal_galaxy_admin_remove_workflow($form, &$form_state) {
     if (!$workflow) {
       drupal_set_message(t('Cannot remove the workflow, as it cannot be found'), 'error');
       drupal_goto("/admin/tripal/extension/galaxy/workflows");
-
       return;
     }
 
     // Remove the webform node that this workflow belongs to.
-    node_delete($workflow->node);
+    node_delete($workflow->nid);
 
     // Delete the table instance given the galaxy_workflow_id
     $success = db_delete('tripal_galaxy_workflow')
       ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
       ->execute();
-
-    $success = db_delete('tripal_galaxy_workflow_job')
-      ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
-      ->execute();
-
     $success = db_delete('tripal_galaxy_workflow_submission')
-      ->condition('workflow_id', $workflow->galaxy_workflow_id)
+      ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
       ->execute();
   }
   catch (Exception $e) {

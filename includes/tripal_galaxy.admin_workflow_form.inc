@@ -41,7 +41,7 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
 
     $form['rows'][$i]['workflow_name-user' . $i] = array(
       '#type' => 'item',
-      '#markup' => l($workflow->workflow_name, '/node/' . $workflow->node),
+      '#markup' => l($workflow->workflow_name, '/node/' . $workflow->nid),
     );
 
     // Servername that the workflow's on
