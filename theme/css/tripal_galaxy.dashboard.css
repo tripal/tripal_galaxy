@@ -1,6 +1,8 @@
 @CHARSET "UTF-8";
 
-
+path {  
+  stroke: #fff; 
+}
 .tripal-galaxy-usage-legend tr{    
   border: none;
 }
@@ -18,7 +20,6 @@
 .tripal-galaxy-usage-axis line {
   fill: none;
   stroke: #000;
-  shape-rendering: crispEdges;
 }
 .tripal-galaxy-usage-legend {
   margin-bottom:76px;

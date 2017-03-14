@@ -16,7 +16,12 @@ Drupal.behaviors.tripalGalaxyDashboard = {
       // Function to handle histogram.
       function barChart(fD){
           var hG={}, hGDim = {t: 60, r: 0, b: 30, l: 0};
-          hGDim.w = (900 * fD.length/10) - hGDim.l - hGDim.r, 
+          if (fD.length > 0) {
+            hGDim.w = (900 * fD.length/10) - hGDim.l - hGDim.r;
+          }
+          else {
+            hGDim.w = 900 - hGDim.l - hGDim.r;
+          }
           hGDim.h = (300) - hGDim.t - hGDim.b;
                         
           // Create svg for histogram.
@@ -35,7 +40,7 @@ Drupal.behaviors.tripalGalaxyDashboard = {
             .orient("bottom");
           
           hGsvg.append("g")
-            .attr("class", "tripal-galaxy-usage-axis")
+            .attr("class", "x tripal-galaxy-usage-axis")
             .attr("transform", "translate(0," + hGDim.h + ")")
             .call(xAxis);
     
@@ -44,11 +49,11 @@ Drupal.behaviors.tripalGalaxyDashboard = {
                   .domain([0, d3.max(fD, function(d) { return d.count; })]);
     
           var yAxis = d3.svg.axis()
-          .scale(y)
-          .orient("left");
+            .scale(y)
+            .orient("left");
       
           hGsvg.append("g")
-            .attr("class", "tripal-galaxy-usage-axis")
+            .attr("class", "y tripal-galaxy-usage-axis")
             .call(yAxis);
           
           // Create bars for histogram to contain rectangles and labels.
