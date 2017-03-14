@@ -1,12 +1,15 @@
 @CHARSET "UTF-8";
 
-path {  stroke: #fff; }
-path:hover {  opacity:0.9; }
-rect:hover {  fill:blue; }
-.axis {  font: 10px sans-serif; }
-.tripal-galaxy-usage-legend tr{    border-bottom:1px solid grey; }
-.tripal-galaxy-usage-legend tr:first-child{    border-top:1px solid grey; }
 
+.tripal-galaxy-usage-legend tr{    
+  border: none;
+}
+.tripal-galaxy-usage-legend tr:first-child {    
+  border: none;
+}
+.tripal-galaxy-usage-legend tr td:last-child {
+  border: none;
+}
 .tripal-galaxy-usage.axis text {
   font: 10px sans-serif;
 }

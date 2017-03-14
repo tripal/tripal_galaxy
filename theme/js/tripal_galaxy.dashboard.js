@@ -16,7 +16,7 @@ Drupal.behaviors.tripalGalaxyDashboard = {
       // Function to handle histogram.
       function histoGram(fD){
           var hG={}, hGDim = {t: 60, r: 0, b: 30, l: 0};
-          hGDim.w = 500 - hGDim.l - hGDim.r, 
+          hGDim.w = 900 - hGDim.l - hGDim.r, 
           hGDim.h = 300 - hGDim.t - hGDim.b;
                         
           // Create svg for histogram.
