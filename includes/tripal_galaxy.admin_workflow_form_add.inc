@@ -20,7 +20,7 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
     $galaxy_id = $form_state['values']['galaxy_id'];
   }
   $results = db_select( 'tripal_galaxy', 'tg' )
-    ->fields('tg', array('galaxy_id', 'servername', 'label'))
+    ->fields('tg', array('galaxy_id', 'servername'))
     ->execute();
   $galaxies[0] = 'Select';
   while ($galaxy = $results->fetchObject()) {
