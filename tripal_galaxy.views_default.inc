@@ -48,7 +48,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['pager']['options']['items_per_page'] = '10';
   $handler->display->display_options['style_plugin'] = 'table';
   $handler->display->display_options['style_options']['columns'] = array(
-    'workflow_name' => 'workflow_name',
+    'title' => 'title',
     'servername' => 'servername',
     'uid' => 'uid',
     'name' => 'name',
@@ -59,7 +59,7 @@ function tripal_galaxy_views_job_queue() {
   );
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
-    'workflow_name' => array(
+    'title' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
@@ -131,12 +131,12 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['relationships']['uid']['table'] = 'webform_submissions';
   $handler->display->display_options['relationships']['uid']['field'] = 'uid';
   $handler->display->display_options['relationships']['uid']['relationship'] = 'sid';
-  /* Field: Galaxy Workflow: Workflow Name */
-  $handler->display->display_options['fields']['workflow_name']['id'] = 'workflow_name';
-  $handler->display->display_options['fields']['workflow_name']['table'] = 'tripal_galaxy_workflow';
-  $handler->display->display_options['fields']['workflow_name']['field'] = 'workflow_name';
-  $handler->display->display_options['fields']['workflow_name']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['workflow_name']['alter']['path'] = 'node/[nid]';
+  /* Field: Content: Title */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['relationship'] = 'sid';
+  $handler->display->display_options['fields']['title']['label'] = 'Workflow';
   /* Field: Galaxy Server: Server Name */
   $handler->display->display_options['fields']['servername']['id'] = 'servername';
   $handler->display->display_options['fields']['servername']['table'] = 'tripal_galaxy';
@@ -181,11 +181,29 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['sorts']['submit_date']['table'] = 'tripal_galaxy_workflow_submission';
   $handler->display->display_options['sorts']['submit_date']['field'] = 'submit_date';
   $handler->display->display_options['sorts']['submit_date']['order'] = 'DESC';
+  /* Filter criterion: Content: Title */
+  $handler->display->display_options['filters']['title']['id'] = 'title';
+  $handler->display->display_options['filters']['title']['table'] = 'node';
+  $handler->display->display_options['filters']['title']['field'] = 'title';
+  $handler->display->display_options['filters']['title']['relationship'] = 'sid';
+  $handler->display->display_options['filters']['title']['group'] = 1;
+  $handler->display->display_options['filters']['title']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['title']['expose']['operator_id'] = 'title_op';
+  $handler->display->display_options['filters']['title']['expose']['label'] = 'Workflow';
+  $handler->display->display_options['filters']['title']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['title']['expose']['operator'] = 'title_op';
+  $handler->display->display_options['filters']['title']['expose']['identifier'] = 'title';
+  $handler->display->display_options['filters']['title']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+  );
   /* Filter criterion: User: Name (raw) */
   $handler->display->display_options['filters']['name']['id'] = 'name';
   $handler->display->display_options['filters']['name']['table'] = 'users';
   $handler->display->display_options['filters']['name']['field'] = 'name';
   $handler->display->display_options['filters']['name']['relationship'] = 'uid';
+  $handler->display->display_options['filters']['name']['group'] = 1;
   $handler->display->display_options['filters']['name']['exposed'] = TRUE;
   $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
   $handler->display->display_options['filters']['name']['expose']['label'] = 'User';
@@ -196,25 +214,11 @@ function tripal_galaxy_views_job_queue() {
     1 => 0,
     3 => 0,
   );
-  /* Filter criterion: Galaxy Workflow: Workflow Name */
-  $handler->display->display_options['filters']['workflow_name']['id'] = 'workflow_name';
-  $handler->display->display_options['filters']['workflow_name']['table'] = 'tripal_galaxy_workflow';
-  $handler->display->display_options['filters']['workflow_name']['field'] = 'workflow_name';
-  $handler->display->display_options['filters']['workflow_name']['operator'] = 'contains';
-  $handler->display->display_options['filters']['workflow_name']['exposed'] = TRUE;
-  $handler->display->display_options['filters']['workflow_name']['expose']['operator_id'] = '';
-  $handler->display->display_options['filters']['workflow_name']['expose']['label'] = 'Workflow Name';
-  $handler->display->display_options['filters']['workflow_name']['expose']['operator'] = 'workflow_name_op';
-  $handler->display->display_options['filters']['workflow_name']['expose']['identifier'] = 'workflow_name';
-  $handler->display->display_options['filters']['workflow_name']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
-  );
   /* Filter criterion: Galaxy Workflow Submission: Submission Status */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'tripal_galaxy_workflow_submission';
   $handler->display->display_options['filters']['status']['field'] = 'status';
+  $handler->display->display_options['filters']['status']['group'] = 1;
   $handler->display->display_options['filters']['status']['exposed'] = TRUE;
   $handler->display->display_options['filters']['status']['expose']['operator_id'] = 'status_op';
   $handler->display->display_options['filters']['status']['expose']['label'] = 'Submission Status';
