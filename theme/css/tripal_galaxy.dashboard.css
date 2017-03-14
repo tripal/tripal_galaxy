@@ -39,3 +39,11 @@
 #tripal-galaxy-usage-workflows {
   clear: both;
 }
+
+#tripal-galaxy-usage-stats-table {
+  width: 50%;
+}
+
+.tripal-galaxy-usage-pane {
+  margin-bottom: 30px;
+}
