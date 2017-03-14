@@ -304,9 +304,6 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
  */
 function tripal_galaxy_workflow_invoke($form, &$form_state){
 
-
-
-
   // The array to pass to the workflow invoke with the proper elements
 
   $galaxy_inputs = array(
@@ -408,9 +405,6 @@ function tripal_galaxy_workflow_invoke($form, &$form_state){
 //   $galaxy->setAPIKey($api_key);
 //   $workflow = new GalaxyWorkflows($galaxy);
 //   $workflow->invoke($galaxy_inputs);
-
-
-
 }
 
 
