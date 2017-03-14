@@ -55,12 +55,12 @@ function tripal_galaxy_admin_usage_page() {
   $content = "
     <div id=\"tripal-galaxy-usage-users\">
       <h2>Top 10 Users</h2>
-      <p>The following chart shows at most the top 10 users that have submitted workflows.</p>
+      <p>The following chart shows the top 10 users that have submitted workflows.</p>
       <div id=\"tripal-galaxy-usage-users-chart\"></div>
     </div>
     <div id=\"tripal-galaxy-usage-workflows\">
       <h2>Top 10 Workflows</h2>
-      <p>The following chart shows at most the top 10 users that have submitted workflows.</p>
+      <p>The following chart shows the top 10 workflows that have been submitted.</p>
       <div id=\"tripal-galaxy-usage-workflows-chart\"></div>
     </div>
   ";

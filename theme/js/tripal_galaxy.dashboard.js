@@ -14,7 +14,7 @@ Drupal.behaviors.tripalGalaxyDashboard = {
       var c10 = d3.scale.category10();
       
       // Function to handle histogram.
-      function histoGram(fD){
+      function barChart(fD){
           var hG={}, hGDim = {t: 60, r: 0, b: 30, l: 0};
           hGDim.w = 900 - hGDim.l - hGDim.r, 
           hGDim.h = 300 - hGDim.t - hGDim.b;
@@ -93,7 +93,7 @@ Drupal.behaviors.tripalGalaxyDashboard = {
       }
       
      // Create the histogram and legends.
-      var hG = histoGram(fData), 
+      var hG = barChart(fData), 
           leg= legend(fData);  
     }
     
