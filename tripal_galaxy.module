@@ -300,6 +300,7 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
       ->condition('workflow_id', $workflow_id)
       ->execute()
       ->fetchObject();
+
     // To be implemented more properly once inputs are generated
     $data = array(
       'sid' => $form_state['storage']['details']['sid'],
@@ -311,6 +312,7 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
 
     // Now insert the submission into the database
     drupal_write_record('tripal_galaxy_workflow_submission', $data);
+
   }
   catch (Exception $e) {
     drupal_set_message(t('Could not copmlete workflow submission.  Please contact the web site to report this issue.'), 'error');
@@ -319,8 +321,6 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
   drupal_set_message(t('Your job is successfully submitted to the job queue! You will be notified by email when your job begins and completes.'));
   drupal_goto('/');
 }
-
-
 
 /**
  * A helper function for recursively building a values array.
@@ -516,6 +516,10 @@ function tripal_galaxy_workflow_report($sid) {
     return FALSE;
   }
 
+  // Create a galaxy logo clickable image.
+  $galaxy_logo = l('<img src="' . url(drupal_get_path('module', 'tripal_galaxy') . '/theme/images/PoweredByGalaxy120.png') . '" border="0"></img>', "https://galaxyproject.org/", array('html' => TRUE, 'attributes' => array('target' => '_blank')));
+
+
   // Get the submission details.
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
   $query->fields('tgws', array('galaxy_workflow_id', 'status', 'errors', 'submit_date', 'start_time', 'end_time'));
@@ -582,16 +586,13 @@ function tripal_galaxy_workflow_report($sid) {
     $submission->end_time ? format_date($submission->end_time) : '',
   );
 
-  // Only show the galaxy server to the admin user.
-  if(user_access('administer galaxy')) {
-    $rows[] = array(
-      array(
-        'data' => 'Galaxy Server',
-        'header' => TRUE,
-      ),
-      $galaxy->servername,
-    );
-  }
+  $rows[] = array(
+    array(
+      'data' => 'Galaxy Server',
+      'header' => TRUE,
+    ),
+    $galaxy->servername . '<br>' . $galaxy_logo,
+  );
 
 
   $state = '';
@@ -650,6 +651,7 @@ function tripal_galaxy_workflow_report($sid) {
     $state,
   );
 
+
   $details = theme_table(array(
     'header' => $headers,
     'rows' => $rows,
@@ -703,4 +705,205 @@ function tripal_galaxy_submission_admin_report($sid) {
 
   return tripal_galaxy_workflow_report($sid);
 
+}
+
+/**
+ * Implements hook_cron().
+ */
+function tripal_galaxy_cron() {
+  // Invoke any workflows that are in the waiting state.
+  // Get the list of submitted workflows that aren't in 'error' state or
+  // in 'completed' state.
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws', array('sid'));
+  $query->condition('tgws.status', 'Waiting');
+  $submissions = $query->execute();
+  while($submission = $submissions->fetchObject()) {
+    tripal_invoke_galaxy_workflows($submission->sid);
+  }
+
+  // Update the status of running workflows
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws', array('sid'));
+  $query->condition('tgws.status', array('Error', 'Completed'), 'NOT');
+  $submissions = $query->execute();
+
+  // Get the status of any workflows that are running
+  foreach ($submissions as $submission) {
+    tripal_check_galaxy_submission_status($submission->sid);
+  }
+
+  // Update the status of the workflows to see if any of them were
+  // changed on the galaxy server. If os then that means the workflow we
+  // currently have may not work.
+  $workflows = db_select('tripal_galaxy_workflow', 'tgw')
+    ->fields('tgw')
+    ->execute();
+  while ($workflow = $workflows->fetchObject()) {
+    tripal_check_galaxy_workflow_status($workflow->galaxy_workflow_id);
+  }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function tripal_galaxy_mail($key, &$message, $params) {
+
+  $site_name =  variable_get('site_name', 'Drupal');
+
+  // Get the submission details.
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws', array('galaxy_workflow_id', 'status', 'errors', 'submit_date', 'start_time', 'end_time'));
+  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+  $query->fields('tgw', array('nid', 'galaxy_id'));
+  $query->condition('tgws.sid', $params['sid']);
+  $submission = $query->execute()->fetchObject();
+
+  // Get the node that this workflow belongs to
+  $node = node_load($submission->nid);
+
+  switch ($key) {
+    case 'submission-started':
+      $message['subject'] = t("Your job at %site_name has started", array('%site_name' => $site_name));
+      $message['body'][] = "You recently submitted a job titled  \"" . $node->title . "\". ";
+      $message['body'][] = "This job has started.";
+      $message['body'][] = "You may check the status of all submitted jobs in the " .
+        l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
+      $message['body'][] = "Thank you.";
+      break;
+    case 'submission-ended':
+      $message['subject'] = t("Your job at %site_name has completed", array('%site_name' => $site_name));
+      $message['body'][] = "You recently submitted a job titled  \"" . $node->title . "\". ";
+      $message['body'][] = "This job has completed.";
+      $message['body'][] = "You may obtain results of this job in the " .
+        l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
+      $message['body'][] = "Thank you.";
+      break;
+    case 'submission-failed':
+            $message['subject'] = t("Your job at %site_name has failed", array('%site_name' => $site_name));
+      $message['body'][] = "You recently submitted a job titled  \"" . $node->title . "\". ";
+      $message['body'][] = "This job has failed.";
+      $message['body'][] = "You may check the error logs of this job in the " .
+              l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
+      $message['body'][] = "Thank you.";
+      break;
+  }
+}
+
+
+/**
+ * Sends an email to the user when a Galaxy job starts.
+ * @param $sid
+ *   The Submission ID of the job.
+ * @param $uid
+ *   The User ID of the user to whom the email will go.
+ */
+function tripal_galaxy_send_submission_start_mail($sid, $uid) {
+
+  $user = user_load($uid);
+  $module = 'tripal_galaxy';
+  $key = 'submission-started';
+
+  // Specify 'to' and 'from' addresses.
+  $to = $user->mail;
+  $from = variable_get('site_mail', 'admin@localhost.localdomain');
+
+  // "params" loads in additional context for email content completion in
+  // hook_mail(). In this case, we want to pass in the values the user entered
+  // into the form, which include the message body in $form_values['message'].
+  $params = array(
+    'sid' => $sid
+  );
+
+  // The language of the e-mail.
+  $language = language_default();
+
+  // Whether or not to automatically send the mail when drupal_mail() is called.
+  $send = TRUE;
+
+  // Send the mail, and check for success. Note that this does not guarantee
+  // message delivery; only that there were no PHP-related issues encountered
+  // while sending.
+  $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
+  if ($result['result'] != TRUE) {
+    watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), array(), WATCHDOG_ERROR);
+  }
+}
+
+/**
+ * Sends an email to the user when a Galaxy job ends.
+ * @param $sid
+ *   The Submission ID of the job.
+ * @param $uid
+ *   The User ID of the user to whom the email will go.
+ */
+function tripal_galaxy_send_submission_ended_mail($sid, $uid) {
+
+  $user = user_load($uid);
+  $module = 'tripal_galaxy';
+  $key = 'submission-ended';
+
+  // Specify 'to' and 'from' addresses.
+  $to = $user->mail;
+  $from = variable_get('site_mail', 'admin@localhost.localdomain');
+
+  // "params" loads in additional context for email content completion in
+  // hook_mail(). In this case, we want to pass in the values the user entered
+  // into the form, which include the message body in $form_values['message'].
+  $params = array(
+    'sid' => $sid
+  );
+
+  // The language of the e-mail.
+  $language = language_default();
+
+  // Whether or not to automatically send the mail when drupal_mail() is called.
+  $send = TRUE;
+
+  // Send the mail, and check for success. Note that this does not guarantee
+  // message delivery; only that there were no PHP-related issues encountered
+  // while sending.
+  $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
+  if ($result['result'] != TRUE) {
+    watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), array(), WATCHDOG_ERROR);
+  }
+}
+
+/**
+ * Sends an email to the user when a Galaxy job failes.
+ * @param $sid
+ *   The Submission ID of the job.
+ * @param $uid
+ *   The User ID of the user to whom the email will go.
+ */
+function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
+
+  $user = user_load($uid);
+  $module = 'tripal_galaxy';
+  $key = 'submission-failed';
+
+  // Specify 'to' and 'from' addresses.
+  $to = $user->mail;
+  $from = variable_get('site_mail', 'admin@localhost.localdomain');
+
+  // "params" loads in additional context for email content completion in
+  // hook_mail(). In this case, we want to pass in the values the user entered
+  // into the form, which include the message body in $form_values['message'].
+  $params = array(
+    'sid' => $sid
+  );
+
+  // The language of the e-mail.
+  $language = language_default();
+
+  // Whether or not to automatically send the mail when drupal_mail() is called.
+  $send = TRUE;
+
+  // Send the mail, and check for success. Note that this does not guarantee
+  // message delivery; only that there were no PHP-related issues encountered
+  // while sending.
+  $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
+  if ($result['result'] != TRUE) {
+    watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), array(), WATCHDOG_ERROR);
+  }
 }
