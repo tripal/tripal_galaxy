@@ -171,3 +171,24 @@ function tripal_galaxy_admin_confirm_remove_workflow_form($form, &$form_state, $
 
   return $form;
 }
+
+/**
+ * The report page for a galaxy workflow submission.
+ *
+ * @param  $sid
+ *   The submission ID of the workflow.
+ *
+ */
+function tripal_galaxy_admin_workflow_report($sid) {
+  // set the breadcrumb
+  $breadcrumb = array();
+  $breadcrumb[] = l('Home', '<front>');
+  $breadcrumb[] = l('Administration', 'admin');
+  $breadcrumb[] = l('Tripal', 'admin/tripal');
+  $breadcrumb[] = l('Extensions', 'admin/tripal/extension');
+  $breadcrumb[] = l('Galaxy', 'admin/tripal/extension/galaxy');
+  $breadcrumb[] = l('Job Queue', 'admin/tripal/extension/galaxy/job-queue');
+  drupal_set_breadcrumb($breadcrumb);
+
+  return 'hi';
+}

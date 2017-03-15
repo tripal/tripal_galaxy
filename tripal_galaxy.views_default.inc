@@ -172,10 +172,18 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['end_time']['field'] = 'end_time';
   $handler->display->display_options['fields']['end_time']['date_format'] = 'short';
   $handler->display->display_options['fields']['end_time']['second_date_format'] = 'long';
+  /* Field: Galaxy Workflow Submission: Submission ID */
+  $handler->display->display_options['fields']['sid']['id'] = 'sid';
+  $handler->display->display_options['fields']['sid']['table'] = 'tripal_galaxy_workflow_submission';
+  $handler->display->display_options['fields']['sid']['field'] = 'sid';
+  $handler->display->display_options['fields']['sid']['exclude'] = TRUE;
   /* Field: Galaxy Workflow Submission: Submission Status */
   $handler->display->display_options['fields']['status']['id'] = 'status';
   $handler->display->display_options['fields']['status']['table'] = 'tripal_galaxy_workflow_submission';
   $handler->display->display_options['fields']['status']['field'] = 'status';
+  $handler->display->display_options['fields']['status']['label'] = 'Status';
+  $handler->display->display_options['fields']['status']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['status']['alter']['path'] = 'admin/tripal/extension/galaxy/workflows/report/[sid]';
   /* Sort criterion: Galaxy Workflow Submission: Submission Time */
   $handler->display->display_options['sorts']['submit_date']['id'] = 'submit_date';
   $handler->display->display_options['sorts']['submit_date']['table'] = 'tripal_galaxy_workflow_submission';
@@ -239,6 +247,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['menu']['weight'] = '15';
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
+
 
   return $view;
 }

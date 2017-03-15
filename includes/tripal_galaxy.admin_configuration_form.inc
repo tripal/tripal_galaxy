@@ -211,7 +211,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
     // Create a new galaxy instance using the obtained hostname and port
     // Then Authenticate
     $library = libraries_load('blend4php');
-    $connect = tripal_galaxy_split_galaxy_url($data['url']);
+    $connect = tripal_split_galaxy_url($data['url']);
     $galaxy_instance = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
     $galaxy_instance->setAPIKey($data['api_key']);
 
