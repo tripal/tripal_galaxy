@@ -55,10 +55,11 @@ function tripal_split_galaxy_url($url) {
   else if (preg_match('/^(.*)\:\/\/(.+?)$/', $url, $matches)) {
     $protocol = $matches[1];
     $host = $matches[2];
-    $port = '';
     $use_https = FALSE;
+    $port = 80;
     if ($protocol == 'https') {
       $use_https = TRUE;
+      $port = 443;
     }
   }
   return array(
