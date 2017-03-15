@@ -149,36 +149,38 @@ function tripal_check_galaxy_submission_status($sid) {
   $state = array();
   $has_error = FALSE;
   foreach ($invocation['steps'] as $step_index => $step) {
+    // Get the STDERR and STDOUT for the job.
+    $gjobs = new GalaxyJobs($galaxy);
+    $job = $gjobs->show(array(
+      'job_id' => $step['job_id'],
+      'full' => TRUE,
+    ));
+    $stderr = $job['stderr'];
+    $stdout = $job['stdout'];
+    $misc_info = '';
+
+    // Get the tool
+    $gtools = new GalaxyTools($galaxy);
+    $tool = $gtools->show(array('tool_id' => $job['tool_id']));
+    $step_name = 'Step ' . ($step_index + 1). ': ' . $tool['name'] . ' v' . $tool['version'];
+
     if ($step['state'] == 'error') {
-      // Get the STDERR and STDOUT for the job.
-      $gjob = new GalaxyJobs($galaxy);
-      $job = $gjob->show(array(
-        'job_id' => $step['job_id'],
-        'full' => TRUE,
-      ));
-      $error = $galaxy->getError();
-      $stderr = $job['stderr'];
-      $stdout = $job['stdout'];
 
       // Sometimes the error message is in a dataset. So, get the 'misc_info'
       // from that.
       $gdataset = new GalaxyDatasets($galaxy);
       $dataset = $gdataset->show(array('dataset_id' => $job['outputs']['output']['id']));
-      $misc_info = $dataset['misc_info'];
-
-      $state[$step_index] = array(
-        'state' => $job['state'],
-        'stderr' => $stderr,
-        'stdout' => $stdout,
-        'misc_info' => $misc_info,
-      );
+      $misc_info = $dataset['misc_info'];;
       $has_error = TRUE;
     }
-    else {
-      $state[$step_index] = array(
-        'state' => $job['state'],
-      );
-    }
+    $state[$step_index] = array(
+      'step_name' => $step_name,
+      'state' => $job['state'],
+      'stderr' => $stderr,
+      'stdout' => $stdout,
+      'misc_info' => $misc_info,
+    );
+
   }
 
   if ($has_error) {
@@ -280,7 +282,6 @@ function tripal_invoke_galaxy_workflows(){
       _tripal_galaxy_workflow_invoke_build_values($current_values, $input_name, $value);
       $parameters[$step_index] = $current_values;
     }
-    print_r($parameters);
 
     // Get a connection to the remote galaxy instanc4e.
     $galaxy = tripal_get_galaxy_connection($workflow->galaxy_id);
@@ -302,8 +303,6 @@ function tripal_invoke_galaxy_workflows(){
         'input_dataset_ids' => array(),
         'hist_id' => $history_id,
       ));
-
-      print_r($invocation);
 
       $error = $galaxy->getError();
       if ($error['type']) {

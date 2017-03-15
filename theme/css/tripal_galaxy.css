@@ -1,0 +1,20 @@
+
+.tripal-galaxy-submission-state-table tr, 
+.tripal-galaxy-submission-state-table tr.odd, 
+.tripal-galaxy-submission-state-table tr.even {
+  background: none !important;
+  color: #000000 !important;
+}
+
+.tripal-galaxy-submission-state-table th {
+  background: none !important;
+  color: #000000 !important;
+  font-weight: normal;
+}
+
+.tripal-galaxy-submission-state-table pre {
+  background-color: #FFFFFF !important;
+  overflow: scroll !important;
+  white-space: pre;
+  max-width: 350px;
+}

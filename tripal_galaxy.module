@@ -152,11 +152,26 @@ function tripal_galaxy_menu() {
     'weight' => 10,
   );
 
+  // Admin submission report.
   $items['admin/tripal/extension/galaxy/workflows/report/%'] = array (
-    'description' => 'The error report for a failed workflow.',
-    'page callback' => 'tripal_galaxy_admin_workflow_report',
+    'title' => 'Workflow Submission Details',
+    'description' => 'The report for a submitted workflow.',
+    'page callback' => 'tripal_galaxy_submission_admin_report',
     'page arguments' => array(6),
     'access arguments' => array('administer galaxy'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 10,
+  );
+
+  // User submission report.
+  $items['user/%/galaxy-jobs/%'] = array (
+    'title' => 'Workflow Submission Details',
+    'description' => 'The report for a submitted workflow.',
+    'page callback' => 'tripal_galaxy_submission_user_report',
+    'page arguments' => array(3),
+    'access arguments' => array('view content'),
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
@@ -482,4 +497,210 @@ function tripal_galaxy_fixed_value_process($element, $form_state, $complete_form
     '#value' => $element['#value'],
   );
   return $element;
+}
+
+/**
+ * The report page for a galaxy workflow submission.
+ *
+ * @param  $sid
+ *   The submission ID of the workflow.
+ *
+ */
+function tripal_galaxy_workflow_report($sid) {
+
+
+  if (!$sid) {
+    return FALSE;
+  }
+  if (!is_numeric($sid)) {
+    return FALSE;
+  }
+
+  // Get the submission details.
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws', array('galaxy_workflow_id', 'status', 'errors', 'submit_date', 'start_time', 'end_time'));
+  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+  $query->fields('tgw', array('nid', 'galaxy_id'));
+  $query->condition('tgws.sid', $sid);
+  $submission = $query->execute()->fetchObject();
+  $submission->errors = unserialize($submission->errors);
+
+  // Get the node that this workflow belongs to
+  $node = node_load($submission->nid);
+
+  // Does this user have access to this node?
+  if(!node_access('view', $node)) {
+    drupal_access_denied();
+    module_invoke_all('exit');
+    drupal_exit();
+  }
+
+  // Get the galaxy server
+  $galaxy = db_select('tripal_galaxy', 'tg')
+    ->fields('tg')
+    ->condition('galaxy_id', $submission->galaxy_id)
+    ->execute()
+    ->fetchObject();
+
+  $headers = array();
+  $rows = array();
+
+  $rows[] = array(
+    array(
+      'data' => 'Workflow Name',
+      'header' => TRUE,
+      'width' => '25%'
+    ),
+    $node->title,
+  );
+  $rows[] = array(
+    array(
+      'data' => 'Status',
+      'header' => TRUE,
+    ),
+    $submission->status,
+  );
+  $rows[] = array(
+    array(
+      'data' => 'Submission date',
+      'header' => TRUE,
+    ),
+    format_date($submission->submit_date),
+  );
+  $rows[] = array(
+    array(
+      'data' => 'Start Time',
+      'header' => TRUE,
+    ),
+    $submission->start_time ? format_date($submission->start_time) : '',
+  );
+  $rows[] = array(
+    array(
+      'data' => 'End Time',
+      'header' => TRUE,
+    ),
+    $submission->end_time ? format_date($submission->end_time) : '',
+  );
+
+  // Only show the galaxy server to the admin user.
+  if(user_access('administer galaxy')) {
+    $rows[] = array(
+      array(
+        'data' => 'Galaxy Server',
+        'header' => TRUE,
+      ),
+      $galaxy->servername,
+    );
+  }
+
+
+  $state = '';
+  if (is_array($submission->errors)){
+    foreach ($submission->errors as $step_index => $error) {
+      $subrows = array();
+      $subrows[] = array(
+        array(
+          'data' => 'State',
+          'header' => TRUE,
+          'width' => '100px',
+        ),
+        $error['state'] == 'error' ? '<font color="red"><b>' . $error['state'] . '</b></font>' : $error['state'],
+      );
+      $subrows[] = array(
+        array(
+          'data' => 'Misc Info',
+          'header' => TRUE,
+        ),
+        $error['misc_info'],
+      );
+      $subrows[] = array(
+        array(
+          'data' => 'Ouput Log',
+          'header' => TRUE,
+        ),
+        '<pre>' . $error['stdout'] . '</pre>',
+      );
+      $subrows[] = array(
+        array(
+          'data' => 'Error Log',
+          'header' => TRUE,
+        ),
+        '<pre>' . $error['stderr'] . '</pre>',
+      );
+
+      $state .= "<b>" . $error['step_name'] . '</b>' . theme_table(array(
+        'header' => array(),
+        'rows' => $subrows,
+        'attributes' => array(
+          'class' => 'tripal-galaxy-submission-state-table'
+        ),
+        'sticky' => FALSE,
+        'caption' => '',
+        'colgroups' => array(),
+        'empty' => '',
+      )) . '<br>';
+    }
+  }
+  $rows[] = array(
+    array(
+      'data' => 'State',
+      'header' => TRUE,
+      'style' => 'vertical-align: text-top;',
+    ),
+    $state,
+  );
+
+  $details = theme_table(array(
+    'header' => $headers,
+    'rows' => $rows,
+    'attributes' => array(
+      'id' => 'tripal-galaxy-usage-stats-table',
+    ),
+    'sticky' => FALSE,
+    'caption' => '',
+    'colgroups' => array(),
+    'empty' => '',
+  ));
+
+  return array(
+    '#type' => 'markup',
+    '#markup' => $details,
+  );
+}
+/**
+ * Retrieves the workflow submission report for the submitting user.
+ *
+ * @param $sid
+ */
+function tripal_galaxy_submission_user_report($sid) {
+  global $user;
+
+  // set the breadcrumb
+  $breadcrumb = array();
+  $breadcrumb[] = l('Home', '<front>');
+  $breadcrumb[] = l($user->name, 'user/' . $user->uid);
+  $breadcrumb[] = l('Galaxy Jobs', 'user/' . $user->uid . '/galaxy-jobs');
+  drupal_set_breadcrumb($breadcrumb);
+
+  return tripal_galaxy_workflow_report($sid);
+}
+/**
+ * Retrieves the workflow submission report for an admin user.
+ *
+ * @param $sid
+ */
+function tripal_galaxy_submission_admin_report($sid) {
+
+  // set the breadcrumb
+  $breadcrumb = array();
+  $breadcrumb[] = l('Home', '<front>');
+  $breadcrumb[] = l('Administration', 'admin');
+  $breadcrumb[] = l('Tripal', 'admin/tripal');
+  $breadcrumb[] = l('Extensions', 'admin/tripal/extension');
+  $breadcrumb[] = l('Galaxy', 'admin/tripal/extension/galaxy');
+  $breadcrumb[] = l('Job Queue', 'admin/tripal/extension/galaxy/job-queue');
+  drupal_set_breadcrumb($breadcrumb);
+
+  return tripal_galaxy_workflow_report($sid);
+
 }
