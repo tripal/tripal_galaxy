@@ -711,6 +711,7 @@ function tripal_galaxy_submission_admin_report($sid) {
  * Implements hook_cron().
  */
 function tripal_galaxy_cron() {
+
   // Invoke any workflows that are in the waiting state.
   // Get the list of submitted workflows that aren't in 'error' state or
   // in 'completed' state.
@@ -719,13 +720,13 @@ function tripal_galaxy_cron() {
   $query->condition('tgws.status', 'Waiting');
   $submissions = $query->execute();
   while($submission = $submissions->fetchObject()) {
-    tripal_invoke_galaxy_workflows($submission->sid);
+    tripal_invoke_galaxy_workflow($submission->sid);
   }
 
   // Update the status of running workflows
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
   $query->fields('tgws', array('sid'));
-  $query->condition('tgws.status', array('Error', 'Completed'), 'NOT');
+  $query->condition('tgws.status', array('Error', 'Completed'), 'NOT IN');
   $submissions = $query->execute();
 
   // Get the status of any workflows that are running

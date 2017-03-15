@@ -129,6 +129,8 @@ function tripal_check_galaxy_submission_status($sid) {
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
 
+  dpm($submission);
+
   // Get the node for this submission.
   $node = node_load($submission->nid);
 
@@ -229,7 +231,7 @@ function tripal_invoke_galaxy_workflow($sid){
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
   $query->fields('tgw', array('galaxy_id', 'workflow_id', 'nid'));
   $query->condition('tgws.sid', $sid);
-  $submission = $query->execute()->fetchObject;
+  $submission = $query->execute()->fetchObject();
 
   // The node for this submission
   $node = node_load($submission->nid);
@@ -276,7 +278,9 @@ function tripal_invoke_galaxy_workflow($sid){
         $fid = $data->data;
         if ($fid) {
           $file = file_load($fid);
-          $value = file_create_url($file->uri);
+          if ($file) {
+            $value = file_create_url($file->uri);
+          }
         }
       }
     }
