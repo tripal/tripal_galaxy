@@ -59,7 +59,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     drupal_set_message('Cannot find workflow. ' . $galaxy_instance->getErrorMessage(), 'error');
     return FALSE;
   }
-  //dpm($workflow);
 
   // Select a target history by using the first history owned by the user.
   // The history_id is required for retrieving tool information for a workflow.
@@ -125,7 +124,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         drupal_set_message('Cannot retrieve tool information from Galaxy: ' . $tool_id, 'Error' );
         return FALSE;
       }
-      //dpm($tool);
     }
 
     // Each step is contained in a fieldset. We'll name the field set after
@@ -319,19 +317,8 @@ function tripal_galaxy_build_webform_add_non_tool_input($webform, $step,
   foreach ( $history_contents as $content ) {
     $items .= $content['id'] . "|" . $content['name'] . "\r\n";
   }
-
-  $extra = array (
-    'title_display' => 'before',
-    'description_above' => 1,
-    'items' => $items,
-    'aslist' => 1,
-    'input_name' => $step['tool_inputs']['name'],
-    'input_full_name' => $step['tool_inputs']['name'],
-  );
-
   $cid = count ( $webform->components ) + 1;
   switch ($step['type']) {
-
     // If this is for a data 'file' input
     case 'data_input' :
       $webform->components[] = array (
@@ -339,11 +326,18 @@ function tripal_galaxy_build_webform_add_non_tool_input($webform, $step,
         'pid' => $pid,
         'name' => $step['tool_inputs']['name'],
         'form_key' => 'dataset_' . $step_index,
-        'type' => 'BDSS_file',
-        // 'value' => "",
-        'extra' => $extra,
+        'type' => 'select',
+        'extra' => array (
+          'title_display' => 'before',
+          'description_above' => 1,
+          'items' => $items,
+          'aslist' => 1,
+          'input_name' => $step['tool_inputs']['name'],
+          'input_full_name' => $step['tool_inputs']['name'],
+          'step_index' => $step['id']
+        ),
         'weight' => $cid,
-        'required' => 1
+        'required' => 1,
       );
 
       break;
@@ -507,6 +501,7 @@ function tripal_galaxy_build_webform_add_component($webform,
     'tool_name' => $tool['name'],
     'input_name' => $input['name'],
     'input_full_name' => $input['full_name'],
+    'step_index' => $step['id']
   );
 
   // Get the value of this component input.
@@ -565,7 +560,7 @@ function tripal_galaxy_build_webform_add_component($webform,
     case 'data':
       // Data appears to be a file selection of files that already
       // exists in the user's history.
-      $webform_type = 'BDSS_file';
+      $webform_type = 'select';
       break;
 
     case 'data_collection':
@@ -616,6 +611,12 @@ function tripal_galaxy_build_webform_add_component($webform,
     default :
       drupal_set_message('Unhandled tool input type: ' . $input['type'] . ".", 'error');
       break;
+  }
+
+  // We want to handle BDSS uniquely.
+  if ($tool['id'] == 'bdss') {
+    $input_name = 'Step ' . $step['id'] . ' Data Input';
+    $webform_type = 'BDSS_file';
   }
 
   // If this is a test param then automatically change the webform type to
@@ -695,7 +696,7 @@ function tripal_galaxy_build_webform_get_input_value($workflow, $step_index,
   $name = array_shift($names);
 
   // Check if the $values[$name] is JSON and if so then decode it.
-  if (array_key_exists($name, $values)) {
+  if (is_array($values) and array_key_exists($name, $values)) {
     if(!is_array($values[$name])) {
       $dvalues = json_decode($values[$name], TRUE);
       if (json_last_error() === JSON_ERROR_NONE) {

@@ -50,11 +50,13 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
       '#markup' => $galaxy_instance->servername,
     );
 
-    // Workflow_id for user and or internal:
-    $form['rows'][$i]['workflow_id-user' . $i] = array(
+    // Workflow status.
+    $form['rows'][$i]['workflow_status' . $i] = array(
       '#type' => 'item',
-      '#markup' => $workflow->workflow_id
+      '#markup' => $workflow->status
     );
+
+    // Workflow ID.
     $form['rows'][$i]['workflow_id-' . $i] = array(
       '#type' => 'value',
       '#value' => $workflow->workflow_id
@@ -95,21 +97,20 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
 
   // The apparopriate headers for this form's table.
   $headers = array(
-    'Enabled',
     'Workflow Name',
     'Galaxy Server',
-    'Workflow ID',
-    'Actions');
+    'Status',
+    'Actions'
+  );
 
   // Theme the rows of this form's table.
   $rows = array();
   foreach (element_children($form_rows) as $i) {
     $row = $form_rows[$i];
     $rows[] = array(
-      drupal_render($row["enabled-" . $i]),
       drupal_render($row["workflow_name-user" . $i]),
       drupal_render($row["servername-" . $i]),
-      drupal_render($row["workflow_id-user" . $i]),
+      drupal_render($row["workflow_status" . $i]),
       drupal_render($row["actions-" . $i])
     );
   }

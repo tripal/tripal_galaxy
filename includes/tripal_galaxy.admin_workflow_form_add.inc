@@ -26,8 +26,6 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
   while ($galaxy = $results->fetchObject()) {
     $galaxies[$galaxy->galaxy_id] = $galaxy->servername;
   }
-  //dpm($galaxies);
-  //dpm($galaxy_id);
 
   $i = 0;
 
@@ -57,42 +55,16 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
       '#type' => 'value',
       '#value' => $galaxy_id
     );
-    // Grab the appropriate galaxy server table entry
-    $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
-    $galaxy_server = db_query($sql, array(':galaxy_id' => $galaxy_id));
-    $galaxy_server = $galaxy_server->fetchObject();
 
-    // Obtain the hostname and port from the url
-    $matches = array();
-    $use_https = FALSE;
-    $http_regex = "((https|http):\/\/)?";
-    $host_regex = "([a-z0-9-.]*)";
-    $port_regex = "(:)?([0-9]*)?";
-    $regex = $http_regex . $host_regex . $port_regex;
-    preg_match("/^$regex$/", $galaxy_server->url, $matches);
-    $hostname = $matches[3];
-    $port = $matches[5];
-
-    // dpm($galaxy_server->url);
-    if($matches[2] == "https")
-      $use_https = TRUE;
-
-    // dpm($port);
-    // dpm($matches);
-    // dpm($use_https);
-
-    // Create a new galaxy instance using the obtained hostname and port
-    // Then Authenticate
-    libraries_load('blend4php');
-    $galaxy_instance = new GalaxyInstance($hostname, $port, $use_https);
-
-    $galaxy_instance->setAPIKey($galaxy_server->api_key);
+    // Connect to the Galaxy instance.
+    $galaxy_instance = tripal_get_galaxy_connection($galaxy_id);
 
 
     // Check to make sure the connection is good.
-    if ($galaxy_instance->getVersion() == NULL)
+    if ($galaxy_instance->getVersion() == NULL) {
       drupal_set_message('Cannot connect to Galaxy Instance', 'error');
-
+      return;
+    }
 
     // Obtain the workflows
     $workflows = new GalaxyWorkflows($galaxy_instance);
@@ -112,15 +84,15 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
         WHERE workflow_id = :workflow_id
         AND galaxy_id = :galaxy_id
       ";
-      $workflow_instance = db_query ( $sql, array(
+      $workflow_instance = db_query($sql, array(
         ':workflow_id' => $workflow['id'],
         ':galaxy_id' => $galaxy_id
-      ) );
+      ));
       $workflow_instance = $workflow_instance->fetchObject ();
-      if ($workflow_instance == NULL || $workflow_instance == FALSE)
+      if ($workflow_instance == NULL || $workflow_instance == FALSE) {
         $workflow_exists = 0;
-      else
-      {
+      }
+      else {
         $default_label = $workflow_instance->label;
         $default_description = $workflow_instance->description;
       }
@@ -129,23 +101,25 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
       $form['rows'][$i]['workflow_name-' . $i] = array(
         '#type' => 'item',
         '#markup' => $workflow['name']
-      )
-      ;
+      );
       $form['rows'][$i]['workflow_name-server-' . $i] = array(
         '#type' => 'value',
         '#value' => $workflow['name']
       );
-
       // Workflow_id
       $form['rows'][$i]['workflow_id-' . $i] = array(
         '#type' => 'item',
         '#markup' => $workflow['id']
       );
+      // Workflow UUID
+      $form['rows'][$i]['workflow_uuid-' . $i] = array(
+        '#type' => 'value',
+        '#value' => $workflow['latest_workflow_uuid']
+      );
       $form['rows'][$i]['workflow_id-server-' . $i] = array(
         '#type' => 'value',
         '#value' => $workflow['id']
       );
-
       // Is added to site
       if ($workflow_exists == 1) {
         $form['rows'][$i]['available-' . $i] = array(
@@ -215,7 +189,7 @@ function theme_tripal_galaxy_admin_add_workflow_form_rows($variables) {
     $rows[] = array(
       drupal_render($row["available-" . $i]),
       drupal_render($row["workflow_name-" . $i]),
-      drupal_render($row["workflow_id-" . $i])
+      drupal_render($row["workflow_id-" . $i]) . drupal_render($row["workflow_uuid-" . $i])
     );
     $i ++;
   }
@@ -264,7 +238,8 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
           'workflow_name' => $form_rows[$i]['workflow_name-server-' . $i],
           'workflow_id' => $form_rows[$i]['workflow_id-server-' . $i],
           'galaxy_id' => $form_state['values']['galaxy_id-server'],
-          'available' => $form_rows[$i]['available-' . $i]
+          'available' => $form_rows[$i]['available-' . $i],
+          'workflow_uuid' =>  $form_rows[$i]['workflow_uuid-' . $i],
         );
 
         // Create the appropriate node for this workflow

@@ -30,21 +30,21 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
     'fields' => array(
       'galaxy_id' => array(
         'type' => 'serial',
-        'not_null' => TRUE
+        'not null' => TRUE
       ),
       'url' => array(
         'type' => 'text',
-        'not_null' => TRUE
+        'not null' => TRUE
        ),
       'uid' => array(
         'type' => 'int',
-        'not_null' => TRUE
+        'not null' => TRUE
       ),
       'save_auth' => array(
         'type' => 'int',
         'size' => 'tiny',
         'default' => 1,
-        'not_null' => TRUE
+        'not null' => TRUE
       ),
       'username' => array(
         'type' => 'varchar',
@@ -60,7 +60,7 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
       ),
       'description' => array(
         'type' => 'text',
-      'not_null' => FALSE,
+      'not null' => FALSE,
        ),
     ),
     'primary key' => array(
@@ -85,11 +85,11 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
     'fields' => array (
       'sid' => array(
         'type' => 'int',
-        'not_null' => TRUE
+        'not null' => TRUE
       ),
       'galaxy_workflow_id' => array(
         'type' => 'int',
-        'not_null' => TRUE
+        'not null' => TRUE
       ),
       'errors' => array(
         'type' => 'text',
@@ -136,15 +136,15 @@ function tripal_galaxy_add_workflow_table(&$schema){
     'fields' => array (
       'galaxy_workflow_id' => array(
         'type' => 'serial',
-        'not_null' => TRUE
+        'not null' => TRUE
       ),
       'nid' => array(
         'type' => 'int',
-        'not_null' => TRUE
+        'not null' => TRUE
       ),
       'galaxy_id' => array(
         'type' => 'int',
-        'not_null' => TRUE
+        'not null' => TRUE
       ),
       'status' => array(
         'type' => 'varchar',
@@ -153,13 +153,21 @@ function tripal_galaxy_add_workflow_table(&$schema){
       ),
       'workflow_id' => array(
         'type' => 'varchar',
-        'length' => 1024,
-        'not_null' => TRUE,
+        'length' => 128,
+        'not null' => TRUE,
         'description' => 'The ID of the workflow on the Galaxy server.'
+      ),
+      'workflow_uuid' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => TRUE,
+        'description' => 'Each Galaxy workflow has a unique UUID nad each time ' .
+          'the workflow is changed the UUID changes. This way we can ensure that ' .
+          'workflows are disabled if the UUID changes.'
       ),
       'workflow_name' => array(
         'type' => 'text',
-        'not_null'=> TRUE,
+        'not null'=> TRUE,
       ),
     ),
     'primary key' => array(

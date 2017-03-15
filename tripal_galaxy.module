@@ -5,6 +5,7 @@
  */
 
 require ('theme/tripal_galaxy.theme.inc');
+require ('api/tripal_galaxy.api.inc');
 
 /**
  * Implementation of hook_init()
@@ -294,118 +295,169 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
 }
 
 /**
- * This function listens for the webform to be completed JIT style!
  *
- * When the completed field of the $form_state is set to true this function
- * gather all of the inputs at once and acquire the id's needed to invoke the
- * workflow on the galaxy side
- *
- * @param $form
- * @param $form_state
  */
-function tripal_galaxy_workflow_invoke($form, &$form_state){
+function tripal_galaxy_workflow_invoke(){
 
-  // The array to pass to the workflow invoke with the proper elements
+  global $user;
 
-  $galaxy_inputs = array(
-    'parameters' => array(),
-    'workflow_id' => $workflow_id,
-    'input_dataset_ids' => array(),
-  );
+  // Get the workflows that need execution
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws');
+  $query->condition('tgws.status', 'Waiting');
+  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+  $query->fields('tgw', array('galaxy_id', 'workflow_id'));
+  $query->orderBy('tgws.submit_date', 'ASC');
+  $workflows = $query->execute();
 
-  $galaxy_workflow = db_select('tripal_galaxy_workflow', 'tgw')
-    ->fields('tgw')
-    ->condition('workflow_id', $workflow_id)
-    ->execute()
-    ->fetchObject();
+  while ($workflow = $workflows->fetchObject()) {
+    // The array where the workflow input parameters are stored.
+    $parameters = array();
 
-  $galaxy_server = db_select('tripal_galaxy', 'tg')
-    ->fields('tg')
-    ->condition('galaxy_id', $galaxy_workflow->galaxy_id)
-    ->execute()
-    ->fetchObject();
+    $query = db_select('webform_submitted_data', 'wsd');
+    $query->fields('wsd');
+    $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
+    $query->fields('wc', array('type', 'extra'));
+    $query->condition('wsd.sid', $workflow->sid);
+    $query->orderBy('wsd.cid');
+    $submitted_data = $query->execute();
 
-  // Grab the submitted data from the form_state.  The result will be an
-  // associative array with the keys being the cid's (component id's)
-  // of the webform and the value being the option/value selected
-  $inputs = $form_state['values']['submitted'];
+    // Iterate through the submitted data values and create an input aray
+    // for Galaxy workflow submission.
+    while($data = $submitted_data->fetchObject()) {
+      $value = '';
 
-  // There will be cid's with no values so get rid of them (these are usually
-  // components that either did not need a value or were hidden
-  // due to conditionals)
-  foreach($inputs as $cid => $value){
-    if (empty($value)) {
-      unset($inputs[$cid]);
-    }
-  }
+      // The component 'extra' data is serialized so we need to convert it
+      $data->extra = unserialize($data->extra);
 
-  // Some components will belong to the same tool, So group these param_names
-  // into the same step_id key
-  foreach($inputs as $cid => $value){
-
-    // Grab the component from the webform.
-    $component = $form_state['build_info']['args'][0]->webform['components'][$cid];
-
-    // Skip components that don't have an 'input_name' field as these
-    // don't correspond to workflow input components.
-    if (!array_key_exists('input_name', $component['extra'])) {
-      continue;
-    }
-
-    // Input elements of type 'fixed_value' should not be provided as
-    // input for the Galaxy workflow because the defaulst should be used
-    if ($component['type'] == 'fixed_value') {
-      continue;
-    }
-
-    // Deal with the BDSS_file type.
-    // TODO: should this happen here, or should the URL already be
-    // set in the form submit values?  We should explore that...
-    if ($component['type'] == 'BDSS_file') {
-
-      $file_URL =  $value['file_URL'];
-      $fid = $value['file_upload'];
-
-      if ($file_URL) {
-        $value = $file_URL;
+      // Skip components that don't have an 'input_name' field as these
+      // don't correspond to workflow input components.
+      if (!array_key_exists('input_name', $data->extra)) {
+        continue;
       }
-      else if ($fid) {
-        $file = file_load($fid);
-        $value = file_create_url($file->uri);
+
+      // Input elements of type 'fixed_value' should not be provided as
+      // input for the Galaxy workflow because the defaulst should be used
+      if ($data->type == 'fixed_value') {
+        continue;
+      }
+
+      // Deal with the BDSS_file type.  It will have two rows in the
+      // submitted data array. One for file_URL and one for file_upload.
+      // they are mutually exclusive and only one will have a real value
+      if ($data->type == 'BDSS_file') {
+        if ($data->no == 'file_URL' and $data->data) {
+          $value = $data->data;
+        }
+        if ($data->no == 'file_upload' and $data->data) {
+          $fid = $data->data;
+          if ($fid) {
+            $file = file_load($fid);
+            $value = file_create_url($file->uri);
+          }
+        }
       }
       else {
-        $value = '';
+        $value = $data->data;
+      }
+
+      // If we don't have a value then skip it and let the workflow use it's
+      // own defaults
+      if (!$value) {
+        continue;
+      }
+
+      // NOTE: The step id's (page_num) on the server side are offset by 1
+      // so subtract 1, then organize the input settings by their step in the
+      // $galaxy_input['parameters'] array.
+      $step_index = $data->extra['step_index'];
+      $input_name = $data->extra['input_full_name'];
+      if (!array_key_exists($step_index, $parameters)) {
+        $parameters[$step_index] = array();
+      }
+      $current_values = $parameters[$step_index];
+      _tripal_galaxy_workflow_invoke_build_values($current_values, $input_name, $value);
+      $parameters[$step_index] = $current_values;
+    }
+    print_r($parameters);
+
+    // Get a connection to the remote galaxy instanc4e.
+    $galaxy = tripal_get_galaxy_connection($workflow->galaxy_id);
+    if ($galaxy) {
+
+      // Create our own history for this test.
+      $histories = new GalaxyHistories($galaxy);
+      $ourHistory = $histories->create(array(
+        'name' => "TG-" . $user->uid . "-" . $workflow->galaxy_workflow_id . "-" . $workflow->sid,
+      ));
+      $history_id = $ourHistory['id'];
+
+
+      // Invoke the workflow and check for errors
+      $gworkflows = new GalaxyWorkflows($galaxy);
+      $invocation = $gworkflows->invoke(array(
+        'workflow_id' => $workflow->workflow_id,
+        'parameters' => $parameters,
+        'input_dataset_ids' => array(),
+      ));
+
+      print_r($invocation);
+
+      $error = $galaxy->getError();
+      if ($error['type']) {
+        watchdog_exception($error['message'], 'error');
+        db_update('tripal_galaxy_workflow_submission')
+          ->fields(array(
+            'status' => 'ERROR',
+            'error' => $error['message'],
+          ))
+          ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
+          ->execute();
+      }
+      else {
+        db_update('tripal_galaxy_workflow_submission')
+         ->fields(array(
+           'status' => 'Submitted',
+           'start_time' => REQUEST_TIME,
+         ))
+         ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
+         ->execute();
       }
     }
-
-    // If we don't have a value then skip it and let the workflow use it's
-    // own defaults
-    if (!$value) {
-      continue;
+    else {
+      drupal_set_message('Connot connect to the remote galaxy server to launch the workflow');
     }
-
-    // NOTE: The step id's (page_num) on the server side are offset by 1
-    // so subtract 1, then organize the input settings by their step in the
-    // $galaxy_input['parameters'] array.
-    $step_index = $component['page_num'] - 1;
-    $input_name = $component['extra']['input_name'];
-    $galaxy_inputs['parameters'][$step_index][$input_name] = $value;
   }
+}
 
-//   // Launch the workflow on the remote galaxy instance.
-//   $host = $galaxy_server->servername;
-//   list($url, $port) = explode(':', $galaxy_server->url);
-//   $https = FALSE;
-//   if (preg_match('/^https/', $url)) {
-//     $https = TRUE;
-//   }
-//   $api_key = $galaxy_server->api_key;
+/**
+ * A helper function for recursively building a values array.
+ *
+ * The values array is needed to invoke a Galaxy workflow.
+ *
+ * @param $values
+ *   The array into which the value will be placed.
+ * @param $input_full_name
+ *   The full name of the input paramter.
+ * @param $value
+ *   The value to add to the array.
+ */
+function _tripal_galaxy_workflow_invoke_build_values(&$values, $input_full_name, $value) {
+  // Pop the first name off the list.
+  $names = explode('|', $input_full_name);
+  $name = array_shift($names);
 
-//   $library = libraries_load('blend4php');
-//   $galaxy = new GalaxyInstance($host, $port, $https);
-//   $galaxy->setAPIKey($api_key);
-//   $workflow = new GalaxyWorkflows($galaxy);
-//   $workflow->invoke($galaxy_inputs);
+  // As long as we have names in our "name path" then recurse.
+  if (count($names) > 0) {
+    if (!array_key_exists($name, $values)) {
+      $values[$name] = array();
+    }
+    $next_name = implode("|", $names);
+    return _tripal_galaxy_workflow_invoke_build_values($values[$name], $next_name, $value);
+  }
+  else {
+    $values[$name] = $value;
+  }
 }
 
 
