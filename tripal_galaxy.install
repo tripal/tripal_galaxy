@@ -115,6 +115,12 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
         'not NULL' => FALSE,
         'description' => 'UNIX integer end time'
       ),
+      'invocation_id' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'description' => 'Galaxy provides an invocation ID that can be used ' .
+          'to check the status of a submitted workflow.'
+      )
     ),
     'indexes' => array(
       'sid' => array('sid'),

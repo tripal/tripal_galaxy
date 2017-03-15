@@ -106,3 +106,33 @@ function tripal_check_galaxy_workflow_status($galaxy_workflow_id) {
 
   return TRUE;
 }
+
+/**
+ * Checks and updates the status of a Galaxy workflow.
+ *
+ * Each Galaxy workflow has a unique UUID.  Each time the workflow is changed
+ * that UUID changes as well.
+ */
+function tripal_check_galaxy_submission_status($sid) {
+
+  if (!$sid) {
+    return FALSE;
+  }
+  if (!is_numeric($sid)) {
+    return FALSE;
+  }
+  $workflow = db_select('tripal_galaxy_workflow_submission', 'tgws')
+    ->fields('tgws')
+    ->condition('tgws.sid', $sid)
+    ->execute()
+    ->fetchObject();
+
+  // Connect to the Galaxy instance and get the list of workflows
+  $galaxy_instance = tripal_get_galaxy_connection($workflow->galaxy_id);
+  $workflows = new GalaxyWorkflows($galaxy_instance);
+  $gworkflow = $workflows->show(array('workflow_id' => $workflow->workflow_id));
+
+
+
+  return TRUE;
+}

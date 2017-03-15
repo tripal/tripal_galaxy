@@ -411,7 +411,7 @@ function tripal_galaxy_workflow_invoke(){
             'status' => 'ERROR',
             'error' => $error['message'],
           ))
-          ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
+          ->condition('sid', $workflow->sid)
           ->execute();
       }
       else {
@@ -419,8 +419,9 @@ function tripal_galaxy_workflow_invoke(){
          ->fields(array(
            'status' => 'Submitted',
            'start_time' => REQUEST_TIME,
+           'invocation_id' => $invocation['id'],
          ))
-         ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
+         ->condition('sid', $workflow->sid)
          ->execute();
       }
     }
