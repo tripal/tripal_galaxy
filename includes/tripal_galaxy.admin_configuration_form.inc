@@ -29,14 +29,14 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
   // Galaxy instance
   if ($galaxy_id != NULL) {
     $sql = "SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
-    $galaxy_instance = db_query($sql, array(':galaxy_id' => $galaxy_id));
-    $galaxy_instance = $galaxy_instance->fetchObject();
-    if ($galaxy_instance != NULL) {
-      $default_api_key = $galaxy_instance->api_key;
-      $default_description = $galaxy_instance->description;
-      $default_server_name = $galaxy_instance->servername;
-      $default_user_name = $galaxy_instance->username;
-      $default_url = $galaxy_instance->url;
+    $galaxy = db_query($sql, array(':galaxy_id' => $galaxy_id));
+    $galaxy = $galaxy->fetchObject();
+    if ($galaxy != NULL) {
+      $default_api_key = $galaxy->api_key;
+      $default_description = $galaxy->description;
+      $default_server_name = $galaxy->servername;
+      $default_user_name = $galaxy->username;
+      $default_url = $galaxy->url;
     }
   }
 
@@ -168,11 +168,11 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
   // If we are deleting the given instance, go through the appropriate
   // motions...
   if ($form_state['clicked_button']['#name'] == 'delete') {
-    $galaxy_instance = db_query("DELETE FROM {tripal_galaxy} WHERE servername = :servername",
+    $galaxy = db_query("DELETE FROM {tripal_galaxy} WHERE servername = :servername",
         array(':servername' => $form_state['values']['servername']));
 
     // Set error if appripriate
-    if ($galaxy_instance === FALSE || $galaxy_instance == NULL) {
+    if ($galaxy === FALSE || $galaxy == NULL) {
       drupal_set_message(t('Error deleting record'), 'error');
       return;
     }
@@ -187,20 +187,20 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
     // If there is a galaxy ID this will be an edit.
     if ($form_state['values']['galaxy_id']) {
       $data['galaxy_id'] = $form_state['values']['galaxy_id'];
-      $galaxy_instance = drupal_write_record('tripal_galaxy', $data, 'galaxy_id');
+      $galaxy = drupal_write_record('tripal_galaxy', $data, 'galaxy_id');
     } // Otherwise it's an insert.
     else {
-      $galaxy_instance = drupal_write_record('tripal_galaxy', $data);
+      $galaxy = drupal_write_record('tripal_galaxy', $data);
     }
 
     // Insert the new Galaxy Instance into Drupal, return where appropriate.
-    if (!$galaxy_instance) {
+    if (!$galaxy) {
       drupal_set_message(t('Problem inserting galaxy instance'), 'error');
       return;
     }
 
     // Default message.
-    drupal_set_message(t('Galaxy instance has been recorded' . var_dump($galaxy_instance)));
+    drupal_set_message(t('Galaxy instance has been added'));
     drupal_goto("/admin/tripal/extension/galaxy");
   }
 
@@ -208,20 +208,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
   else {
     $form_state['rebuild'] = TRUE;
 
-    // Create a new galaxy instance using the obtained hostname and port
-    // Then Authenticate
-    $library = libraries_load('blend4php');
     $connect = tripal_split_galaxy_url($data['url']);
-    $galaxy_instance = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
-    $galaxy_instance->setAPIKey($data['api_key']);
-
-    // Tell the user whether the connection was successful based on
-    // getVersion()
-    if ($galaxy_instance->getVersion() == NULL) {
-      drupal_set_message(t('No Connection'), 'error');
-    }
-    else {
-      drupal_set_message(t('Connection successful'));
-    }
+    tripal_test_galaxy_connection($connect);
   }
 }

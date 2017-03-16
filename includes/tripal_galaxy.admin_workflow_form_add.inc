@@ -41,7 +41,6 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
       'method' => 'replace',
       'effect' => 'fade'
     ),
-    '#default_value' => 2,
   );
 
   $form['#prefix'] = '<div id="tripal-galaxy-admin-wf-available-form-rows">';

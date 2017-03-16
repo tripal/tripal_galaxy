@@ -23,8 +23,12 @@ function tripal_galaxy_admin_home() {
   $results = db_query($sql);
 
   while ($result = $results->fetchObject()) {
-    $rows[] = array($result->servername, $result->description,
-      l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id));
+    $rows[] = array(
+      $result->servername,
+      $result->description,
+      l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id) . ' ' .
+      l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id)
+    );
   }
 
   // Theme the table and return.
@@ -172,3 +176,13 @@ function tripal_galaxy_admin_confirm_remove_workflow_form($form, &$form_state, $
   return $form;
 }
 
+/**
+ * Responds to the menu item admin/tripal/extension/galaxy/test/%.
+ *
+ * @param  $galaxy_id
+ *   A galaxy server ID
+ */
+function tripal_galaxy_admin_test_server($galaxy_id) {
+  tripal_test_galaxy_connection(array('galaxy_id' => $galaxy_id));
+  drupal_goto('admin/tripal/extension/galaxy');
+}

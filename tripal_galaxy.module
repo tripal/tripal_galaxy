@@ -103,6 +103,17 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy')
   );
 
+  // Test Galaxy
+  $items['admin/tripal/extension/galaxy/test/%'] = array (
+    'description' => 'Test a galaxy instance',
+    'page callback' => 'tripal_galaxy_admin_test_server',
+    'page arguments' => array (5),
+    'access arguments' => array ('administer galaxy'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy')
+  );
+
   // Add Galaxy
   $items['admin/tripal/extension/galaxy/add'] = array (
     'description' => 'Add a galaxy server instance',
@@ -294,7 +305,7 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
   try {
     // Get the Galaxy server workflow ID from the form then
     // lookup our internal galaxy workflow ID.
-    $workflow_id = $form['#node']->webform['components'][1]['extra']['wfid'];
+    $workflow_id = $form['#node']->webform['components'][1]['extra']['workflow_id'];
     $workflow = db_select('tripal_galaxy_workflow', 'tgw')
       ->fields('tgw')
       ->condition('workflow_id', $workflow_id)

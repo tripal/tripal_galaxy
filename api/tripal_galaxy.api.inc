@@ -42,7 +42,7 @@ function tripal_split_galaxy_url($url) {
 
   // First check a URL with a port
   $matches = array();
-  if (preg_match('/^(.*)\:\/\/(.+?)\:(\d+)$/', $url, $matches)) {
+  if (preg_match('/^(.*)\:\/\/(.+?)\:(\d+)\/*$/', $url, $matches)) {
     $protocol = $matches[1];
     $host = $matches[2];
     $port = $matches[3];
@@ -52,7 +52,7 @@ function tripal_split_galaxy_url($url) {
     }
   }
   // Next check a URL without a port
-  else if (preg_match('/^(.*)\:\/\/(.+?)$/', $url, $matches)) {
+  else if (preg_match('/^(.*)\:\/\/(.+?)\/*$/', $url, $matches)) {
     $protocol = $matches[1];
     $host = $matches[2];
     $use_https = FALSE;
@@ -356,4 +356,94 @@ function tripal_invoke_galaxy_workflow($sid){
   else {
     throw new Exception('Connot connect to the remote galaxy server to launch the workflow');
   }
+}
+
+/**
+ * Retrieves a specific history for Galaxy.
+ *
+ * @param $galaxy
+ *   A GalaxyInstance object
+ * @param $history_name
+ *   The name of the history to retrieve. If the history doesn't exist then
+ *   it will be created.
+ * @param $error
+ *   An empty array into which the error type and message will be placed
+ *   if an error occurs.
+ *
+ * @return
+ *   A history array for the specified history.  If a failure occured then
+ *   FALSE is returned and the $error argument is set.
+ */
+function tripal_get_galaxy_history(GalaxyInstance $galaxy, $history_name, &$error) {
+  $ghistories = new GalaxyHistories($galaxy);
+
+  // Look through existing histories to find what we're looking for.
+  $histories = $ghistories->index();
+  foreach ($histories as $history) {
+    if ($history['name'] == $history_name) {
+      return $history;
+    }
+  }
+
+  // If we're here then the history doesn't exist, so create one.
+  $history = $ghistories->create(array(
+    'name' => $history_name,
+  ));
+  dpm($history);
+  if (!$history){
+    $error = $galaxy->getError();
+    return FALSE;
+  }
+}
+
+/**
+ * Tests if a Galaxy server is accessible.
+ *
+ * @param $connect
+ *   An array of the following:
+ *    - galaxy_id:  A unique ID for the galaxy server. If this is provided no
+ *        other arguments are needed.
+ *    - host:  The DNS hostname of the galaxy server.
+ *    - port:  The TCP port for the server.
+ *    - use_https:  Set to TRUE of the server uses HTTPS
+ *
+ * @param
+ *   Returns TRUE if accessible. FALSE otherwise.  A Drupal message is
+ *   also provided that indicates if the test was successful.
+ */
+function tripal_test_galaxy_connection($connect) {
+
+  if (array_key_exists('galaxy_id', $connect)) {
+    $galaxy_id = $connect['galaxy_id'];
+    $galaxy = tripal_get_galaxy_connection($galaxy_id);
+    $error = $galaxy->getError();
+    if ($error['message']) {
+      drupal_set_message('Could not connect: ' . $error['message'], 'error');
+      return FALSE;
+    }
+  }
+  else {
+    // Create a new galaxy instance using the obtained hostname and port
+    // Then Authenticate
+    $library = libraries_load('blend4php');
+    $galaxy = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
+    $error = $galaxy->getError();
+    if ($error['message']) {
+      drupal_set_message('Could not connect: ' . $error['message'], 'error');
+      return FALSE;
+    }
+  }
+
+  // Tell the user whether the connection was successful based on
+  // getVersion()
+  $version = $galaxy->getVersion();
+  if ($version == NULL) {
+    $error = $galaxy->getError();
+    drupal_set_message('Could not connect: ' . $error['message'], 'error');
+    return FALSE;
+  }
+  else {
+    drupal_set_message(t('Successful connection to the Galaxy server (version %version)', array('%version' => $version['version_major'])));
+  }
+  return TRUE;
 }
