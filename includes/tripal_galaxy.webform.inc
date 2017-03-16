@@ -32,7 +32,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     drupal_set_message('Error retrieving workflow. ' . $error['message'], 'error');
     return FALSE;
   }
-
   // Create a history which will be used for building tools. We have to build
   // the tools so that we can get all of the inputs and their default values.
   $error = array();
@@ -42,32 +41,18 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     return FALSE;
   }
 
-  // The array of components for the webform.
-  $webform->components[] = array (
-    'cid' => 1,
-    'pid' => 0,
-    'form_key' => 'galaxy_webform',
-    'name' => 'galaxy_webform',
-    'type' => 'hidden',
-    // 'value' => $galaxy_id,
-    'extra' => array (
-      'private' => 1,
-      'hidden_type' => 'value',
-      'analysis' => FALSE,
-      'workflow_id' => $workflow_id,
-    ),
-    'required' => '0',
-    'weight' => 0
-  );
+  // Add in the instruction page to the webform first.
+  tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $workflow_id);
 
   // Iterate through each step of the workflow.
+  $tool_list = array();
   $steps = $workflow['steps'];
   foreach ($steps as $step_index => $step) {
     // Each step is contained in a fieldset. We'll name the field set after
     // it's step and if a tool is present we'll include the tool info.
     $cid = count($webform->components) + 1;
     $fieldset_key = "Step_" . $step_index . "_fieldset";
-    $fieldset_name = 'Step ' . ($step_index + 1) . ': ' . $step['annotation'];
+    $fieldset_name = 'Step ' . ($step_index + 1);
 
     // Add the fieldset to the components list.
     $webform->components[] = array(
@@ -78,11 +63,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'type' => 'fieldset',
       'value' => '',
       'extra' => array(
-        'description' => t('Please provide values for any fields that
-            appear below.  If no fields appear you may skip to the next
-            step. If an "Additional Settings" section is present it will
-            cotnain fields that already have defaults. You may change those
-            if desired.'),
+        'description' => '',
         'description_above' => 1,
         'private' => 0,
         'css_classes' => '',
@@ -130,19 +111,20 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           drupal_set_message('Error building tool: ' . $tool_id . '. ' . $error['message'], 'error');
           return FALSE;
         }
+        $tool_list[] = $tool['name'] . ' ' . $tool['version'];
 
         // We want to change the name of the fieldset to have the name of
         // the tool.
         $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
 
-        // Add the "Additional settings" fieldset.
+        // Add the "Optional settings" fieldset.
         $dcid = count($webform->components) + 1;
         $webform->components[] = array(
           'cid' => $dcid,
           'pid' => $cid,
           'form_key' => $fieldset_key . '_additional',
-          'name' => 'Additional Settings',
+          'name' => 'Optional Settings',
           'type' => 'fieldset',
           'value' => '',
           'extra' => array(
@@ -181,9 +163,11 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       $webform->components[] = array(
         'cid' => count($webform->components) + 1,
         'pid' => 0,
-        'name' => "Step" . ($step_index + 1),
+        // Add 3 to the step_index because the instruction appear on step 1
+        // and this pagebreak introduces the next step.
+        'name' => "Step" . ($step_index + 3),
         //'name' => $tool ? $tool['name'] : "Step" . ($step_index + 1),
-        'form_key' => "Step_" . ($step_index + 1) ."_pagebreak",
+        'form_key' => "Step_" . ($step_index + 3) ."_pagebreak",
         'type' => 'pagebreak',
         'weight' => count($webform->components) + 1
       );
@@ -192,6 +176,15 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
   // Before creating a webform node we want to sort the conditionals.
   usort($webform->conditionals, 'tripal_galaxy_build_webform_sort_conditionals');
+
+  // Add the tool list to our instructions step
+  $tool_list = theme_item_list(array(
+    'items' => array_unique($tool_list),
+    'type' => 'ul',
+    'title' => 'This workflow uses the following tools:',
+    'attributes' => array(),
+  ));
+  $webform->components[1]['value'] .= $tool_list;
 
   // How do I extend the node type so it tells me in the form id that this
   // is a 'galaxy' webform?
@@ -251,6 +244,71 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // workflow table on the db
   $nid = (int)$node->nid;
   return $nid;
+}
+
+/**
+ * Adds the first component to the webform which is a set of
+ * instructions for the form.
+ *
+ * @param $webform
+ */
+function tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $workflow_id) {
+
+  $webform->components[] = array(
+    'cid' => 1,
+    'pid' => 0,
+    'form_key' => 'galaxy_webform',
+    'name' => 'Instructions',
+    'type' => 'fieldset',
+    'value' => '',
+    'extra' => array(
+      'description_above' => 1,
+      'private' => 0,
+      'css_classes' => '',
+      'title_display' => 1,
+      'collapsible' => 1,
+      'collapsed' => 0,
+      'workflow_id' => $workflow_id,
+    ),
+    'required' => '0',
+    'weight' => 0,
+  );
+
+  // The array of components for the webform.
+  $webform->components[] = array (
+    'cid' => 2,
+    'pid' => 1,
+    'form_key' => 'galaxy_webform',
+    'name' => 'instructions',
+    'type' => 'markup',
+    'value' => t("<p>Here you can submit an analysis for execution.  This analysis " .
+      "makes use of several bioinformatics tools with each tool provided as ".
+      "a separate step in this workflow. As you move from step to step in the form ".
+      "you can alter tool settings to control how the tool performs. ".
+      "Some tools may not have settings or use output from tools that ".
+      "appeared as a previous step. Optional settings may be provided. <p>".
+      "<p>Execution of this workflow is supported by !galaxy.</p>!img",
+      array(
+        '!galaxy' => l('Galaxy', 'https://galaxyproject.org/', array('attributes' => array('target' => '_hidden'))),
+        '!img' => '<img src="' . url(drupal_get_path('module', 'tripal_galaxy') . '/theme/images/PoweredByGalaxy200.png', array('absolute' => TRUE)) . '">'
+      )
+    ),
+    'extra' => array (
+      'format' => 'full_html',
+    ),
+    'required' => '0',
+    'weight' => 0
+  );
+
+  // Add a page break
+  $webform->components[] = array(
+    'cid' => count($webform->components) + 1,
+    'pid' => 0,
+    'name' => "Step 2",
+    'form_key' => "Step_2_pagebreak",
+    'type' => 'pagebreak',
+    'weight' => count($webform->components) + 1
+  );
 }
 
 /**
@@ -433,7 +491,8 @@ function tripal_galaxy_build_webform_add_component($webform,
   $is_required = 1;
   $extra = array(
     'title_display' => 'before',
-    'description_above' => 1,
+    'description' => $step['annotation'],
+    'description_above' => 0,
     'items' => '',
     'aslist' => $is_list,
     'input_name' => $input['name'],
@@ -578,7 +637,7 @@ function tripal_galaxy_build_webform_add_component($webform,
     $linked = TRUE;
   }
 
-  // If this component has a value then put it in the "Additional Settings"
+  // If this component has a value then put it in the "Optional Settings"
   // fielset.
   if (!$is_required or $webform_value or $webform_value === 0) {
     if (!$linked) {

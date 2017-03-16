@@ -118,38 +118,30 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
 }
 
 /**
- * Custom Validate for hook_form
- *
- * @param
- *          $form
- * @param
- *          $form_state
- * @return boolean Return true if the form is valid for deletion, false
- *         otherwise
+ * Implements the validate hook for the
+ * tripal_galaxy_admin_configuration_form_delete form.
  */
-function tripal_galaxy_admin_configuration_form_delete_validate($form, &$form_state) {
+function tripal_galaxy_admin_configuration_form_validate($form, &$form_state) {
 
   // Check to see if we are deleting an instance.
   if ($form_state['clicked_button']['#name'] == 'delete') {
-    $sql = "SELECT * FROM {tripal_galaxy} WHERE servername=" . $form['tripal_galaxy_server_name']['#value'];
-    $results = db_result(db_query($sql));
-    if ($results == NULL || $results == FALSE) {
+    $server = db_query('tripal_galaxy', 'tg')
+      ->fields('tg')
+      ->condition('servername', $form_state['values']['servername'])
+      ->execute()
+      ->fetchObject();
 
+    if ($server) {
       // If there is no entry with this servername return False.
-      form_set_error('servername', t('A galaxy instance with that servername does not exist'));
+      form_set_error('servername', t('A galaxy instance with that servername already exists. Please choose another name.'));
       return FALSE;
     }
   }
 }
 
 /**
- * Implements Drupal's hook_form_submit
- * Handles submitting a new galaxy instance to the Galaxy table
- *
- * @param
- *          $form
- * @param
- *          $form_state
+ * Implements the submit hook for the
+ * tripal_galaxy_admin_configuration_form_delete form.
  */
 function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
 
@@ -157,12 +149,12 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
 
   // Initialize the data to be sent to the tripal_galaxy table
   $data = array(
-    'servername' => $form_state['values']['servername'],
-    'description' => $form_state['values']['description'],
-    'url' => $form_state['values']['url'],
-    'username' => $form_state['values']['username'],
-    'api_key' => $form_state['values']['api_key'],
-    'uid' => $user->uid,
+    'servername' => trim($form_state['values']['servername']),
+    'description' => trim($form_state['values']['description']),
+    'url' => trim($form_state['values']['url']),
+    'username' => trim($form_state['values']['username']),
+    'api_key' => trim($form_state['values']['api_key']),
+    'uid' => trim($user->uid),
   );
 
   // If we are deleting the given instance, go through the appropriate

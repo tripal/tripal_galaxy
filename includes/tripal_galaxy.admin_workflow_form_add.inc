@@ -4,11 +4,6 @@
  * Generates the form that lists the available workflows in the
  * default Galaxy instances and allows the site admin to select which ones
  * should be published on the site for end-users to use.
- *
- * @param
- *          $form
- * @param
- *          $form_state
  */
 function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
   $form['#tree'] = TRUE;
@@ -251,7 +246,22 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
         $data['nid'] = $nid;
         $workflow = drupal_write_record('tripal_galaxy_workflow', $data);
 
-        drupal_set_message(t('Workflow Added'));
+        $instructions = array(
+          'the workflow title.',
+          'the instructions for the workflow.',
+          'the "About this step" field for each tool to help the user understand the workflow.',
+          'each tool setting descriptions as desired.',
+        );
+        $list = theme_item_list(array(
+          'items' => $instructions,
+          'title' => '',
+          'type' => 'ul',
+          'attributes' => array(),
+        ));
+        drupal_set_message(t('The workflow was succesfully added! <p>Sometimes
+          these workflows need a bit of tweaking to make them more intuitive
+          for users. Click the title of the workflow below to customize how it
+          will appear to users. Consider improving: !list</p>', array('!list' => $list)));
       }
       catch (Exception $e) {
         $transaction->rollback();

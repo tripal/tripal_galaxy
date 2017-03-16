@@ -6,65 +6,47 @@
  */
 function tripal_galaxy_admin_workflows_form($form, &$form_state) {
 
-  // TODO: This is not keeping track of what workflow comes from which
-  // server
-  $workflow_instances = db_query("SELECT * FROM {tripal_galaxy_workflow}");
-  $i = 0;
   $form['#tree'] = TRUE;
 
-  // Loop through each workflow to add it to the form
-  while ($workflow = $workflow_instances->fetchObject()) {
+  // Get the list of workflows and interate through them.
+  $workflows = db_select('tripal_galaxy_workflow', 'tgw')
+    ->fields('tgw')
+    ->orderBy('workflow_name')
+    ->execute();
+  $i = 0;
+  while ($workflow = $workflows->fetchObject()) {
+    $galaxy = db_select('tripal_galaxy', 'tg')
+      ->fields('tg')
+      ->condition('galaxy_id', $workflow->galaxy_id)
+      ->execute()
+      ->fetchObject();
 
-    // Obtain the corresponding Galaxy instance for the workflow
-    $galaxy_instance = db_query('SELECT * FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id',
-        array('galaxy_id' => $workflow->galaxy_id));
-    $galaxy_instance = $galaxy_instance->fetchObject();
-
-    // The galaxy id
-    $form['rows'][$i]['galaxy-' . $i] = array(
-      '#type' => 'value',
-      '#value' => $galaxy_instance
-    );
+    $node = node_load($workflow->nid);
 
     $form['rows'][$i]['enabled-' . $i] = array(
       '#type' => 'checkbox',
       '#default_value' => $workflow->status
     );
-
-    // Workflow name
-    $form['rows'][$i]['workflow_name-' . $i] = array(
-      '#type' => 'value',
-      // TODO: I need to keep track of the proper node that was created when
-      // this workflow was added
-      '#value' => $workflow->workflow_name,
-    );
-
-    $form['rows'][$i]['workflow_name-user' . $i] = array(
+    $form['rows'][$i]['workflow_name' . $i] = array(
       '#type' => 'item',
-      '#markup' => l($workflow->workflow_name, '/node/' . $workflow->nid),
+      '#markup' => l($node->title, 'node/' . $workflow->nid),
     );
-
-    // Servername that the workflow's on
+    $form['rows'][$i]['workflow_name_galaxy' . $i] = array(
+      '#type' => 'item',
+      '#markup' => $workflow->workflow_name,
+    );
     $form['rows'][$i]['servername-' . $i] = array(
       '#type' => 'item',
-      '#markup' => $galaxy_instance->servername,
+      '#markup' => $galaxy->servername,
     );
-
-    // Workflow status.
     $form['rows'][$i]['workflow_status' . $i] = array(
       '#type' => 'item',
       '#markup' => $workflow->status
     );
-
-    // Workflow ID.
     $form['rows'][$i]['workflow_id-' . $i] = array(
       '#type' => 'value',
       '#value' => $workflow->workflow_id
     );
-
-    // Remove link
-    // TODO: I need a confirm/validate here as seen on any generic content
-    // delete
     $form['rows'][$i]['actions-' . $i] = array(
       '#type' => 'item',
       '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_workflow_id)
@@ -98,6 +80,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
   // The apparopriate headers for this form's table.
   $headers = array(
     'Workflow Name',
+    'Name on Galaxy Server',
     'Galaxy Server',
     'Status',
     'Actions'
@@ -108,7 +91,8 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
   foreach (element_children($form_rows) as $i) {
     $row = $form_rows[$i];
     $rows[] = array(
-      drupal_render($row["workflow_name-user" . $i]),
+      drupal_render($row["workflow_name" . $i]),
+      drupal_render($row["workflow_name_galaxy" . $i]),
       drupal_render($row["servername-" . $i]),
       drupal_render($row["workflow_status" . $i]),
       drupal_render($row["actions-" . $i])
