@@ -32,6 +32,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     drupal_set_message('Error retrieving workflow. ' . $error['message'], 'error');
     return FALSE;
   }
+
   // Create a history which will be used for building tools. We have to build
   // the tools so that we can get all of the inputs and their default values.
   $error = array();
@@ -167,7 +168,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         // and this pagebreak introduces the next step.
         'name' => "Step" . ($step_index + 3),
         //'name' => $tool ? $tool['name'] : "Step" . ($step_index + 1),
-        'form_key' => "Step_" . ($step_index + 3) ."_pagebreak",
+        'form_key' => "step_" . ($step_index + 3) ."_pagebreak",
         'type' => 'pagebreak',
         'weight' => count($webform->components) + 1
       );
@@ -305,7 +306,7 @@ function tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $wo
     'cid' => count($webform->components) + 1,
     'pid' => 0,
     'name' => "Step 2",
-    'form_key' => "Step_2_pagebreak",
+    'form_key' => "step_2_pagebreak",
     'type' => 'pagebreak',
     'weight' => count($webform->components) + 1
   );
@@ -497,7 +498,7 @@ function tripal_galaxy_build_webform_add_component($webform,
     'aslist' => $is_list,
     'input_name' => $input['name'],
     'input_full_name' => $input['full_name'],
-    'step_index' => $step['id']
+    'step_index' => $step['id'],
   );
   if ($tool) {
     $extra['tool_name'] = $tool['name'];
@@ -510,11 +511,6 @@ function tripal_galaxy_build_webform_add_component($webform,
   // Is this a required component?
   if(array_key_exists('optional', $input) and $input['optional']){
     $is_required = 0;
-  }
-
-  // Get the description for this component.
-  if (array_key_exists('help', $input)){
-    $extra['description'] = ucfirst($input['help']);
   }
 
   // Now, set the webform component type and the value depending on the
@@ -553,6 +549,15 @@ function tripal_galaxy_build_webform_add_component($webform,
       // Data appears to be a file selection of files that already
       // exists in the user's history.
       $webform_type = 'file';
+      $extra['filtering']['types'] = array('');
+      // The webform 'file' component wants a size.  Let this default to the
+      // server settings.
+      $extra['filtering']['size'] = '0';
+      // Set the allowed extension as per the rules on Galaxy.
+      if ($input['extensions']) {
+        $extra['filtering']['types'] = $input['extensions'];
+        $extra['filtering']['addextensions'] = implode(", ", $input['extensions']);
+      }
       break;
 
     case 'data_input':
@@ -561,6 +566,12 @@ function tripal_galaxy_build_webform_add_component($webform,
       // we want to use this same function to create components so we fake
       // a tool and input and use this type.
       $webform_type = 'file';
+      $extra['filtering']['types'] = array('fastq', 'fasta');
+      // The webform 'file' component wants a size.  Let this default to the
+      // server settings.
+      $extra['filtering']['size'] = '0';
+      // Set the allowed extension as per the rules on Galaxy.
+      $extra['filtering']['addextensions'] = 'fastq, fasta';
       break;
 
     case 'data_collection':
@@ -646,19 +657,20 @@ function tripal_galaxy_build_webform_add_component($webform,
   }
 
   $cid = count($webform->components) + 1;
-  $webform->components[] = array(
+  $component = array(
     'cid' => $cid,
     'pid' => $pid,
     'name' => $input_name,
     // This form_key has to be unique from ANYTHING else, otherwise the
     // component will not be presented
-    'form_key' => "Step_" . $step['id'] . "_" . $input['name'] . "_" . $cid,
+    'form_key' => "step_" . ($step['id'] + 2) . '_' . $cid,
     'type' => $webform_type,
     'value' => $webform_value,
     'extra' => $extra,
     'weight' => $cid,
     'required' => $is_required,
   );
+  $webform->components[] = $component;
 }
 
 /**

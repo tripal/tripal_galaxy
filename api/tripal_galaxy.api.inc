@@ -248,6 +248,70 @@ function tripal_invoke_galaxy_workflow($sid){
   $query->orderBy('wsd.cid');
   $submitted_data = $query->execute();
 
+  // Get a connection to the remote galaxy instanc4e.
+  $galaxy = tripal_get_galaxy_connection($submission->galaxy_id);
+  if (!$galaxy) {
+    $error = $galaxy->getError();
+    throw new Exception($error['message']);
+  }
+
+  // Get the history that we'll use for this submission.
+  $error = array();
+  $history = tripal_get_galaxy_history($galaxy, "TG-" . $user->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid, $error);
+  if (!$history) {
+    $error = $galaxy->getError();
+    throw new Exception($error['message']);
+  }
+
+  // Get the history contents so we don't upload the same file more than once
+  // in the event that this invokation occurs more than once.
+  $ghistory_contents = new GalaxyHistoryContents($galaxy);
+  $hcontents = $ghistory_contents->index(array('history_id' => $history['id']));
+  if (!$hcontents) {
+    $error = $galaxy->getError();
+    throw new Exception($error['message']);
+  }
+  $upload_files = array();
+  foreach ($hcontents as $file) {
+    if ($file['deleted'] != 1) {
+      $upload_files[] = $file['name'];
+    }
+  }
+
+  // Upload any files that need uploading before submitting. These files are
+  // in the file_usage table, managed by the webform module and associated
+  // with this submission id (node ID).
+  $files = db_select('file_usage', 'fu')
+    ->fields('fu', array('fid'))
+    ->condition('module', 'webform')
+    ->condition('type', 'submission')
+    ->condition('id', $sid)
+    ->execute();
+
+  while ($file = $files->fetchObject()) {
+    $fid = $file->fid;
+    $file = file_load($fid);
+    // Only upload the file if it isn't already there.
+    if (!in_array($file->filename, $upload_files)) {
+      $file_list = array();
+      $file_list[] = array(
+        'name' => $file->filename,
+        'path' =>  drupal_realpath($file->uri)
+      );
+      // Now upload the files.
+      $gtool = new GalaxyTools($galaxy);
+      $tool = $gtool->create(array(
+        'tool_id' => 'upload1',
+        'history_id' => $history['id'],
+        'files' => $file_list,
+      ));
+      if (!$tool) {
+        $error = $galaxy->getError();
+        throw new Exception($error['message']);
+      }
+    }
+  }
+
   // Iterate through the submitted data values and create an input aray
   // for Galaxy workflow submission.
   while($data = $submitted_data->fetchObject()) {
@@ -267,6 +331,7 @@ function tripal_invoke_galaxy_workflow($sid){
     if ($data->type == 'fixed_value') {
       continue;
     }
+
 
     // Deal with the BDSS_file type.  It will have two rows in the
     // submitted data array. One for file_URL and one for file_upload.
@@ -308,54 +373,40 @@ function tripal_invoke_galaxy_workflow($sid){
     $parameters[$step_index] = $current_values;
   }
 
-  // Get a connection to the remote galaxy instanc4e.
-  $galaxy = tripal_get_galaxy_connection($submission->galaxy_id);
-  if ($galaxy) {
 
-    // Create our own history for this test.
-     $histories = new GalaxyHistories($galaxy);
-     $ourHistory = $histories->create(array(
-       'name' => "TG-" . $user->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid,
-     ));
-     $history_id = $ourHistory['id'];
-
-
-    // Invoke the workflow and check for errors
-    $gworkflows = new GalaxyWorkflows($galaxy);
-    $invocation = $gworkflows->invoke(array(
-      'workflow_id' => $submission->workflow_id,
-      'parameters' => $parameters,
-      'input_dataset_ids' => array(),
-      'hist_id' => $history_id,
-    ));
-
-    $error = $galaxy->getError();
-    if ($error['type']) {
-      watchdog_exception($error['message'], 'error');
-      db_update('tripal_galaxy_workflow_submission')
-        ->fields(array(
-          'status' => 'ERROR',
-          'error' => $error['message'],
-        ))
-        ->condition('sid', $submission->sid)
-        ->execute();
-      tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
-    }
-    else {
-      db_update('tripal_galaxy_workflow_submission')
-        ->fields(array(
-          'status' => 'Submitted',
-          'start_time' => REQUEST_TIME,
-          'invocation_id' => $invocation['id'],
-        ))
-        ->condition('sid', $submission->sid)
-        ->execute();
-      tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
-    }
+  // Invoke the workflow and check for errors
+  $gworkflows = new GalaxyWorkflows($galaxy);
+//     $invocation = $gworkflows->invoke(array(
+//       'workflow_id' => $submission->workflow_id,
+//       'parameters' => $parameters,
+//       'input_dataset_ids' => array(),
+//       'hist_id' => $history_id,
+//     ));
+return;
+  $error = $galaxy->getError();
+  if ($error['type']) {
+    watchdog_exception($error['message'], 'error');
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields(array(
+        'status' => 'ERROR',
+        'error' => $error['message'],
+      ))
+      ->condition('sid', $submission->sid)
+      ->execute();
+    tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
   }
   else {
-    throw new Exception('Connot connect to the remote galaxy server to launch the workflow');
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields(array(
+        'status' => 'Submitted',
+        'start_time' => REQUEST_TIME,
+        'invocation_id' => $invocation['id'],
+      ))
+      ->condition('sid', $submission->sid)
+      ->execute();
+    tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
   }
+
 }
 
 /**
