@@ -643,8 +643,9 @@ function tripal_galaxy_build_webform_add_component($webform,
   if (array_key_exists($input['full_name'], $step['input_steps'])){
     $source_step = $step['input_steps'][$input['full_name']]['source_step'];
     $step_output = $step['input_steps'][$input['full_name']]['step_output'];
-    $webform_value =  "Output from step " . ($source_step + 1);
+    $webform_value =  $source_step . '|' . $step_output;
     $webform_type = 'fixed_value';
+    $extra['linked'] = TRUE;
     $linked = TRUE;
   }
 

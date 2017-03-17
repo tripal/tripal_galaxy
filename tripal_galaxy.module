@@ -608,6 +608,7 @@ function tripal_galaxy_workflow_report($sid) {
 
   $state = '';
   if (is_array($submission->errors)){
+    ksort($submission->errors);
     foreach ($submission->errors as $step_index => $error) {
       $subrows = array();
       $subrows[] = array(
@@ -730,8 +731,9 @@ function tripal_galaxy_cron() {
   $query->fields('tgws', array('sid'));
   $query->condition('tgws.status', 'Waiting');
   $submissions = $query->execute();
+  $queue = DrupalQueue::get('invoke_galaxy_workflow');
   while($submission = $submissions->fetchObject()) {
-    tripal_invoke_galaxy_workflow($submission->sid);
+    $queue->createItem($submission);
   }
 
   // Update the status of running workflows
@@ -739,10 +741,9 @@ function tripal_galaxy_cron() {
   $query->fields('tgws', array('sid'));
   $query->condition('tgws.status', array('Error', 'Completed'), 'NOT IN');
   $submissions = $query->execute();
-
-  // Get the status of any workflows that are running
+  $queue = DrupalQueue::get('check_submission_status');
   foreach ($submissions as $submission) {
-    tripal_check_galaxy_submission_status($submission->sid);
+    $queue->createItem($submission);
   }
 
   // Update the status of the workflows to see if any of them were
@@ -751,9 +752,50 @@ function tripal_galaxy_cron() {
   $workflows = db_select('tripal_galaxy_workflow', 'tgw')
     ->fields('tgw')
     ->execute();
+  $queue = DrupalQueue::get('check_workflow_status');
   while ($workflow = $workflows->fetchObject()) {
-    tripal_check_galaxy_workflow_status($workflow->galaxy_workflow_id);
+    $queue->createItem($workflow);
   }
+}
+/**
+ * Implements hook_cron_queue_info().
+ */
+function tripal_galaxy_cron_queue_info() {
+   $info = array(
+     'check_submission_status' => array(
+       'worker callback' => 'tripal_galaxy_queue_check_submission_status',
+       'skip_on_cron' => FALSE,
+     ),
+     'invoke_galaxy_workflow' => array(
+       'worker callback' => 'tripal_galaxy_queue_invoke_workflow',
+       'skip_on_cron' => FALSE,
+     ),
+     'check_workflow_status' => array(
+       'worker callback' => 'tripal_galaxy_queue_check_workflow_status',
+       'skip_on_cron' => FALSE,
+     )
+   );
+   return $info;
+}
+/**
+ * Implementation of callback_queue_worker().
+ */
+function tripal_galaxy_queue_check_workflow_status($workflow) {
+  tripal_check_galaxy_workflow_status($workflow->galaxy_workflow_id);
+}
+
+/**
+ * Implementation of callback_queue_worker().
+ */
+function tripal_galaxy_queue_invoke_workflow($submission) {
+  tripal_invoke_galaxy_workflow($submission->sid);
+}
+
+/**
+ * Implementation of callback_queue_worker().
+ */
+function tripal_galaxy_queue_check_submission_status($submission) {
+  tripal_check_galaxy_submission_status($submission->sid);
 }
 
 /**

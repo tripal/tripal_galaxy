@@ -130,8 +130,6 @@ function tripal_check_galaxy_submission_status($sid) {
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
 
-  dpm($submission);
-
   // Get the node for this submission.
   $node = node_load($submission->nid);
 
@@ -154,7 +152,9 @@ function tripal_check_galaxy_submission_status($sid) {
   // are in the error state.
   $state = array();
   $has_error = FALSE;
-  foreach ($invocation['steps'] as $step_index => $step) {
+  foreach ($invocation['steps'] as $step) {
+    $step_index = $step['order_index'];
+
     // Get the STDERR and STDOUT for the job.
     $gjobs = new GalaxyJobs($galaxy);
     $job = $gjobs->show(array(
@@ -186,7 +186,6 @@ function tripal_check_galaxy_submission_status($sid) {
       'stdout' => $stdout,
       'misc_info' => $misc_info,
     );
-
   }
 
   if ($has_error) {
@@ -194,10 +193,23 @@ function tripal_check_galaxy_submission_status($sid) {
   }
 
   $status = $submission->status;
+  if (!$status) {
+    $status = 'Running';
+  }
   switch ($istate) {
     case 'error':
       $status = 'Error';
       tripal_galaxy_send_submission_failed_mail($sid, $node->nid);
+      $gworkflows = new GalaxyWorkflows($galaxy);
+      // Cancel the invocation
+      $invocation = $gworkflows->cancelInvocation(array(
+        'workflow_id' => $submission->workflow_id,
+        'invocation_id' => $submission->invocation_id,
+      ));
+      if (!$invocation) {
+        $error = $galaxy->getError();
+        throw new Exception($error['message']);
+      }
       break;
     case 'ok':
       $status = 'Completed';
@@ -252,7 +264,7 @@ function tripal_invoke_galaxy_workflow($sid){
   $galaxy = tripal_get_galaxy_connection($submission->galaxy_id);
   if (!$galaxy) {
     $error = $galaxy->getError();
-    throw new Exception($error['message']);
+    throw new Exception('Cannot connect to Galaxy server:' . $error['message']);
   }
 
   // Get the history that we'll use for this submission.
@@ -267,13 +279,14 @@ function tripal_invoke_galaxy_workflow($sid){
   // in the event that this invokation occurs more than once.
   $ghistory_contents = new GalaxyHistoryContents($galaxy);
   $hcontents = $ghistory_contents->index(array('history_id' => $history['id']));
-  if (!$hcontents) {
-    $error = $galaxy->getError();
+  $error = $galaxy->getError();
+  if ($error['message']) {
     throw new Exception($error['message']);
   }
+
   $upload_files = array();
   foreach ($hcontents as $file) {
-    if ($file['deleted'] != 1) {
+    if (!$file['deleted'] and $file['state'] == 'ok') {
       $upload_files[] = $file['name'];
     }
   }
@@ -287,10 +300,11 @@ function tripal_invoke_galaxy_workflow($sid){
     ->condition('type', 'submission')
     ->condition('id', $sid)
     ->execute();
-
+  $managed_files = array();
   while ($file = $files->fetchObject()) {
     $fid = $file->fid;
     $file = file_load($fid);
+    $managed_files[$fid] = $file;
     // Only upload the file if it isn't already there.
     if (!in_array($file->filename, $upload_files)) {
       $file_list = array();
@@ -312,31 +326,61 @@ function tripal_invoke_galaxy_workflow($sid){
     }
   }
 
+  // Next we need to reget the history content to get the IDs of the new files.
+  $hcontents = $ghistory_contents->index(array('history_id' => $history['id']));
+  $input_datasets = array();
+
   // Iterate through the submitted data values and create an input aray
   // for Galaxy workflow submission.
   while($data = $submitted_data->fetchObject()) {
     $value = '';
 
-    // The component 'extra' data is serialized so we need to convert it
+    // The component 'extra' data is serialized so we need to convert it.
     $data->extra = unserialize($data->extra);
 
+    // Get some step details.
+    $step_index = $data->extra['step_index'];
+    $input_name = $data->extra['input_full_name'];
+
     // Skip components that don't have an 'input_name' field as these
-    // don't correspond to workflow input components.
+    // don't correspond to workflow input components (e.g. fieldsets, and
+    // page separators).
     if (!array_key_exists('input_name', $data->extra)) {
       continue;
     }
 
     // Input elements of type 'fixed_value' should not be provided as
-    // input for the Galaxy workflow because the defaulst should be used
+    // input for the Galaxy workflow because the defaults should be used
     if ($data->type == 'fixed_value') {
-      continue;
+      $value = $data->data;
+      if (array_key_exists('linked', $data->extra) and $data->extra['linked']) {
+        list($source_step, $step_output) = explode('|', $data->data);
+        $value = array(
+          'step_output' => $step_output,
+          'source_step' => $source_step,
+        );
+      }
     }
 
+    // If this component is a 'file' then we need to set the value to the
+    // dataset ID.
+    else if ($data->type == 'file') {
+      $file = $managed_files[$data->data];
+      foreach ($hcontents as $hcontent) {
+        if ($hcontent['name'] == $file->filename) {
+          $value = $hcontent['id'];
+          $input_datasets[$step_index] = array(
+            'id' => $value,
+            'src' => 'hda',
+          );
+        }
+      }
+    }
 
     // Deal with the BDSS_file type.  It will have two rows in the
     // submitted data array. One for file_URL and one for file_upload.
     // they are mutually exclusive and only one will have a real value
-    if ($data->type == 'BDSS_file') {
+    else if ($data->type == 'BDSS_file') {
       if ($data->no == 'file_URL' and $data->data) {
         $value = $data->data;
       }
@@ -360,36 +404,30 @@ function tripal_invoke_galaxy_workflow($sid){
       continue;
     }
 
-    // NOTE: The step id's (page_num) on the server side are offset by 1
-    // so subtract 1, then organize the input settings by their step in the
-    // $galaxy_input['parameters'] array.
-    $step_index = $data->extra['step_index'];
-    $input_name = $data->extra['input_full_name'];
     if (!array_key_exists($step_index, $parameters)) {
       $parameters[$step_index] = array();
     }
-    $current_values = $parameters[$step_index];
-    _tripal_galaxy_workflow_invoke_build_values($current_values, $input_name, $value);
-    $parameters[$step_index] = $current_values;
+     $current_values = $parameters[$step_index];
+     _tripal_galaxy_workflow_invoke_build_values($current_values, $input_name, $value);
+     $parameters[$step_index] = $current_values;
   }
-
 
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
-//     $invocation = $gworkflows->invoke(array(
-//       'workflow_id' => $submission->workflow_id,
-//       'parameters' => $parameters,
-//       'input_dataset_ids' => array(),
-//       'hist_id' => $history_id,
-//     ));
-return;
-  $error = $galaxy->getError();
-  if ($error['type']) {
-    watchdog_exception($error['message'], 'error');
+  $invocation = $gworkflows->invoke(array(
+    'workflow_id' => $submission->workflow_id,
+    'parameters' => $parameters,
+    'inputs' => $input_datasets,
+    'history_id' => $history['id'],
+  ));
+
+  if (!$invocation) {
+    $error = $galaxy->getError();
+    drupal_set_message($error['message'], 'error');
     db_update('tripal_galaxy_workflow_submission')
       ->fields(array(
         'status' => 'ERROR',
-        'error' => $error['message'],
+        'errors' => $error['message'],
       ))
       ->condition('sid', $submission->sid)
       ->execute();
@@ -440,11 +478,11 @@ function tripal_get_galaxy_history(GalaxyInstance $galaxy, $history_name, &$erro
   $history = $ghistories->create(array(
     'name' => $history_name,
   ));
-  dpm($history);
   if (!$history){
     $error = $galaxy->getError();
     return FALSE;
   }
+  return $history;
 }
 
 /**
