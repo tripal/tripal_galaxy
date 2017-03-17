@@ -152,6 +152,7 @@ function tripal_check_galaxy_submission_status($sid) {
   // are in the error state.
   $state = array();
   $has_error = FALSE;
+  $all_ok = FALSE;
   foreach ($invocation['steps'] as $step) {
     $step_index = $step['order_index'];
 
@@ -171,13 +172,15 @@ function tripal_check_galaxy_submission_status($sid) {
     $step_name = 'Step ' . ($step_index + 1). ': ' . $tool['name'] . ' v' . $tool['version'];
 
     if ($step['state'] == 'error') {
-
       // Sometimes the error message is in a dataset. So, get the 'misc_info'
       // from that.
       $gdataset = new GalaxyDatasets($galaxy);
       $dataset = $gdataset->show(array('dataset_id' => $job['outputs']['output']['id']));
       $misc_info = $dataset['misc_info'];;
       $has_error = TRUE;
+    }
+    if ($state['step'] != 'null' or $state['step'] != 'ok') {
+      $istate = 'ok';
     }
     $state[$step_index] = array(
       'step_name' => $step_name,
@@ -214,9 +217,6 @@ function tripal_check_galaxy_submission_status($sid) {
     case 'ok':
       $status = 'Completed';
       tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
-      break;
-    case 'running':
-      $status = 'Running';
       break;
   }
 
