@@ -1,9 +1,12 @@
 
 .tripal-galaxy-submission-state-table tr, 
+.tripal-galaxy-submission-state-table td,
+.tripal-galaxy-submission-state-table th,
 .tripal-galaxy-submission-state-table tr.odd, 
 .tripal-galaxy-submission-state-table tr.even {
   background: none !important;
   color: #000000 !important;
+  border: 1px solid #CCCCCC !important;
 }
 
 .tripal-galaxy-submission-state-table th {

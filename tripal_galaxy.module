@@ -297,12 +297,17 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
  * Implements submit function for the webform_client_form
  */
 function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
+  global $user;
 
   // Don't do anything if the webform isn't finished being filled out.
   if ($form_state['webform_completed'] != TRUE) {
     return;
   }
   try {
+
+    // Get the sub
+    $sid = $form_state['storage']['details']['sid'];
+
     // Get the Galaxy server workflow ID from the form then
     // lookup our internal galaxy workflow ID.
     $workflow_id = $form['#node']->webform['components'][1]['extra']['workflow_id'];
@@ -314,7 +319,7 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
 
     // To be implemented more properly once inputs are generated
     $data = array(
-      'sid' => $form_state['storage']['details']['sid'],
+      'sid' => $sid,
       'galaxy_workflow_id' => $workflow->galaxy_workflow_id,
       'errors' => '',
       'submit_date' => REQUEST_TIME,
@@ -324,13 +329,23 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
     // Now insert the submission into the database
     drupal_write_record('tripal_galaxy_workflow_submission', $data);
 
+    // For any files that were uploaded we want to set the usage for those
+    // so that they are mapped to the correct submission.
+    foreach ($form_state['values']['submitted'] as $cid => $component) {
+      if (is_array($component) and array_key_exists('html5_file_fid', $component)
+          and $component['html5_file_fid']) {
+        $file = file_load($component['html5_file_fid']);
+        $form_key = $component['html5_file_table_key'];
+        file_usage_add($file, 'tripal_galaxy', $form_key, $sid);
+      }
+    }
   }
   catch (Exception $e) {
     drupal_set_message(t('Could not copmlete workflow submission.  Please contact the web site to report this issue.'), 'error');
     watchdog_exception('tripal_galaxy', $e);
   }
   drupal_set_message(t('Your job is successfully submitted to the job queue! You will be notified by email when your job begins and completes.'));
-  drupal_goto('/');
+  drupal_goto('user/' . $user->uid . '/galaxy-jobs');
 }
 
 /**
@@ -452,15 +467,22 @@ function tripal_galaxy_element_info() {
     '#input' => 'TRUE',
     '#process' => array('tripal_galaxy_html5_file_process'),
     '#element_validate' => array('tripal_galaxy_html5_file_validate'),
+    '#value_callback' => 'tripal_galaxy_html5_file_value',
   );
   return $elements;
 }
-
+/**
+ *
+ */
+function tripal_galaxy_html5_file_value($element, $input = FALSE, &$form_state) {
+  if ($input) {
+    return $input['html5_file_fid'];
+  }
+}
 /**
  *
  */
 function tripal_galaxy_html5_file_process($element, $form_state, $complete_form) {
-
   $nid = $element['#webform_component']['nid'];
   $form_key = $element['#webform_component']['form_key'];
   $type = $nid . '-' . $form_key;
@@ -483,6 +505,10 @@ function tripal_galaxy_html5_file_process($element, $form_state, $complete_form)
     'colgroups'   => array(),
     'empty'       => t('There are currently no files.'),
    );
+  $element['value'] = array(
+    '#type' => 'value',
+    '#value' => '',
+  );
    $element['html5_file_table_key'] = array(
      '#type' => 'hidden',
      '#value' => $type,
@@ -495,8 +521,8 @@ function tripal_galaxy_html5_file_process($element, $form_state, $complete_form)
    );
    $element['html5_file_fid'] = array(
      '#type' => 'hidden',
-     '#value' => 0,
-     '#attributes' => array('id' => 'tripal-html5-upload-fid-' . $type)
+     '#attributes' => array('id' => 'tripal-html5-upload-fid-' . $type),
+     '#default_value' => $element['#value'],
    );
    $element['html5_file_submit'] = array(
      '#type'     => 'submit',
@@ -508,7 +534,7 @@ function tripal_galaxy_html5_file_process($element, $form_state, $complete_form)
        'id' => 'tripal-html5-file-upload-submit-' . $type,
        'onclick' => 'return (false);'
      )
-  );
+   );
 
   drupal_add_js(drupal_get_path ('module', 'tripal') . '/theme/js/TripalUploader.js');
   drupal_add_js(drupal_get_path ('module', 'tripal') . '/theme/js/TripalUploadFile.js');
@@ -521,13 +547,13 @@ function tripal_galaxy_html5_file_process($element, $form_state, $complete_form)
  */
 function tripal_galaxy_html5_file_validate($element, &$form_state) {
   $is_required = $element['#webform_component']['required'];
-  $fid = $element['#value']['html5_file_fid'];
+  $fid = $element['#value'];
 
   if ($is_required and !$fid) {
     form_error($element, t('A file must be uploaded.'));
   }
-
 }
+
 /**
  * Implements hook_handle_uplaoded_file().
  *
@@ -579,7 +605,6 @@ function tripal_galaxy_handle_uploaded_file($filename, $filepath, $type) {
   $file->uid = $user->uid;
   $file->status = FILE_STATUS_PERMANENT;
   $file = file_save($file);
-  file_usage_add($file, 'tripal_galaxy', $form_key, $nid);
 
   return $file->fid;
 }
@@ -671,6 +696,8 @@ function tripal_galaxy_fixed_value_process($element, $form_state, $complete_form
  */
 function tripal_galaxy_workflow_report($sid) {
 
+  drupal_add_js('misc/collapse.js');
+  drupal_add_library('system', 'drupal.collapse');
 
   if (!$sid) {
     return FALSE;
@@ -707,9 +734,6 @@ function tripal_galaxy_workflow_report($sid) {
     ->condition('galaxy_id', $submission->galaxy_id)
     ->execute()
     ->fetchObject();
-
-  $invoke_data = tripal_get_galaxy_invocation_data($sid);
-  dpm($invoke_data);
 
   $headers = array();
   $rows = array();
@@ -780,6 +804,7 @@ function tripal_galaxy_workflow_report($sid) {
   if (is_array($submission->errors)){
     ksort($submission->errors);
     foreach ($submission->errors as $step_index => $error) {
+
       $subrows = array();
       $subrows[] = array(
         array(
@@ -825,7 +850,7 @@ function tripal_galaxy_workflow_report($sid) {
         '<pre>' . $error['stderr'] . '</pre>',
       );
 
-      $state .= "<b>" . $error['step_name'] . '</b>' . theme_table(array(
+      $table = theme_table(array(
         'header' => array(),
         'rows' => $subrows,
         'attributes' => array(
@@ -835,7 +860,22 @@ function tripal_galaxy_workflow_report($sid) {
         'caption' => '',
         'colgroups' => array(),
         'empty' => '',
-      )) . '<br>';
+      ));
+
+      $step_name = $error['step_name'];
+      if (array_key_exists('tool_id', $error) and $error['tool_id']) {
+        $step_name = 'Input Dataset';
+      }
+      $state .= theme_fieldset(array(
+        'element' => array(
+          '#title' =>  $step_name . ' (' . $error['state'] . ')',
+          '#collapsed' => FALSE,
+          '#collapsible' => TRUE,
+          '#attributes' => array('class' => array('collapsible', 'collapsed')),
+          '#value' => $table,
+          '#children' => '<div>',
+        ),
+      ));
     }
   }
   $rows[] = array(
@@ -877,7 +917,7 @@ function tripal_galaxy_submission_user_report($sid) {
   $breadcrumb = array();
   $breadcrumb[] = l('Home', '<front>');
   $breadcrumb[] = l($user->name, 'user/' . $user->uid);
-  $breadcrumb[] = l('Galaxy Jobs', 'user/' . $user->uid . '/galaxy-jobs');
+  $breadcrumb[] = l('Workflow Submissions', 'user/' . $user->uid . '/galaxy-jobs');
   drupal_set_breadcrumb($breadcrumb);
 
   return tripal_galaxy_workflow_report($sid);

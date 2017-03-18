@@ -52,12 +52,12 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
  * reporting from webform.
  */
 function _webform_display_html5_file($component, $value, $format = 'html') {
-  $URL = '';
+  $filename = '';
 
   $fid =  $value['html5_file_fid'];
   if ($fid) {
     $file = file_load($fid);
-    $URL = file_create_url($file->uri);
+    $filename = $file->filename;
   }
 
   return array(
@@ -67,7 +67,7 @@ function _webform_display_html5_file($component, $value, $format = 'html') {
     '#theme' => 'webform_display_textfield',
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#format' => $format,
-    '#value' => $URL,
+    '#value' => $filename,
   );
 }
 
