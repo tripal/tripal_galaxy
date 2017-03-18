@@ -356,6 +356,10 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
 
   $step_index = $step['id'];
 
+  // We want to keep track of which inputs come from a repeat input type
+  // because there can be multiple values at different indicies.
+  $is_repeat = array_key_exists('is_repeat', $tool_input) ? $tool_input['is_repeat'] : FALSE;
+
   // Some tool inputs are nested. These include conditionals, repeats and
   // operators.  Therefore we weant to check what kind of input we
   // are dealing with.  If it's not one of those nested components then
@@ -369,6 +373,7 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
       $inputs = $tool_input['inputs'];
       foreach ($inputs as $repeat_index => $repeat_input) {
         $repeat_input['full_name'] = $tool_input['name'] . '|' . $repeat_index . '|' . $repeat_input['name'];
+        $repeat_input['is_repeat'] = TRUE;
         tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
             $step, $tool, $repeat_input, $pid);
       }
@@ -382,6 +387,9 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
       // we can find it's default value during recursion.
       $test_param = $tool_input['test_param'];
       $test_param['full_name'] = $tool_input['full_name'] . '|' . $test_param['name'];
+      if ($is_repeat) {
+        $test_param['is_repeat'] = TRUE;
+      }
 
       // Now add the test param as a component for the webform.
       tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
@@ -430,6 +438,9 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
             // We need to update the field name for the conditional so
             // we can find it's default value during recursion.
             $case_input['full_name'] = $tool_input['full_name'] . '|' . $case_input['name'];
+            if ($is_repeat) {
+              $case_input['is_repeat'] = TRUE;
+            }
 
             tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
                 $step, $tool, $case_input, $pid);
@@ -485,6 +496,7 @@ function tripal_galaxy_build_webform_add_component($webform,
     $input_name = $input['title'];
   }
 
+
   // Initiate variables that will be used for building the webform component.
   $is_list = 1;
   $webform_value = "";
@@ -499,6 +511,9 @@ function tripal_galaxy_build_webform_add_component($webform,
     'input_name' => $input['name'],
     'input_full_name' => $input['full_name'],
     'step_index' => $step['id'],
+    'tool_id' => $tool['id'],
+    'input_type' => $input['type'],
+    'is_repeat' => array_key_exists('is_repeat', $input) ? $input['is_repeat'] : FALSE,
   );
   if ($tool) {
     $extra['tool_name'] = $tool['name'];
@@ -548,7 +563,7 @@ function tripal_galaxy_build_webform_add_component($webform,
     case 'data':
       // Data appears to be a file selection of files that already
       // exists in the user's history.
-      $webform_type = 'file';
+      $webform_type = 'html5_file';
       $extra['filtering']['types'] = array('');
       // The webform 'file' component wants a size.  Let this default to the
       // server settings.
@@ -565,7 +580,7 @@ function tripal_galaxy_build_webform_add_component($webform,
       // we created for the 'data_input' step that doesn't have a tool.
       // we want to use this same function to create components so we fake
       // a tool and input and use this type.
-      $webform_type = 'file';
+      $webform_type = 'html5_file';
       $extra['filtering']['types'] = array('fastq', 'fasta');
       // The webform 'file' component wants a size.  Let this default to the
       // server settings.
