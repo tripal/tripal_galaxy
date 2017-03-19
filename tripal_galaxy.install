@@ -66,10 +66,9 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
     'primary key' => array(
        0 => 'galaxy_id',
     ),
-
-  	'unique keys' => array(
-  	  'tripal_galaxy_servername' => array('servername'),
-  	),
+    'unique keys' => array(
+      'tripal_galaxy_servername' => array('servername'),
+    ),
   );
 }
 
@@ -180,7 +179,7 @@ function tripal_galaxy_add_workflow_table(&$schema){
       0 => 'galaxy_workflow_id',
     ),
     'unique keys' => array(
-      'tripal_galaxy_workflow_uq1' => array('galaxy_id', 'workflow_id'),
+      'tripal_galaxy_workflow_uq1' => array('galaxy_id', 'workflow_id', 'workflow_uuid'),
     ),
   );
 }

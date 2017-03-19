@@ -22,8 +22,6 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
     $galaxies[$galaxy->galaxy_id] = $galaxy->servername;
   }
 
-  $i = 0;
-
   // Select which galaxy server to choose the workflows from
   $form['galaxy_id'] = array(
     '#type' => 'select',
@@ -51,45 +49,41 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
     );
 
     // Connect to the Galaxy instance.
-    $galaxy_instance = tripal_get_galaxy_connection($galaxy_id);
+    $galaxy = tripal_get_galaxy_connection($galaxy_id);
 
 
     // Check to make sure the connection is good.
-    if ($galaxy_instance->getVersion() == NULL) {
+    if ($galaxy->getVersion() == NULL) {
       drupal_set_message('Cannot connect to Galaxy Instance', 'error');
       return;
     }
 
     // Obtain the workflows
-    $workflows = new GalaxyWorkflows($galaxy_instance);
-    $workflows = $workflows->index();
+    $gworkflows = new GalaxyWorkflows($galaxy);
+    $workflows = $gworkflows->index();
 
     // Loop through each workflow to add it to the form
-    foreach ($workflows as &$workflow) {
+    foreach ($workflows as $workflow) {
 
       // First let's check to see if this workflow exists in our database,
       // if it does, assign default values as appropriate
-      $workflow_exists = 1;
-      $default_label = "";
-      $default_description = "";
-      $default_available = 0;
+      $workflow_exists = FALSE;
       $sql = "
         SELECT * FROM {tripal_galaxy_workflow}
         WHERE workflow_id = :workflow_id
-        AND galaxy_id = :galaxy_id
+          AND galaxy_id = :galaxy_id
+          AND workflow_uuid = :workflow_uuid
       ";
-      $workflow_instance = db_query($sql, array(
+      $workflow_rec = db_query($sql, array(
         ':workflow_id' => $workflow['id'],
-        ':galaxy_id' => $galaxy_id
-      ));
-      $workflow_instance = $workflow_instance->fetchObject ();
-      if ($workflow_instance == NULL || $workflow_instance == FALSE) {
-        $workflow_exists = 0;
+        ':galaxy_id' => $galaxy_id,
+        ':workflow_uuid' => $workflow['latest_workflow_uuid']
+      ))->fetchObject();
+      if ($workflow_rec) {
+        $workflow_exists = TRUE;
       }
-      else {
-        $default_label = $workflow_instance->label;
-        $default_description = $workflow_instance->description;
-      }
+
+      $i = $workflow['id'];
 
       // Workflow name
       $form['rows'][$i]['workflow_name-' . $i] = array(
@@ -114,8 +108,9 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
         '#type' => 'value',
         '#value' => $workflow['id']
       );
-      // Is added to site
-      if ($workflow_exists == 1) {
+      // If the workflow is already on the site then check and disable the
+      // box so it can't be added twice.
+      if ($workflow_exists) {
         $form['rows'][$i]['available-' . $i] = array(
           '#type' => 'checkbox',
           '#default_value' => 1,
@@ -129,14 +124,13 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
       else {
         $form['rows'][$i]['available-' . $i] = array(
           '#type' => 'checkbox',
-          '#default_value' => $workflow_exists
+          '#default_value' => 0
         );
         $form['contains_wf-' . $i] = array(
           '#type' => 'value',
           '#value' => FALSE
         );
       }
-      $i++;
     }
 
     // The themable funciton for the form.
@@ -261,7 +255,15 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
         drupal_set_message(t('The workflow was succesfully added! <p>Sometimes
           these workflows need a bit of tweaking to make them more intuitive
           for users. Click the title of the workflow below to customize how it
-          will appear to users. Consider improving: !list</p>', array('!list' => $list)));
+          will appear to users. Consider improving: !list</p><p>Also,
+          consider adding a version number to each of your workflow names below.
+          If a change is made to a workflow on the Galaxy server then the
+          workflow below will be marked as "Altered" and no user submission will
+          be allowed. This is because the web form provided by this site will
+          be out of sync with the workflow on the Galaxy server. If this
+          happens you will need to re-add the workflow and therefore the
+          version numbers will help users distinguish between multiple versions
+          of the same workflow.', array('!list' => $list)));
       }
       catch (Exception $e) {
         $transaction->rollback();

@@ -27,6 +27,10 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
       '#type' => 'checkbox',
       '#default_value' => $workflow->status
     );
+    $form['rows'][$i]['galaxy_workflow_id' . $i] = array(
+      '#type' => 'item',
+      '#markup' => $workflow->galaxy_workflow_id,
+    );
     $form['rows'][$i]['workflow_name' . $i] = array(
       '#type' => 'item',
       '#markup' => l($node->title, 'node/' . $workflow->nid),
@@ -39,13 +43,14 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
       '#type' => 'item',
       '#markup' => $galaxy->servername,
     );
-    $form['rows'][$i]['workflow_status' . $i] = array(
+    $form['rows'][$i]['workflow_status-' . $i] = array(
       '#type' => 'item',
       '#markup' => $workflow->status
     );
-    $form['rows'][$i]['workflow_id-' . $i] = array(
-      '#type' => 'value',
-      '#value' => $workflow->workflow_id
+    $form['rows'][$i]['workflow_ids-' . $i] = array(
+      '#type' => 'item',
+      '#markup' => 'Workflow ID: ' . $workflow->workflow_id . '</br>' .
+        'Workflow UUID: ' . $workflow->workflow_uuid . '',
     );
     $form['rows'][$i]['actions-' . $i] = array(
       '#type' => 'item',
@@ -79,10 +84,12 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
 
   // The apparopriate headers for this form's table.
   $headers = array(
+    'ID',
     'Workflow Name',
     'Name on Galaxy Server',
     'Galaxy Server',
     'Status',
+    'Galaxy IDs',
     'Actions'
   );
 
@@ -91,10 +98,12 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
   foreach (element_children($form_rows) as $i) {
     $row = $form_rows[$i];
     $rows[] = array(
+      drupal_render($row["galaxy_workflow_id" . $i]),
       drupal_render($row["workflow_name" . $i]),
       drupal_render($row["workflow_name_galaxy" . $i]),
       drupal_render($row["servername-" . $i]),
-      drupal_render($row["workflow_status" . $i]),
+      drupal_render($row["workflow_status-" . $i]),
+      drupal_render($row["workflow_ids-" . $i]),
       drupal_render($row["actions-" . $i])
     );
   }
