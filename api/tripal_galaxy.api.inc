@@ -226,7 +226,7 @@ function tripal_check_galaxy_submission_status($sid) {
  * Invokes all submitted workflwos that are in the 'Waiting' state.
  *
  */
-function tripal_invoke_galaxy_workflow($sid){
+function tripal_invoke_galaxy_workflow($sid) {
 
   // Get the workflows that need execution
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
@@ -411,6 +411,10 @@ function tripal_invoke_galaxy_workflow($sid){
     _tripal_galaxy_workflow_invoke_build_values($current_values, $input_name, $value);
     $parameters[$step_index] = $current_values;
   }
+
+//   print_r($parameters);
+//   print_r($input_datasets);
+
 
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);

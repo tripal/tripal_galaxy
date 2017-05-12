@@ -1,7 +1,6 @@
 <?php
 function tripal_galaxy_views_data() {
 
-
   $data['tripal_galaxy']['table']['group'] = t('Galaxy Server');
   $data['tripal_galaxy']['table']['base'] = array(
     'field' => 'galaxy_id',
@@ -33,9 +32,6 @@ function tripal_galaxy_views_data() {
       'handler' => 'views_handler_sort',
     ),
   );
-
-
-
 
   $data['tripal_galaxy_workflow']['table']['group'] = t('Galaxy Workflow');
   $data['tripal_galaxy_workflow']['table']['base'] = array(

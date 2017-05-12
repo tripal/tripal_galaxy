@@ -103,8 +103,8 @@ Drupal.behaviors.tripalGalaxyDashboard = {
     }
     
     
-    dashboard('#tripal-galaxy-usage-users-chart',top10users);
-    dashboard('#tripal-galaxy-usage-workflows-chart',top10workflows);
+    dashboard('#tripal-galaxy-usage-users-chart', top10users);
+    dashboard('#tripal-galaxy-usage-workflows-chart', top10workflows);
   
   }
 };

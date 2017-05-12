@@ -44,6 +44,8 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
     '#description' => array_key_exists('description', $component['extra']) ? $component['extra']['description'] : '',
     '#weight' => $component['weight'],
     '#theme_wrappers' => array('webform_element'),
+    '#usage_type' => $component['form_key'],
+    '#usage_id' => $component['nid'],
   );
   return $element;
 }
@@ -54,7 +56,14 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
 function _webform_display_html5_file($component, $value, $format = 'html') {
   $filename = '';
 
-  $fid =  $value['html5_file_fid'];
+  // Find the field ccontaining the fid.
+  $fid = NULL;
+  foreach ($value as $key => $val) {
+    if (preg_match('/submitted.*' . $component['form_key'] . '_/', $key)) {
+      $fid = $val;
+    }
+  }
+
   if ($fid) {
     $file = file_load($fid);
     $filename = $file->filename;
@@ -68,6 +77,7 @@ function _webform_display_html5_file($component, $value, $format = 'html') {
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#format' => $format,
     '#value' => $filename,
+    '#title' => !empty($component['name']) ? $component['name'] : 'Input File',
   );
 }
 
