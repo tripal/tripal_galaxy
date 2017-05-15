@@ -183,3 +183,21 @@ function tripal_galaxy_add_workflow_table(&$schema){
     ),
   );
 }
+
+/**
+ * Implements hook_requirements().
+ */
+function tripal_galaxy_requirements($phase) {
+  $requirements = array();
+  if ($phase == 'install') {
+    // make sure chado is installed
+    if (!module_exists('tripal_core') and !module_exists('tripal')) {
+      $requirements ['tripal_galaxy'] = array(
+        'title' => "tripal_galaxy",
+        'value' => "ERROR: You must have Tripal v2 or v3 installed to use this module.",
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+  return $requirements;
+}

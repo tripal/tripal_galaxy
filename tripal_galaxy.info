@@ -11,6 +11,5 @@ version = 7.x-2.x
 stylesheets[all][] = theme/css/tripal_galaxy.css
 scripts[]          = theme/js/tripal_galaxy.js
 
-dependencies[] = tripal
 dependencies[] = libraries
 dependencies[] = webform

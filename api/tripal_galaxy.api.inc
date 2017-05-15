@@ -19,6 +19,10 @@ function tripal_get_galaxy_connection($galaxy_id) {
     ->fetchObject();
 
   $library = libraries_load('blend4php');
+  if (array_key_exists('error', $library)) {
+    drupal_set_message($library['error message'], 'error');
+    return FALSE;
+  }
   $connect = tripal_split_galaxy_url($galaxy_server->url);
   $galaxy = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
   $galaxy->setAPIKey($galaxy_server->api_key);
@@ -506,6 +510,12 @@ function tripal_get_galaxy_history(GalaxyInstance $galaxy, $history_name, &$erro
  */
 function tripal_test_galaxy_connection($connect) {
 
+  $library = libraries_load('blend4php');
+  if (array_key_exists('error', $library)) {
+    drupal_set_message($library['error message'], 'error');
+    return FALSE;
+  }
+
   if (array_key_exists('galaxy_id', $connect)) {
     $galaxy_id = $connect['galaxy_id'];
     $galaxy = tripal_get_galaxy_connection($galaxy_id);
@@ -518,7 +528,6 @@ function tripal_test_galaxy_connection($connect) {
   else {
     // Create a new galaxy instance using the obtained hostname and port
     // Then Authenticate
-    $library = libraries_load('blend4php');
     $galaxy = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
     $error = $galaxy->getError();
     if ($error['message']) {
