@@ -5,7 +5,7 @@
  *
  * @param $galaxy_id
  *   The ID of a galaxy server.
- *
+ *hello
  * @return GalaxyInstance
  *   A galaxyInstance object or FALSE on error.
  *
@@ -65,6 +65,12 @@ function tripal_split_galaxy_url($url) {
       $use_https = TRUE;
       $port = 443;
     }
+  }
+  // for simple url w/port ie. localhost:8080
+  else if(preg_match('/(.*)\:(\d+)\/*$/', $url, $matches)) {
+    $use_https = FALSE;
+    $host = $matches[1];
+    $port = $matches[2];
   }
   return array(
     'host' => $host,
@@ -147,6 +153,10 @@ function tripal_check_galaxy_submission_status($sid) {
     'workflow_id' => $submission->workflow_id,
     'invocation_id' => $submission->invocation_id
   ));
+
+  ddl($submission, 'submission');
+  ddl($invocation, 'invocation');
+
   $error = $galaxy->getError();
 
   // Get the overall invocation state.
@@ -456,7 +466,32 @@ function tripal_invoke_galaxy_workflow($sid) {
 }
 
 /**
- * Retrieves a specific history for Galaxy.
+ * Retrieves the current history from Galaxy.
+ *
+ * @param $galaxy
+ *   A GalaxyInstance object
+ * @param $error
+ *   An empty array into which the error type and message will be placed
+ *   if an error occurs.
+ *
+ * @return
+ *   A history array for the specified history.  If a failure occured then
+ *   FALSE is returned and the $error argument is set.
+ */
+function tripal_get_current_history(GalaxyInstance $galaxy, &$error) {
+  $ghistories = new GalaxyHistories($galaxy);
+  $current_history = $ghistories->getMostRecentlyUsed();
+
+  if (!$current_history){
+    $error = $galaxy->getError();
+    return FALSE;
+  }
+
+  return $current_history;
+}
+
+/**
+ * Retrieves a history by name from Galaxy.
  *
  * @param $galaxy
  *   A GalaxyInstance object

@@ -189,6 +189,19 @@ function tripal_galaxy_menu() {
     'weight' => 10,
   );
 
+  // User report page
+  $items['user/%/galaxy-jobs/%/results'] = array (
+    'title' => 'Workflow Submission Files',
+    'description' => 'The files from a submitted workflow.',
+    'page callback' => '',
+    'page arguments' => array(3),
+    'access arguments' => array('view content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 10,
+  );
+
   //Usage
   $items['admin/tripal/extension/galaxy/usage'] = array (
     'title' => 'Usage',
@@ -211,20 +224,6 @@ function tripal_galaxy_menu() {
   //   'access arguments' => array ('administer galaxy'),
   //   'type' => MENU_CALLBACK,
   //   'file' => 'includes/tripal_galaxy.admin_queue.inc',
-  //   'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
-  // );
-
-  // Workflow
-  // $items['workflows'] = array (
-  //   'title' => 'Available Workflows',
-  //   'description' => 'A list of available analytical workflows for this site',
-  //   // Are we sure about this?
-  //   'page callback' => 'test_webforms',
-  //   'access arguments' => array (
-  //     'administer galaxy'
-  //   ),
-  //   'type' => MENU_LOCAL_TASK,
-  //   'file' => 'includes/tripal_galaxy.user.inc',
   //   'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
   // );
 
@@ -483,7 +482,6 @@ function tripal_galaxy_element_info() {
   );
   return $elements;
 }
-
 
 
 /**
@@ -1070,4 +1068,3 @@ function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
     watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), array(), WATCHDOG_ERROR);
   }
 }
-
