@@ -770,6 +770,16 @@ function tripal_galaxy_workflow_report($sid) {
     $state,
   );
 
+  
+  // $rows[] = array(
+  //   array(
+  //     'data' => Files,
+  //     'header' => TRUE,
+  //   ),
+  //   // Here will be ... a collection of clickable links to the files
+  //   // within the current history on the galaxy server
+  // );
+
 
   $details = theme_table(array(
     'header' => $headers,
