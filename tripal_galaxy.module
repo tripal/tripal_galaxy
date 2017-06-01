@@ -771,10 +771,15 @@ function tripal_galaxy_workflow_report($sid) {
 
   $files = '';
   $links = tripal_get_current_history_download_links(tripal_get_galaxy_connection($submission->galaxy_id), $hist_error);
-  dpm($links);
-  if(is_array($hist_error)){
-    // Display the error to the value of the files table
-    dpm($hist_error);
+  if(is_array($hist_error)) {
+    if(!$hist_error['message']) {
+      drupal_set_message(t('History is empty!'), 'warning');
+    }
+    else {
+      // Display the error to the value of the files table
+      drupal_set_message( t($hist_error['type'] . ': ' . $hist_error['message']), 'warning');
+    }
+
   }
   else {
     foreach ($links as $link => $url) {
@@ -837,10 +842,6 @@ function tripal_galaxy_workflow_report($sid) {
         'empty' => '',
       ));
 
-      // $step_name = $error['step_name'];
-      // if (array_key_exists('tool_id', $error) and $error['tool_id']) {
-      //   $step_name = 'Input Dataset';
-      // }
       $files .= theme_fieldset(array(
         'element' => array(
           '#title' =>  $link,
