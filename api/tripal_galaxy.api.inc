@@ -154,9 +154,6 @@ function tripal_check_galaxy_submission_status($sid) {
     'invocation_id' => $submission->invocation_id
   ));
 
-  ddl($submission, 'submission');
-  ddl($invocation, 'invocation');
-
   $error = $galaxy->getError();
 
   // Get the overall invocation state.
@@ -301,7 +298,7 @@ function tripal_invoke_galaxy_workflow($sid) {
   $files = db_select('file_usage', 'fu')
     ->fields('fu', array('fid'))
     ->condition('module', 'tripal_galaxy')
-    ->condition('id', $sid)
+    ->condition('id', $submission->nid)
     ->execute();
   $managed_files = array();
   while ($file = $files->fetchObject()) {
@@ -329,7 +326,7 @@ function tripal_invoke_galaxy_workflow($sid) {
     }
   }
 
-  // Next we need to reget the history content to get the IDs of the new files.
+  // Next we need to re-get the history content to get the IDs of the new files.
   $hcontents = $ghistory_contents->index(array('history_id' => $history['id']));
   $input_datasets = array();
 
@@ -426,8 +423,8 @@ function tripal_invoke_galaxy_workflow($sid) {
     $parameters[$step_index] = $current_values;
   }
 
-//   print_r($parameters);
-//   print_r($input_datasets);
+   //print_r($parameters);
+   //print_r($input_datasets);
 
 
   // Invoke the workflow and check for errors

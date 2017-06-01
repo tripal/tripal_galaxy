@@ -46,6 +46,7 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
     '#theme_wrappers' => array('webform_element'),
     '#usage_type' => $component['form_key'],
     '#usage_id' => $component['nid'],
+    '#usage_module' => 'tripal_galaxy',
   );
   return $element;
 }

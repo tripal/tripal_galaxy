@@ -1192,3 +1192,40 @@ function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
     watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), array(), WATCHDOG_ERROR);
   }
 }
+
+
+/**
+ * Implements hook_handle_uploaded_file().
+ */
+function tripal_galaxy_handle_uploaded_file($filename, $filepath, $type) {
+
+  global $user;
+
+  // Create a file object.
+  $file = new stdClass();
+  $file->uri = $filepath;
+  $file->filename = $filename;
+  $file->filemime = file_get_mimetype($filepath);
+  $file->uid = $user->uid;
+  $file->status = FILE_STATUS_PERMANENT;
+  $file = file_save($file);
+
+  // Split the type into a node ID and form_key
+  list($id, $form_key) = explode('-', $type);
+
+  // See if this file is already managed then add another entry fin the
+  // usage table.
+  $fid = db_select('file_managed', 'fm')
+    ->fields('fm', array('fid'))
+    ->condition('uri', $filepath)
+    ->execute()
+    ->fetchField();
+
+  if ($fid) {
+    $file = file_load($fid);
+    file_usage_add($file, 'tripal_galaxy', $form_key, $id);
+    return $fid;
+  }
+
+  return $file->fid;
+}
