@@ -5,7 +5,7 @@
  *
  * @param $galaxy_id
  *   The ID of a galaxy server.
- *hello
+ *
  * @return GalaxyInstance
  *   A galaxyInstance object or FALSE on error.
  *
@@ -507,6 +507,7 @@ function tripal_get_current_history(GalaxyInstance $galaxy, &$error) {
  *   FALSE is returned and the $error argument is set.
  */
 function tripal_get_galaxy_history(GalaxyInstance $galaxy, $history_name, &$error) {
+
   $ghistories = new GalaxyHistories($galaxy);
 
   // Look through existing histories to find what we're looking for.
@@ -533,10 +534,10 @@ function tripal_get_galaxy_history(GalaxyInstance $galaxy, $history_name, &$erro
  *
  * @param $connect
  *   An array of the following:
- *    - galaxy_id:  A unique ID for the galaxy server. If this is provided no
+ *    - galaxy_id: A unique ID for the galaxy server. If this is provided no
  *        other arguments are needed.
- *    - host:  The DNS hostname of the galaxy server.
- *    - port:  The TCP port for the server.
+ *    - host: The DNS hostname of the galaxy server.
+ *    - port: The TCP port for the server.
  *    - use_https:  Set to TRUE of the server uses HTTPS
  *
  * @param
@@ -584,3 +585,88 @@ function tripal_test_galaxy_connection($connect) {
   }
   return TRUE;
 }
+
+/**
+ * Generates the contents of the current history from the Galaxy server.
+ *
+ *  The first element in the array should be the entire history compressed
+ *  as a single file.
+ *  'entire' => [url_to_download_whole_history]
+ * @param $galaxy
+ *   A GalaxyInstance object
+ * @param $error
+ *   An empty array into which the error type and message will be placed
+ *   if an error occurs.
+  *
+ * @param
+ *   Returns an associative array with the keys being the name of the step and
+ *   the values being the URLs of the results of that particular step.
+ */
+ function tripal_get_current_history_download_links(GalaxyInstance $galaxy, &$error) {
+
+   $links = array();
+   $whole_history = tripal_get_current_history($galaxy, $error);
+
+   $ghistories = new GalaxyHistories($galaxy);
+   $ghistory_contents = new GalaxyHistoryContents($galaxy);
+
+   // Acquire the individual contents from the current history.
+   $contents = $ghistory_contents->index(array('history_id' => $whole_history['id']));
+
+   if(!$contents) {
+     $error = $galaxy->getError();
+     return FALSE;
+   }
+
+   // Provide the entire history for download first.
+   $history_params['history_id'] = $whole_history['id'];
+   $history_params['url_only'] = TRUE;
+   $links['whole_history'] = $ghistory_contents->download_history($history_params);
+
+   // Iterate through the contents and generate the other id's.
+   $download_history_content_params = array();
+
+   $download_history_content_params['history_id'] = $whole_history['id'];
+   $download_history_content_params['url_only'] = TRUE;
+
+   // Generate the clickable URLs.
+   foreach($contents as $key => $val) {
+     $download_history_content_params['history_content_id'] = $val['id'];
+     $links[$val['hid'] . ': ' . $val['name']] = $ghistory_contents->download_history_content($download_history_content_params);
+   }
+
+   return $links;
+
+ }
+
+ /**
+ *  Generate the client prompt based off of the history/history_content.
+ *  TODO: Generate a variable number of the contents within a history
+ *  TODO: Generate a history_content file as a compressed file.
+ * @param $galaxy
+ *   A GalaxyInstance object
+ * @param $error
+ *   An empty array into which the error type and message will be placed
+ *   if an error occurs.
+ * @param $history_id
+ *   The history to prepare for download.
+ * @param $history_content_id
+ *   Optional, specify the content_id to download only that piece from the
+ *   history.
+ */
+ function tripal_generate_history_file(GalaxyInstance $galaxy, &$error, $history_id, $history_content_id = NULL) {
+   // Check if we're looking for a whole history or a single history content.
+   $ghistory_contents = new GalaxyHistoryContents($galaxy);
+   $params = array();
+   $params['history_id'] = $history_id;
+   // Download the whold history
+   if(!$history_content_id) {
+     return $ghistory_contents->download_history($params);
+   }
+   // Else download the specified content
+   else {
+     // Include the specified content_id
+     $params['history_content_id'] = $history_content_id;
+     return $ghistory_contents->download_history_content($params);
+   }
+ }

@@ -483,7 +483,6 @@ function tripal_galaxy_element_info() {
   return $elements;
 }
 
-
 /**
  *
  */
@@ -770,15 +769,101 @@ function tripal_galaxy_workflow_report($sid) {
     $state,
   );
 
-  
-  // $rows[] = array(
-  //   array(
-  //     'data' => Files,
-  //     'header' => TRUE,
-  //   ),
-  //   // Here will be ... a collection of clickable links to the files
-  //   // within the current history on the galaxy server
-  // );
+  $files = '';
+  $links = tripal_get_current_history_download_links(tripal_get_galaxy_connection($submission->galaxy_id), $hist_error);
+  dpm($links);
+  if(is_array($hist_error)){
+    // Display the error to the value of the files table
+    dpm($hist_error);
+  }
+  else {
+    foreach ($links as $link => $url) {
+
+      $subrows = array();
+      $subrows[] = array(
+        // array(
+        //   'data' => $link,
+        //   'header' => TRUE,
+        // ),
+        l($link, $url),
+      );
+      // Metadata like size?
+      // $subrows[] = array(
+      //   array(
+      //     'data' => 'Job ID',
+      //     'header' => TRUE,
+      //   ),
+      //   $error['job_id'],
+      // );
+      // $subrows[] = array(
+      //   array(
+      //     'data' => 'State',
+      //     'header' => TRUE,
+      //     'width' => '100px',
+      //   ),
+      //   $error['state'] == 'error' ? '<font color="red"><b>' . $error['state'] . '</b></font>' : $error['state'],
+      // );
+      // $subrows[] = array(
+      //   array(
+      //     'data' => 'Misc Info',
+      //     'header' => TRUE,
+      //   ),
+      //   $error['misc_info'],
+      // );
+      // $subrows[] = array(
+      //   array(
+      //     'data' => 'Ouput Log',
+      //     'header' => TRUE,
+      //   ),
+      //   '<pre>' . $error['stdout'] . '</pre>',
+      // );
+      // $subrows[] = array(
+      //   array(
+      //     'data' => 'Error Log',
+      //     'header' => TRUE,
+      //   ),
+      //   '<pre>' . $error['stderr'] . '</pre>',
+      // );
+
+      $table = theme_table(array(
+        'header' => array(),
+        'rows' => $subrows,
+        'attributes' => array(
+          'class' => 'tripal-galaxy-submission-state-table'
+        ),
+        'sticky' => FALSE,
+        'caption' => '',
+        'colgroups' => array(),
+        'empty' => '',
+      ));
+
+      // $step_name = $error['step_name'];
+      // if (array_key_exists('tool_id', $error) and $error['tool_id']) {
+      //   $step_name = 'Input Dataset';
+      // }
+      $files .= theme_fieldset(array(
+        'element' => array(
+          '#title' =>  $link,
+          '#collapsed' => FALSE,
+          '#collapsible' => TRUE,
+          '#attributes' => array('class' => array('collapsible', 'collapsed')),
+          '#value' => $table,
+          '#children' => '<div>',
+        ),
+      ));
+    }
+  }
+
+
+  // Here will be a collection of clickable links to the files
+  // within the current history on the galaxy server
+  $rows[] = array(
+    array(
+      'data' => 'Files',
+      'header' => TRUE,
+    ),
+    $files,
+  );
 
 
   $details = theme_table(array(
@@ -894,6 +979,34 @@ function tripal_galaxy_cron_queue_info() {
    );
    return $info;
 }
+
+/**
+ * Funciton call for generating the file(s) to download.
+ *
+ * @param $links
+ *   An associative array of links generated to then query the galaxy server
+ *   for (compressed) file(s) to download from the result history of the
+ *   workflow.
+ *
+ * @param
+ *   Returns a single prompt to download that given file.
+ */
+function tripal_galaxy_download_from_links($link_clicked, $links) {
+
+  // Iterate through the $links list looking for the link_clicked key, if it
+  // exists generate the prompt for downloading the file(s) to the client.
+
+  // Check if the user clicked the whole history or a history content link.
+  // Two different calls for now
+  if($link_clicked == 'whole_history') {
+
+  }
+
+  else if(array_key_exists($link_clicked, $links)) {
+
+  }
+}
+
 /**
  * Implementation of callback_queue_worker().
  */
