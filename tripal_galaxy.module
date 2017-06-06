@@ -686,6 +686,13 @@ function tripal_galaxy_workflow_report($sid) {
   if (is_array($submission->errors)){
     ksort($submission->errors);
     foreach ($submission->errors as $step_index => $error) {
+      // I have the invocation and galaxy workflow id, I only need to
+      // associate the job ids in order to have the files in the right
+      // steps, to do this look at the the history_content's creating_job
+      // id an check the particular step iteration # and place the file(s) with
+      // that particular step!!
+      // Within loop check if the job id spawned any of the history_contents
+      // If so generate the link and remove the history_content from the list
 
       $subrows = array();
       $subrows[] = array(
@@ -745,8 +752,9 @@ function tripal_galaxy_workflow_report($sid) {
       ));
 
       $step_name = $error['step_name'];
-      if (array_key_exists('tool_id', $error) and $error['tool_id']) {
-        $step_name = 'Input Dataset';
+      if (array_key_exists('job_id', $error) and !$error['job_id']) {
+        $step_name = rtrim($step_name, 'v');
+        $step_name .= 'Input Dataset';
       }
       $state .= theme_fieldset(array(
         'element' => array(
@@ -770,7 +778,7 @@ function tripal_galaxy_workflow_report($sid) {
   );
 
   $files = '';
-  $links = tripal_get_current_history_download_links(tripal_get_galaxy_connection($submission->galaxy_id), $hist_error);
+  $links = tripal_get_current_galaxy_history_download_links(tripal_get_galaxy_connection($submission->galaxy_id), $hist_error);
   if(is_array($hist_error)) {
     if(!$hist_error['message']) {
       drupal_set_message(t('History is empty!'), 'warning');
@@ -781,90 +789,48 @@ function tripal_galaxy_workflow_report($sid) {
     }
 
   }
-  else {
-    foreach ($links as $link => $url) {
-
-      $subrows = array();
-      $subrows[] = array(
-        // array(
-        //   'data' => $link,
-        //   'header' => TRUE,
-        // ),
-        l($link, $url),
-      );
-      // Metadata like size?
-      // $subrows[] = array(
-      //   array(
-      //     'data' => 'Job ID',
-      //     'header' => TRUE,
-      //   ),
-      //   $error['job_id'],
-      // );
-      // $subrows[] = array(
-      //   array(
-      //     'data' => 'State',
-      //     'header' => TRUE,
-      //     'width' => '100px',
-      //   ),
-      //   $error['state'] == 'error' ? '<font color="red"><b>' . $error['state'] . '</b></font>' : $error['state'],
-      // );
-      // $subrows[] = array(
-      //   array(
-      //     'data' => 'Misc Info',
-      //     'header' => TRUE,
-      //   ),
-      //   $error['misc_info'],
-      // );
-      // $subrows[] = array(
-      //   array(
-      //     'data' => 'Ouput Log',
-      //     'header' => TRUE,
-      //   ),
-      //   '<pre>' . $error['stdout'] . '</pre>',
-      // );
-      // $subrows[] = array(
-      //   array(
-      //     'data' => 'Error Log',
-      //     'header' => TRUE,
-      //   ),
-      //   '<pre>' . $error['stderr'] . '</pre>',
-      // );
-
-      $table = theme_table(array(
-        'header' => array(),
-        'rows' => $subrows,
-        'attributes' => array(
-          'class' => 'tripal-galaxy-submission-state-table'
-        ),
-        'sticky' => FALSE,
-        'caption' => '',
-        'colgroups' => array(),
-        'empty' => '',
-      ));
-
-      $files .= theme_fieldset(array(
-        'element' => array(
-          '#title' =>  $link,
-          '#collapsed' => FALSE,
-          '#collapsible' => TRUE,
-          '#attributes' => array('class' => array('collapsible', 'collapsed')),
-          '#value' => $table,
-          '#children' => '<div>',
-        ),
-      ));
-    }
-  }
-
-
-  // Here will be a collection of clickable links to the files
-  // within the current history on the galaxy server
-  $rows[] = array(
-    array(
-      'data' => 'Files',
-      'header' => TRUE,
-    ),
-    $files,
-  );
+  // else {
+  //   foreach ($links as $link => $url) {
+  //
+  //     $subrows = array();
+  //     $subrows[] = array(
+  //       l($link, $url),
+  //     );
+  //     $table = theme_table(array(
+  //       'header' => array(),
+  //       'rows' => $subrows,
+  //       'attributes' => array(
+  //         'class' => 'tripal-galaxy-submission-state-table'
+  //       ),
+  //       'sticky' => FALSE,
+  //       'caption' => '',
+  //       'colgroups' => array(),
+  //       'empty' => '',
+  //     ));
+  //
+  //     $files .= theme_fieldset(array(
+  //       'element' => array(
+  //         '#title' =>  $link,
+  //         '#collapsed' => FALSE,
+  //         '#collapsible' => TRUE,
+  //         '#attributes' => array('class' => array('collapsible', 'collapsed')),
+  //         '#value' => $table,
+  //         '#children' => '<div>',
+  //       ),
+  //     ));
+  //   }
+  // }
+  //
+  //
+  // // Here will be a collection of clickable links to the files
+  // // within the current history on the galaxy server
+  // $rows[] = array(
+  //   array(
+  //     'data' => 'Files',
+  //     'header' => TRUE,
+  //   ),
+  //   $files,
+  // );
 
 
   $details = theme_table(array(

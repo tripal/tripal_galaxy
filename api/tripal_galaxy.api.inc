@@ -234,7 +234,8 @@ function tripal_check_galaxy_submission_status($sid) {
 }
 
 /**
- * Invokes all submitted workflwos that are in the 'Waiting' state.
+ * Invokes all submitted workflows that are in the 'Waiting' state.
+ *
  *
  */
 function tripal_invoke_galaxy_workflow($sid) {
@@ -599,7 +600,7 @@ function tripal_test_galaxy_connection($connect) {
  *   Returns an associative array with the keys being the name of the step and
  *   the values being the URLs of the results of that particular step.
  */
- function tripal_get_current_history_download_links(GalaxyInstance $galaxy, &$error) {
+ function tripal_get_current_galaxy_history_download_links(GalaxyInstance $galaxy, &$error) {
 
    $links = array();
    $whole_history = tripal_get_current_history($galaxy, $error);
@@ -616,9 +617,9 @@ function tripal_test_galaxy_connection($connect) {
    }
 
    // Provide the entire history for download first.
-   $history_params['history_id'] = $whole_history['id'];
+  //  $history_params['history_id'] = $whole_history['id'];
    $history_params['url_only'] = TRUE;
-   $links['whole_history'] = $ghistory_contents->download_history($history_params);
+  //  $links['whole_history'] = $ghistory_contents->download_history($history_params);
 
    // Iterate through the contents and generate the other id's.
    $download_history_content_params = array();
@@ -629,9 +630,14 @@ function tripal_test_galaxy_connection($connect) {
    // Generate the clickable URLs.
    foreach($contents as $key => $val) {
      $download_history_content_params['history_content_id'] = $val['id'];
-     $links[$val['hid'] . ': ' . $val['name']] = $ghistory_contents->download_history_content($download_history_content_params);
+     // If the history content has been marked as deleted or purged DO NOT
+     // include the file as a downloadable link
+     if($ghistory_contents->download_history_content($download_history_content_params)){
+       $links[$val['hid'] . ': ' . $val['name']] = $ghistory_contents->download_history_content($download_history_content_params);
+     }
    }
 
+   dpm($links);
    return $links;
 
  }
