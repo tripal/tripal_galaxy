@@ -153,7 +153,6 @@ function tripal_check_galaxy_submission_status($sid) {
     'workflow_id' => $submission->workflow_id,
     'invocation_id' => $submission->invocation_id
   ));
-
   $error = $galaxy->getError();
 
   // Get the overall invocation state.
@@ -164,6 +163,11 @@ function tripal_check_galaxy_submission_status($sid) {
   $state = array();
   $has_error = FALSE;
   $all_ok = FALSE;
+
+  // XXX: There needs to be an error check here
+  // If there's an altered workflow this will throw an error
+  // Need to go further up to find out why this is being called and not
+  // getting an invocation
   foreach ($invocation['steps'] as $step) {
     $step_index = $step['order_index'];
 
@@ -616,28 +620,31 @@ function tripal_test_galaxy_connection($connect) {
      return FALSE;
    }
 
-   // Provide the entire history for download first.
-  //  $history_params['history_id'] = $whole_history['id'];
    $history_params['url_only'] = TRUE;
-  //  $links['whole_history'] = $ghistory_contents->download_history($history_params);
 
    // Iterate through the contents and generate the other id's.
    $download_history_content_params = array();
 
    $download_history_content_params['history_id'] = $whole_history['id'];
    $download_history_content_params['url_only'] = TRUE;
-
    // Generate the clickable URLs.
    foreach($contents as $key => $val) {
      $download_history_content_params['history_content_id'] = $val['id'];
      // If the history content has been marked as deleted or purged DO NOT
      // include the file as a downloadable link
      if($ghistory_contents->download_history_content($download_history_content_params)){
-       $links[$val['hid'] . ': ' . $val['name']] = $ghistory_contents->download_history_content($download_history_content_params);
+       // Create a nested array for holding the particular job id that started
+       // the creation of the history content that we are viewing.
+
+       // API call to the specific history_content to to get the creating_job
+       // id
+       $links[$val['hid'] . ': ' . $val['name']] = array();
+       $links[$val['hid'] . ': ' . $val['name']]['job_id'] = $ghistory_contents->show(array('id' => $val['id'], 'history_id' => $whole_history['id']))['creating_job'];
+       $links[$val['hid'] . ': ' . $val['name']]['id'] = $val['id'];
+       $links[$val['hid'] . ': ' . $val['name']]['link'] = $ghistory_contents->download_history_content($download_history_content_params);
      }
    }
 
-   dpm($links);
    return $links;
 
  }

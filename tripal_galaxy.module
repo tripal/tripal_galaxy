@@ -683,6 +683,7 @@ function tripal_galaxy_workflow_report($sid) {
 
 
   $state = '';
+  $links = tripal_get_current_galaxy_history_download_links(tripal_get_galaxy_connection($submission->galaxy_id), $hist_error);
   if (is_array($submission->errors)){
     ksort($submission->errors);
     foreach ($submission->errors as $step_index => $error) {
@@ -693,8 +694,28 @@ function tripal_galaxy_workflow_report($sid) {
       // that particular step!!
       // Within loop check if the job id spawned any of the history_contents
       // If so generate the link and remove the history_content from the list
+      // The file tool pieces are really placebo's in the galaxy workflow so
+      // I will need to associate the tools in order and make sure the steps
+      // have the right name i.e. Forward Reads, Reverse Reads, Reference
+      // We have it set up where the the files will be uploaded serially
+      // which is good so we can safely assign each
 
+
+      // iterate through the links
+      // if there is an
       $subrows = array();
+      foreach($links as $key => $val){
+        if($error['job_id'] == $val['job_id']){
+          $subrows[] = array(
+            array(
+              'data' => 'Results',
+              'header' => TRUE,
+            ),
+            l($key, $val['link']),
+          );
+          unset($links[$key]);
+        }
+      }
       $subrows[] = array(
         array(
           'data' => 'Step ID',
@@ -778,7 +799,6 @@ function tripal_galaxy_workflow_report($sid) {
   );
 
   $files = '';
-  $links = tripal_get_current_galaxy_history_download_links(tripal_get_galaxy_connection($submission->galaxy_id), $hist_error);
   if(is_array($hist_error)) {
     if(!$hist_error['message']) {
       drupal_set_message(t('History is empty!'), 'warning');
