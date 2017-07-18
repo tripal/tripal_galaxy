@@ -15,6 +15,8 @@ function tripal_galaxy_schema() {
   tripal_galaxy_add_galaxy_table($schema);
   tripal_galaxy_add_workflow_table($schema);
   tripal_galaxy_add_workflow_submission_table($schema);
+  tripal_galaxy_add_custom_quota_table($schema);
+  tripal_galaxy_add_expiration_files_table($schema);
 
   return $schema;
 }
@@ -30,21 +32,21 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
     'fields' => array(
       'galaxy_id' => array(
         'type' => 'serial',
-        'not null' => TRUE
+        'not NULL' => TRUE
       ),
       'url' => array(
         'type' => 'text',
-        'not null' => TRUE
+        'not NULL' => TRUE
        ),
       'uid' => array(
         'type' => 'int',
-        'not null' => TRUE
+        'not NULL' => TRUE
       ),
       'save_auth' => array(
         'type' => 'int',
         'size' => 'tiny',
         'default' => 1,
-        'not null' => TRUE
+        'not NULL' => TRUE
       ),
       'username' => array(
         'type' => 'varchar',
@@ -60,7 +62,7 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
       ),
       'description' => array(
         'type' => 'text',
-      'not null' => FALSE,
+      'not NULL' => FALSE,
        ),
     ),
     'primary key' => array(
@@ -84,11 +86,11 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
     'fields' => array (
       'sid' => array(
         'type' => 'int',
-        'not null' => TRUE
+        'not NULL' => TRUE
       ),
       'galaxy_workflow_id' => array(
         'type' => 'int',
-        'not null' => TRUE
+        'not NULL' => TRUE
       ),
       'errors' => array(
         'type' => 'text',
@@ -141,15 +143,15 @@ function tripal_galaxy_add_workflow_table(&$schema){
     'fields' => array (
       'galaxy_workflow_id' => array(
         'type' => 'serial',
-        'not null' => TRUE
+        'not NULL' => TRUE
       ),
       'nid' => array(
         'type' => 'int',
-        'not null' => TRUE
+        'not NULL' => TRUE
       ),
       'galaxy_id' => array(
         'type' => 'int',
-        'not null' => TRUE
+        'not NULL' => TRUE
       ),
       'status' => array(
         'type' => 'varchar',
@@ -159,20 +161,20 @@ function tripal_galaxy_add_workflow_table(&$schema){
       'workflow_id' => array(
         'type' => 'varchar',
         'length' => 128,
-        'not null' => TRUE,
+        'not NULL' => TRUE,
         'description' => 'The ID of the workflow on the Galaxy server.'
       ),
       'workflow_uuid' => array(
         'type' => 'varchar',
         'length' => 1024,
-        'not null' => TRUE,
+        'not NULL' => TRUE,
         'description' => 'Each Galaxy workflow has a unique UUID nad each time ' .
           'the workflow is changed the UUID changes. This way we can ensure that ' .
           'workflows are disabled if the UUID changes.'
       ),
       'workflow_name' => array(
         'type' => 'text',
-        'not null'=> TRUE,
+        'not NULL'=> TRUE,
       ),
     ),
     'primary key' => array(
@@ -182,6 +184,53 @@ function tripal_galaxy_add_workflow_table(&$schema){
       'tripal_galaxy_workflow_uq1' => array('galaxy_id', 'workflow_id', 'workflow_uuid'),
     ),
   );
+}
+
+/**
+ * Adds the 'tripal_galaxy_custom_quota' table to Drupal schema.
+ */
+function tripal_galaxy_add_custom_quota_table(&$schema) {
+  $schema['tripal_galaxy_custom_quota'] = array (
+    'table' => 'tripal_galaxy_custom_quota',
+    'fields' => array (
+      'uid' => array(
+        'type' => 'int',
+        'size' => 'big',
+        'not NULL' => TRUE,
+      ),
+      'custom_quota' => array(
+        'type' => 'int',
+        'not NULL' => TRUE,
+      ),
+      'custom_expiration' => array(
+        'type' => 'int',
+        'size' => 'big',
+        'not NULL' => TRUE,
+      ),
+    ),
+    'primary key' => array(
+      0 => 'uid',
+    ),
+  );
+}
+function tripal_galaxy_add_expiration_files_table(&$schema) {
+  $schema['tripal_galaxy_expiration_files'] = array (
+    'table' => 'tripal_galaxy_expiration_files',
+    'fields' => array (
+      'fid' => array(
+        'type' => 'int',
+        'not NULL' => TRUE
+      ),
+      'expiration_date' => array(
+        'type' => 'int',
+        'size' => 'big',
+        'not NULL' => TRUE
+      ),
+    ),
+      'primary key' => array(
+        0 => 'fid'
+      ),
+    );
 }
 
 /**
@@ -200,4 +249,16 @@ function tripal_galaxy_requirements($phase) {
     }
   }
   return $requirements;
+}
+
+
+function tripal_galaxy_uninstall () {
+  // Remove the two quota variables
+  // Remove the db tables that this installed
+  drupal_uninstall_schema('tripal_galaxy');
+  db_drop_table('tripal_galaxy');
+  db_drop_table('tripal_galaxy_workflow');
+  db_drop_table('tripal_galaxy_workflow_submission');
+  db_drop_table('tripal_galaxy_custom_quota');
+  db_drop_table('tripal_galaxy_expiration_files');
 }

@@ -121,6 +121,11 @@ function tripal_check_galaxy_workflow_status($galaxy_workflow_id) {
 /**
  * Checks and updates the status of a Galaxy workflow.
  *
+ * XXX: This is being called twice?!
+ *      Stash and see what I messed up so I can get back to work
+ *      Didn't work .... something is more wrong
+ *
+ *
  * Each Galaxy workflow has a unique UUID.  Each time the workflow is changed
  * that UUID changes as well.
  */
@@ -140,6 +145,8 @@ function tripal_check_galaxy_submission_status($sid) {
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
 
+  drupal_set_message(print_r($submission, TRUE));
+
   // Get the node for this submission.
   $node = node_load($submission->nid);
 
@@ -148,12 +155,21 @@ function tripal_check_galaxy_submission_status($sid) {
   $gworkflows = new GalaxyWorkflows($galaxy);
   $error = $galaxy->getError();
 
+
+  if($error){
+    drupal_set_message(print_r($galaxy->getError(), TRUE));
+  }
+
   // Get the invocation specified.
   $invocation = $gworkflows->showInvocations(array(
     'workflow_id' => $submission->workflow_id,
     'invocation_id' => $submission->invocation_id
   ));
   $error = $galaxy->getError();
+
+  if(!$invocation){
+    drupal_set_message(print_r($error, TRUE));
+  }
 
   // Get the overall invocation state.
   $istate = $invocation['state'];
@@ -679,4 +695,205 @@ function tripal_test_galaxy_connection($connect) {
      $params['history_content_id'] = $history_content_id;
      return $ghistory_contents->download_history_content($params);
    }
+ }
+
+/**
+ * API call to remove a user from the custom quota table
+ *
+ * @return Boolean value to confirm removal from the table.
+ **/
+ function tripal_galaxy_admin_remove_user_quota($uid) {
+   $query = "DELETE
+             FROM {tripal_galaxy_custom_quota}
+             WHERE uid =:uid";
+   db_query($query, array('uid' => $uid));
+   // Verify that the entry IS deleted
+
+   drupal_set_message("User removed from custom quota");
+   drupal_goto('admin/tripal/files');
+ }
+
+/**
+ * API call to edit an existing user's custom quota
+ *
+ *
+ * @return Associative array of user's new quota and exp_date from db table.
+ **/
+ function tripal_galaxy_admin_edit_user_quota($uid, $new_quota, $new_exp_date) {
+
+ }
+
+/**
+ * API call to gather the user(s) with custom quotas.
+ * The way this will be called is intended where the admin will have one or
+ * the other, this funciton is not intended to see whether a particular user
+ * exists in the table
+ *
+ * TODO: Create search fn to query the table and return the entry if it
+ *       exists else return bool FALSE
+ *
+ * @param $uid
+ *        The UID of the user
+ *        use 'all' to gather all users in the table
+ *
+ * @return Associatve array of the users with custom quotas
+**/
+ function tripal_galaxy_gather_user_custom_quotas($uid) {
+
+   $rows = array();
+   // Grab all of the users from the table
+  if($uid == 'all') {
+
+     $query = "SELECT *
+               FROM {tripal_galaxy_custom_quota}";
+     $data = db_query($query);
+
+
+     // Find ALL of the users
+     while($entry = $data->fetchObject()) {
+
+       $query = "SELECT name
+                 FROM {users}
+                 WHERE uid = :uid";
+
+       $rows[] = array(
+         'uid' => $entry->uid,
+         'user' => db_query($query, array('uid' => $entry->uid))->fetchObject()->name,
+         'custom_quota' => $entry->custom_quota,
+         'exp_date' => $entry->custom_expiration,
+       );
+   }
+  }
+
+  else {
+    $query = "SELECT *
+              FROM {tripal_galaxy_custom_quota}
+              WHERE uid = :uid";
+    $data = db_query($query, array ('uid' => $uid));
+
+    // Find a single user only
+    if($entry = $data->fetchObject()) {
+      $query = "SELECT name
+                FROM {users}
+                WHERE uid = :uid";
+
+      $rows[] = array(
+        'uid' => $entry->uid,
+        'user' => db_query($query, array('uid' => $uid))->fetchObject()->name,
+        'custom_quota' => $entry->custom_quota,
+        'exp_date' => $entry->custom_expiration,
+      );
+    }
+  }
+   return $rows;
+ }
+
+/**
+ * API call to overwrite a user's current quota/exp date with a new one
+ *
+ * @param $uid
+ *
+ * @param $update_entry
+ *        Associative array of the columns to overwrite
+ *        - custom_quota => XX
+ *        - custom_expiration => XX
+ *
+**/
+function tripal_galaxy_update_user_quota($update_entry, $uid){
+
+  db_update('tripal_galaxy_custom_quota')
+  ->fields($update_entry)
+  ->condition('uid', $uid, '=')
+  ->execute();
+}
+
+
+/**
+ *  API call to add a user to the custom quota
+ *
+ *  @param $values
+ *         Associative array of the columns to write
+ *         - uid => XX
+ *         - custom_quota => XX
+ *         - custom_expiration => XX
+ *
+ * @return Associative array of user's non-defualt quota and exp_date
+ **/
+ function tripal_galaxy_add_user_quota($values) {
+   db_insert('tripal_galaxy_custom_quota')
+   ->fields($values)
+   ->execute();
+
+ }
+
+/**
+ * API call to gather all files from a user with a given module.
+ * This call is used to populate the table found on /user/%/files
+ *
+ *
+ * @return (array) rows of files associated to the user of the given module
+**/
+ function tripal_galaxy_gather_user_files($uid, $module) {
+   // Return to populate the table (the associative keys will match keys in the
+   // header of the table)
+   $rows = array();
+   $file_results;
+
+   // Select all files regardless of module
+   if($module == 'all') {
+     $query = db_select('file_managed', 'fm')
+                        ->fields('fm', array('filename', 'fid', 'filesize', 'uri', 'timestamp'));
+     $query->innerJoin('file_usage', 'fu', 'fm.fid = fu.fid AND fm.uid = :uid',
+                                       array(':uid' => $uid));
+     $file_results = $query->execute();
+   }
+
+   // Select files of only a certain type of module
+   else {
+     $query = db_select('file_managed', 'fm')
+                        ->fields('fm', array('filename', 'fid', 'filesize', 'uri', 'timestamp'));
+     $query->innerJoin('file_usage', 'fu', 'fm.fid = fu.fid AND fm.uid = :uid AND fu.module = :module',
+                                       array(':uid' => $uid, ':module' => $module));
+     $file_results = $query->execute();
+   }
+
+   // Query the tripal_galaxy_custom_quota table for user entry
+   $query = "SELECT custom_quota, custom_expiration
+             FROM {tripal_galaxy_custom_quota}
+             WHERE uid = :uid";
+   $results = db_query($query, array(':uid' => $uid))->fetchObject();
+   // If there is an entry include the custom quota/expiration date to the
+   // rows to return
+   // NOTE: be sure to delete in the interfacing function so they don't show
+   // up in the rows of the table
+
+   // Query file_usage id and tripal_galaxay_workflow nid, populate file_usage
+   // foreach fid found in the file_results
+   // Make the workflows clickable from the file_usage tab (will need to query
+   // tripal_galaxy_workflow_submission table for the sid)
+   while($entry = $file_results->fetchObject()){
+    //  $query = db_select('file_usage', 'fu');
+    //  $file_usage_results = $query->innerJoin('tripal_galaxy_workflow', 'tgw', 'tgw.nid = fu.id AND fu.id = :fmid'
+    //                                          array(':fmid' => $entry->fid)
+    //                               ->fields(),
+      }
+
+
+
+   while($entry = $file_results->fetchObject()) {
+     $rows[] = array(
+       'fid' => $entry->fid,
+       'filename' => $entry->filename,
+       // Calculate the expiration dates of the files based off of the expiration
+       // date and the timestamp of uploading
+        // NOTE: use date('Y-m-d H:i:s', $timestamp)
+       'timestamp' => date('Y-m-d H:i:s', $entry->timestamp),
+       'expiration_date' => '',//  time() + /* expiration_date variable here*/,
+       'filesize' => $entry->filesize,
+       'file_usage' => ''
+
+     );
+   }
+
+  return $rows;
  }

@@ -66,7 +66,11 @@ function tripal_galaxy_permission() {
     'administer galaxy' => array (
       'title' => t ( 'Administer Galaxy' ),
       'description' => t ( 'Allows a user to configure site-wide default Galaxy instances.' )
-    )
+    ),
+    'monitor quota' => array (
+      'title' => t('Monitor quota'),
+      'description' => t('Monitor, change, create quotas for users')
+    ),
   );
 }
 
@@ -213,6 +217,132 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 20,
   );
+
+  // Admin view quota
+  $items['admin/tripal/files'] = array (
+    'title' => 'Files',
+    'description' => 'Table of the default quota, expiration date, and custom quotas',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tripal_galaxy_admin_quota_usage'),
+    'access arguments' => array('monitor quota'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+
+  // Admin remove user quota
+  $items['admin/tripal/files/remove/%'] = array (
+    'title' => 'Remove custom user quota',
+    'description' => "Revert's a user's quota and expiration of files to the site wide defaults.",
+    'page callback' => 'tripal_galaxy_admin_remove_user_quota',
+    'page arguments' => array (4),
+    'access arguments' => array ('monitor quota'),
+    'type' => MENU_CALLBACK,
+    'file' => 'api/tripal_galaxy.api.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+
+  // Add user quota
+  $items['admin/tripal/files/add_user'] = array (
+    'title' => 'Add user to custom quota',
+    'description' => 'Gives the user a new quota and expiration date',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tripal_galaxy_add_user_custom_quota'),
+    'access arguments' => array ('monitor quota'),
+    // TODO: Ask Stephen is this is fine as a link at the top of the form
+    // as well as a link in the table
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+
+  // Autocomplete path for the users on the site
+  $items['admin/tripal/files/user/autocomplete'] = array (
+    'title' => 'Autocomplete for existing users',
+    'description' => 'Provide a list of existing users on the site.',
+    'page callback' => '_users_autocomplete',
+    'access arguments' => array ('monitor quota'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+
+  // Confirmation page to overwrite existing quota
+  // XXX: This is really sloppy, I don't know how else to effieciently transfer
+  // the values from the validation form to the confirmation form without
+  // the values through the url, is there a simple funciton I can call that
+  // can transfer the form values to this new form?
+  $items['admin/tripal/files/user/overwrite_user/confirm/%/%/%'] = array (
+    'title' => 'Overwrite quota of existing user',
+    'description' => 'Catch admin attempt to add an existing user to the custom quota table.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array ('tripal_galaxy_confirm_overwrite_user_quota', 6, 7, 8),
+    'access arguments' => array ('monitor quota'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+
+  // Edit user quota
+  $items['admin/tripal/files/user/edit_user/%'] = array (
+    'title' => 'Edit quota of existing user',
+    'description' => 'Edit an existing user\'s quota and/or expiration date.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array ('tripal_galaxy_edit_user_quota', 5),
+    'access arguments' => array ('monitor quota'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+
+  // User view quota (Tab)
+  $items['user/%/files'] = array (
+    'title' => 'Files',
+    'description' => 'Monitors what files that have been uploaded by user through the tripal_galaxy module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tripal_galaxy_user_view_files'),
+    'access arguments' => array ('monitor quota'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/tripal_galaxy.user.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 10,
+  );
+
+  // // User file renew
+  // $items['/user/%/files/renew'] = array (
+  //   'title' => '',
+  //   'description' => '',
+  //   'page callback' => '',
+  //   'access argurments' => array (),
+  //   'type' => MENU_CALLBACK,
+  //   'file' => 'includes/tripal_galaxy.admin_usage.inc',
+  //   'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  //   'weight' => 20,
+  // );
+  // // User file download
+  // $items['user/%files/download/%'] = array (
+  //   'title' => '',
+  //   'description' => '',
+  //   'page callback' => '',
+  //   'access argurments' => array (),
+  //   'type' => MENU_CALLBACK,
+  //   'file' => 'includes/tripal_galaxy.admin_usage.inc',
+  //   'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  //   'weight' => 20,
+  // );
+  // // User file delete
+  // $items['user/%/files/delete'] = array (
+  //   'title' => '',
+  //   'description' => '',
+  //   'page callback' => '',
+  //   'access argurments' => array (),
+  //   'type' => MENU_CALLBACK,
+  //   'file' => 'includes/tripal_galaxy.admin_usage.inc',
+  //   'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  //   'weight' => 20,
+  // );
+  //
+
   // submission queue
 
 
@@ -361,6 +491,20 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
     drupal_set_message(t('Could not copmlete workflow submission.  Please contact the web site to report this issue.'), 'error');
     watchdog_exception('tripal_galaxy', $e);
   }
+
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws', array('sid'));
+  $query->condition('tgws.status', 'Waiting');
+  $submissions = $query->execute();
+  $queue = DrupalQueue::get('invoke_galaxy_workflow');
+  while($submission = $submissions->fetchObject()) {
+    $queue->createItem($submission);
+  }
+
+  // XXX: Finalize this with the submission handler querying on Tripal's
+  // Send the job to Tripal's job handler as it is more efficient than Drupal's.
+  // tripal_add_job("test $sid", 'tripal_galaxy', 'tripal_invoke_galaxy_workflow', array($sid), $user->uid);
+
   drupal_set_message(t('Your job is successfully submitted to the job queue! You will be notified by email when your job begins and completes.'));
   drupal_goto('user/' . $user->uid . '/galaxy-jobs');
 }
@@ -687,22 +831,6 @@ function tripal_galaxy_workflow_report($sid) {
   if (is_array($submission->errors)){
     ksort($submission->errors);
     foreach ($submission->errors as $step_index => $error) {
-      // I have the invocation and galaxy workflow id, I only need to
-      // associate the job ids in order to have the files in the right
-      // steps, to do this look at the the history_content's creating_job
-      // id an check the particular step iteration # and place the file(s) with
-      // that particular step!!
-      // Within loop check if the job id spawned any of the history_contents
-      // If so generate the link and remove the history_content from the list
-      // The file tool pieces are really placebo's in the galaxy workflow so
-      // I will need to associate the tools in order and make sure the steps
-      // have the right name i.e. Forward Reads, Reverse Reads, Reference
-      // We have it set up where the the files will be uploaded serially
-      // which is good so we can safely assign each
-
-
-      // iterate through the links
-      // if there is an
       $subrows = array();
       foreach($links as $key => $val){
         if($error['job_id'] == $val['job_id']){
@@ -809,49 +937,6 @@ function tripal_galaxy_workflow_report($sid) {
     }
 
   }
-  // else {
-  //   foreach ($links as $link => $url) {
-  //
-  //     $subrows = array();
-  //     $subrows[] = array(
-  //       l($link, $url),
-  //     );
-  //     $table = theme_table(array(
-  //       'header' => array(),
-  //       'rows' => $subrows,
-  //       'attributes' => array(
-  //         'class' => 'tripal-galaxy-submission-state-table'
-  //       ),
-  //       'sticky' => FALSE,
-  //       'caption' => '',
-  //       'colgroups' => array(),
-  //       'empty' => '',
-  //     ));
-  //
-  //     $files .= theme_fieldset(array(
-  //       'element' => array(
-  //         '#title' =>  $link,
-  //         '#collapsed' => FALSE,
-  //         '#collapsible' => TRUE,
-  //         '#attributes' => array('class' => array('collapsible', 'collapsed')),
-  //         '#value' => $table,
-  //         '#children' => '<div>',
-  //       ),
-  //     ));
-  //   }
-  // }
-  //
-  //
-  // // Here will be a collection of clickable links to the files
-  // // within the current history on the galaxy server
-  // $rows[] = array(
-  //   array(
-  //     'data' => 'Files',
-  //     'header' => TRUE,
-  //   ),
-  //   $files,
-  // );
-
 
   $details = theme_table(array(
     'header' => $headers,
@@ -870,6 +955,55 @@ function tripal_galaxy_workflow_report($sid) {
     '#markup' => $details,
   );
 }
+
+/**
+ * Retrieves the uploaded files for the given user.
+ *
+ * @param $sid
+ */
+function tripal_galaxy_user_view_files($form, &$form_state) {
+
+  // TODO: Ask Stephen if there is another place to put the below code in
+  // a more intuitive place ...
+  global $user;
+
+  // set the breadcrumb
+  $breadcrumb = array();
+  $breadcrumb[] = l('Home', '<front>');
+  $breadcrumb[] = l($user->name, 'user/' . $user->uid);
+  $breadcrumb[] = l('Files', 'user/' . $user->uid . '/files');
+  drupal_set_breadcrumb($breadcrumb);
+
+  $rows = array ();
+  $rows = tripal_galaxy_gather_user_files($user->uid, 'tripal_galaxy');
+
+  // Check to see if there is a custom quota/exp date to place at the
+  // heading of the form else place the default values found in the drupal
+  // variables
+
+  // Display on the table, include the original time of upload, size, actions
+  // (delete, renew), and file usage (what workflows are using the file)
+  $header = array(
+    'fid' => t('FID'),
+    'filename' => t('File'), // TODO: File name needs to be a download link
+    'timestamp' => t('Uploaded'),
+    'expiration_date' => t('Expires On'),
+    'filesize' => t('File Size'),
+    'file_usage' => t('File Usage'),
+    'actions' => t('Actions'), // Delete, Renew, others?
+  );
+
+  // $module in this case is tripal_galaxy
+
+
+
+
+  $form['table'] = array ();
+
+  drupal_set_message("y hello there");
+  return $form;
+}
+
 /**
  * Retrieves the workflow submission report for the submitting user.
  *
@@ -912,6 +1046,10 @@ function tripal_galaxy_submission_admin_report($sid) {
  * Implements hook_cron().
  */
 function tripal_galaxy_cron() {
+
+  // TODO: Tripal jobs is more efficient in queuing and getting the job
+  // launched sooner than Drupal use tripal jobs to launch the workflow
+  // However the drupal cron will still be used to read the status
 
   // Invoke any workflows that are in the waiting state.
   // Get the list of submitted workflows that aren't in 'error' state or
@@ -968,6 +1106,7 @@ function tripal_galaxy_cron_queue_info() {
 }
 
 /**
+ * XXX: Come back and finish this
  * Funciton call for generating the file(s) to download.
  *
  * @param $links
@@ -1003,6 +1142,7 @@ function tripal_galaxy_queue_check_workflow_status($workflow) {
 
 /**
  * Implementation of callback_queue_worker().
+ * XXX: This will need to be replaced by the tripal jobs handler
  */
 function tripal_galaxy_queue_invoke_workflow($submission) {
   tripal_invoke_galaxy_workflow($submission->sid);
