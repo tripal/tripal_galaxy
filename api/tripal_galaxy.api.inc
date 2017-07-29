@@ -123,7 +123,10 @@ function tripal_check_galaxy_workflow_status($galaxy_workflow_id) {
  *
  * XXX: This is being called twice?!
  *      Stash and see what I messed up so I can get back to work
- *      Didn't work .... something is more wrong
+ *      Didn't work .... if this is called from the 'Run Cron' button on the
+ *      Configuration tab then this get's called twice, however using the
+ *      drush php-eval call on the invoke and check submission works fine ...
+ * TODO: Ask Stephen why this is so
  *
  *
  * Each Galaxy workflow has a unique UUID.  Each time the workflow is changed
@@ -145,8 +148,6 @@ function tripal_check_galaxy_submission_status($sid) {
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
 
-  drupal_set_message(print_r($submission, TRUE));
-
   // Get the node for this submission.
   $node = node_load($submission->nid);
 
@@ -155,21 +156,12 @@ function tripal_check_galaxy_submission_status($sid) {
   $gworkflows = new GalaxyWorkflows($galaxy);
   $error = $galaxy->getError();
 
-
-  if($error){
-    drupal_set_message(print_r($galaxy->getError(), TRUE));
-  }
-
   // Get the invocation specified.
   $invocation = $gworkflows->showInvocations(array(
     'workflow_id' => $submission->workflow_id,
     'invocation_id' => $submission->invocation_id
   ));
   $error = $galaxy->getError();
-
-  if(!$invocation){
-    drupal_set_message(print_r($error, TRUE));
-  }
 
   // Get the overall invocation state.
   $istate = $invocation['state'];
@@ -655,6 +647,7 @@ function tripal_test_galaxy_connection($connect) {
        // API call to the specific history_content to to get the creating_job
        // id
        $links[$val['hid'] . ': ' . $val['name']] = array();
+
        $links[$val['hid'] . ': ' . $val['name']]['job_id'] = $ghistory_contents->show(array('id' => $val['id'], 'history_id' => $whole_history['id']))['creating_job'];
        $links[$val['hid'] . ': ' . $val['name']]['id'] = $val['id'];
        $links[$val['hid'] . ': ' . $val['name']]['link'] = $ghistory_contents->download_history_content($download_history_content_params);
@@ -839,24 +832,6 @@ function tripal_galaxy_update_user_quota($update_entry, $uid){
    $rows = array();
    $file_results;
 
-   // Select all files regardless of module
-   if($module == 'all') {
-     $query = db_select('file_managed', 'fm')
-                        ->fields('fm', array('filename', 'fid', 'filesize', 'uri', 'timestamp'));
-     $query->innerJoin('file_usage', 'fu', 'fm.fid = fu.fid AND fm.uid = :uid',
-                                       array(':uid' => $uid));
-     $file_results = $query->execute();
-   }
-
-   // Select files of only a certain type of module
-   else {
-     $query = db_select('file_managed', 'fm')
-                        ->fields('fm', array('filename', 'fid', 'filesize', 'uri', 'timestamp'));
-     $query->innerJoin('file_usage', 'fu', 'fm.fid = fu.fid AND fm.uid = :uid AND fu.module = :module',
-                                       array(':uid' => $uid, ':module' => $module));
-     $file_results = $query->execute();
-   }
-
    // Query the tripal_galaxy_custom_quota table for user entry
    $query = "SELECT custom_quota, custom_expiration
              FROM {tripal_galaxy_custom_quota}
@@ -867,33 +842,111 @@ function tripal_galaxy_update_user_quota($update_entry, $uid){
    // NOTE: be sure to delete in the interfacing function so they don't show
    // up in the rows of the table
 
+   // Select all files regardless of module
+   if($module == 'all') {
+     $query = db_select('file_managed', 'fm')
+                        ->fields('fm', array('filename', 'fid', 'filesize', 'uri', 'timestamp'));
+     $query->innerJoin('file_usage', 'fu', 'fm.fid = fu.fid AND fm.uid = :uid',
+                                       array(':uid' => $uid));
+     $file_results = $query->execute();
+   }
+
+   // Select files of only a certain type of module that the particular
+   // user has uploaded
+   else {
+     $query = db_select('file_usage', 'fu')
+                        ->fields('fu');
+     $query->innerJoin('file_managed', 'fm', 'fm.fid = fu.fid AND fm.uid = :uid AND fu.module = :module',
+                                       array(':uid' => $uid, ':module' => $module));
+     $file_results = $query
+                    ->fields('fm')
+                    ->execute();
+   }
+
+   // Associate each file with a worklfow, each workflow is associated to a
+   // certain nid, and each file has an id association with a node in the
+   // file_usage table
+   $entries = array();
+
    // Query file_usage id and tripal_galaxay_workflow nid, populate file_usage
    // foreach fid found in the file_results
    // Make the workflows clickable from the file_usage tab (will need to query
    // tripal_galaxy_workflow_submission table for the sid)
    while($entry = $file_results->fetchObject()){
-    //  $query = db_select('file_usage', 'fu');
-    //  $file_usage_results = $query->innerJoin('tripal_galaxy_workflow', 'tgw', 'tgw.nid = fu.id AND fu.id = :fmid'
-    //                                          array(':fmid' => $entry->fid)
-    //                               ->fields(),
-      }
-
-
-
-   while($entry = $file_results->fetchObject()) {
-     $rows[] = array(
-       'fid' => $entry->fid,
-       'filename' => $entry->filename,
-       // Calculate the expiration dates of the files based off of the expiration
-       // date and the timestamp of uploading
-        // NOTE: use date('Y-m-d H:i:s', $timestamp)
-       'timestamp' => date('Y-m-d H:i:s', $entry->timestamp),
-       'expiration_date' => '',//  time() + /* expiration_date variable here*/,
-       'filesize' => $entry->filesize,
-       'file_usage' => ''
-
-     );
+     // HACK: For now to force uniqeness of entries use the fid as a key
+    $entries[$entry->fid] = $entry;
    }
 
+   // BUG: Just found out that the files that get uploaded do not get taken
+   //      off of the server after the workflow has been deleted ...
+   // TODO: In the file usage if the galaxy workflow is deleted then there can
+   //       not be a link to it
+   // TODO: Keep in mind that there will be repeats from the file usage table
+  //        because the files are used on different steps, for now suppress this
+
+   // This will query will get us the workflows but we will also need the
+   // sid to associate the file to the proper workflow in the usage column
+   foreach($entries as $key  => $entry ) {
+   $query = db_select('tripal_galaxy_workflow', 'tgw')
+            ->fields('tgw')
+            ->condition('nid', $entry->id, '=');
+   $query->innerJoin('tripal_galaxy_workflow_submission', 'tgws', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+   $file_links = $query->fields('tgws')
+                       ->execute();
+    $date_uploaded = date('Y-m-d H:i:s', $entry->timestamp);
+
+    while($sub = $file_links->fetchObject()){
+      // Add the workflow as a link to file_usage
+      // Place the links of this particular file into the file_usage column
+      $links = '';
+      $links += . l($entry->filename,"/user/$uid/galaxy-jobs/$sub->sid") . ' ';
+    }
+    $rows[] = array(
+      'fid' => $entry->fid,
+      'filename' => l($entry->filename,"/user/$uid/files/$entry->fid/download"),
+      // Calculate the expiration dates of the files based off of the expiration
+      // date and the timestamp of uploading
+       // NOTE: use date('Y-m-d H:i:s', $timestamp)
+      'timestamp' => $date_uploaded,
+      // TODO: come back here
+      'expiration_date' => '',//  time() + /* expiration_date variable here*/,
+      'filesize' => tripal_galaxy_file_human_readable_size($entry->filesize),
+      'file_usage' => !empty($links) ? $links:'',
+      'actions' => l('Delete', "/user/$uid/files/$entry->fid/delete") . ' ' . l('Renew', "/user/$fid/files/$entry->fid/renew")
+    );
+ }
   return $rows;
  }
+
+
+function tripal_galaxy_file_human_readable_size($total_size) {
+  // XXX: Ask Stephen if there's something more graceful than this
+  // NOTE: this file size is stored in bytes so
+  $kb = 1024;
+  $mb = pow(1024, 2);
+  $gb = pow(1024, 3);
+  $tb = pow(1024, 4);
+  // Create a switch statment here to present the consumption in either MB, GB,
+  // or TB, truncate to the 100th's place.
+  $human_readable_size = "";
+  switch($total_size){
+    case (($total_size / $tb) >= 1):
+    $human_readable_size = (string)floor(($total_size / $tb) * 100) / 100 . " TB";
+    break;
+    case (($total_size / $gb) >= 1):
+    $human_readable_size = (string)floor(($total_size / $gb) * 100) / 100 . " GB";
+    break;
+    case (($total_size / $mb) >= 1):
+    $human_readable_size = (string)floor(($total_size / $mb) * 100) / 100 . " MB";
+    break;
+    case (($total_size / $kb) >= 1):
+    $human_readable_size = (string)floor(($total_size / $kb) * 100) / 100 . " KB";
+    break;
+    // Measure in bytes
+    default:
+    $human_readable_size = (string)floor(($total_size) * 100) / 100 . " Bytes";
+    break;
+  }
+
+  return $human_readable_size;
+}

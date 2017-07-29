@@ -175,34 +175,8 @@ function tripal_galaxy_admin_quota_usage($form, &$form_state) {
     }
     // print_r($total_size . "\n");
 
-    // XXX: Ask Stephen if there's something more graceful than this
-    // NOTE: this file size is stored in bytes so
-    $kb = 1024;
-    $mb = pow(1024, 2);
-    $gb = pow(1024, 3);
-    $tb = pow(1024, 4);
-    // Create a switch statment here to present the consumption in either MB, GB,
-    // or TB, truncate to the 100th's place.
-    $human_readable_size = "";
-    switch($total_size){
-      case (($total_size / $tb) >= 1):
-      $human_readable_size = (string)floor(($total_size / $tb) * 100) / 100 . " TB";
-      break;
-      case (($total_size / $gb) >= 1):
-      $human_readable_size = (string)floor(($total_size / $gb) * 100) / 100 . " GB";
-      break;
-      case (($total_size / $mb) >= 1):
-      $human_readable_size = (string)floor(($total_size / $mb) * 100) / 100 . " MB";
-      break;
-      case (($total_size / $kb) >= 1):
-      $human_readable_size = (string)floor(($total_size / $kb) * 100) / 100 . " KB";
-      break;
-      // Measure in bytes
-      default:
-      $human_readable_size = (string)floor(($total_size) * 100) / 100 . " Bytes";
-      break;
-
-    }
+    tripal_galaxy_file_human_readable_size($total_size);
+    
     $form['total_size'] = array (
       '#type' => 'markup',
       '#markup' => "<h3>Total Current Usage</h3> <p>$human_readable_size</p><p>The total amount of space consumed by user file uploads.</p>",

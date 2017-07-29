@@ -308,40 +308,41 @@ function tripal_galaxy_menu() {
     'weight' => 10,
   );
 
-  // // User file renew
-  // $items['/user/%/files/renew'] = array (
-  //   'title' => '',
-  //   'description' => '',
-  //   'page callback' => '',
-  //   'access argurments' => array (),
-  //   'type' => MENU_CALLBACK,
-  //   'file' => 'includes/tripal_galaxy.admin_usage.inc',
-  //   'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  //   'weight' => 20,
-  // );
-  // // User file download
-  // $items['user/%files/download/%'] = array (
-  //   'title' => '',
-  //   'description' => '',
-  //   'page callback' => '',
-  //   'access argurments' => array (),
-  //   'type' => MENU_CALLBACK,
-  //   'file' => 'includes/tripal_galaxy.admin_usage.inc',
-  //   'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  //   'weight' => 20,
-  // );
-  // // User file delete
-  // $items['user/%/files/delete'] = array (
-  //   'title' => '',
-  //   'description' => '',
-  //   'page callback' => '',
-  //   'access argurments' => array (),
-  //   'type' => MENU_CALLBACK,
-  //   'file' => 'includes/tripal_galaxy.admin_usage.inc',
-  //   'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  //   'weight' => 20,
-  // );
-  //
+  // User file renew
+  $items['/user/%/files/%/renew'] = array (
+    'title' => '',
+    'description' => '',
+    'page callback' => '',
+    'access argurments' => array (),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 20,
+  );
+  // User file download
+  $items['user/%/files/%/download/%'] = array (
+    'title' => '',
+    'description' => '',
+    'page callback' => '',
+    'access argurments' => array (),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 20,
+  );
+  // User file delete
+  $items['user/%/files/%/delete'] = array (
+    'title' => '',
+    'description' => '',
+    'page callback' => '',
+    'access argurments' => array (),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 20,
+  );
+  
+
 
   // submission queue
 
@@ -828,11 +829,18 @@ function tripal_galaxy_workflow_report($sid) {
 
   $state = '';
   $links = tripal_get_current_galaxy_history_download_links(tripal_get_galaxy_connection($submission->galaxy_id), $hist_error);
+  // dpm($links);
+  // dpm($submission->errors);
+  // TODO: Include the Preview here
+  // TODO: For clarification when a user gets to this page (by clicking on the
+  //       file_usage link found on the files quota page), we need to Include
+  //       the uploaded file name (find through the galaxy history)
   if (is_array($submission->errors)){
     ksort($submission->errors);
     foreach ($submission->errors as $step_index => $error) {
       $subrows = array();
       foreach($links as $key => $val){
+
         if($error['job_id'] == $val['job_id']){
           $subrows[] = array(
             array(
@@ -842,6 +850,23 @@ function tripal_galaxy_workflow_report($sid) {
             l($key, $val['link']),
           );
           unset($links[$key]);
+        }
+
+        // Else see the step ID? try to associate the uploaded file to the
+        // proper input data set space
+        // Assume the files got uploaded in order
+        // Q: How to ensure order?
+        // A: Match the 'order_index' key to the element found in $links
+        else{
+
+          $subrows[] = array(
+            array(
+              'data' => 'Results',
+              'header' => TRUE,
+            ),
+            l($key, $val['link']),
+          );
+
         }
       }
       $subrows[] = array(
@@ -994,13 +1019,13 @@ function tripal_galaxy_user_view_files($form, &$form_state) {
   );
 
   // $module in this case is tripal_galaxy
+  $form['table'] = array (
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+  );
 
-
-
-
-  $form['table'] = array ();
-
-  drupal_set_message("y hello there");
+  //drupal_set_message("y hello there");
   return $form;
 }
 
