@@ -175,11 +175,11 @@ function tripal_galaxy_admin_quota_usage($form, &$form_state) {
     }
     // print_r($total_size . "\n");
 
-    tripal_galaxy_file_human_readable_size($total_size);
-    
+    $hrs = tripal_galaxy_file_human_readable_size($total_size);
+
     $form['total_size'] = array (
       '#type' => 'markup',
-      '#markup' => "<h3>Total Current Usage</h3> <p>$human_readable_size</p><p>The total amount of space consumed by user file uploads.</p>",
+      '#markup' => "<h3>Total Current Usage</h3> <p><b>$hrs</b></p><p>The total amount of space consumed by user file uploads.</p>",
       );
 
   // Provide 2 field sets and a button above the table, these two field sets
@@ -214,7 +214,7 @@ function tripal_galaxy_admin_quota_usage($form, &$form_state) {
     'user' => t('Users'),
     'custom_quota' => t('Custom Quota'),
     'exp_date' => t('Expiration Date'),
-    'actions'    => t('Actions'),
+    'actions' => t('Actions'),
   );
 
   // API call to the gather the users that have a custom quota
@@ -261,6 +261,54 @@ function tripal_galaxy_admin_quota_usage_validate($form, &$form_state) {
   // Check to make sure the admin has values in the default quota and
   // expiration box and that the quota has either MB, GB, TB, or no other
   // letters (defaults to MB)
+  // Validate the quota
+  $matches = array();
+  preg_match("/[^\-\d](\d+) ?(MB|GB|TB)?$/", $form['custom_quota']['#value'], $matches);
+  // $matches[0] will be the numeric value
+  // $matches[1] will be the digital storage size: MB, GB, TB, or blank
+  //   (defaults to MB)
+  // No numeric found
+  if(!array_key_exists(0, $matches)) {
+    form_set_error('custom_quota', t('Please enter a positive <b>integer</b> value as the quota'));
+  }
+  else {
+    $form['custom_quota']['#value'] = $matches[0];
+  }
+  // if the 2nd element is occupied by a valid suffix we need to check to see
+  // what we have to multiply the value by (1024 for GB 1024^2 for TB because
+  // we assume that the initial number is already in MB)
+  if(array_key_exists(1, $matches)) {
+    switch ($matches[1]) {
+
+      case 'GB':
+        // Multiply $matches[1] by 1024 and overwrite
+        // $form['custom_quota']['#value']
+        $form['custom_quota']['#value'] = (int)$form['custom_quota']['#value'] * 1024;
+        break;
+
+      case 'TB':
+      // Multiply $matches[1] by 1024 and overwrite
+      // $form['custom_quota']['#value']
+      $form['custom_quota']['#value'] = (int)$form['custom_quota']['#value'] * 1024 * 1024;
+       break;
+
+      // MB
+      default:
+        // leave as is
+       break;
+    }
+  }
+
+  // Validate the expiration time
+  $matches = array();
+  preg_match("/[^\-\d](\d+) *$/", $form['custom_expiration_date']['#value'], $matches);
+  // No numeric found
+  if(!array_key_exists(0, $matches)) {
+    form_set_error('custom_expiration_date', t('Please enter a positive <b>integer</b> value as the expiration date'));
+  }
+  else {
+    $form['custom_expiration_date']['#value'] = $matches[0];
+  }
 
 }
 
@@ -268,7 +316,9 @@ function tripal_galaxy_admin_quota_usage_validate($form, &$form_state) {
  * Write to the two drupal variables the site wide defualt quota and exp date.
 **/
 function tripal_galaxy_admin_quota_usage_submit($form, &$form_state) {
-  // Grab the quota value and exp_date to write to the variables
+  // Grab the quota value and exp_date to write to the drupal variables
+  variable_set('tripal_galaxy_default_file_quota', $form['custom_quota']['#value']);
+  variable_set('tripal_galaxy_default_file_expiration', $form['custom_expiration_date']['#value']);
   drupal_set_message(t('Y hello there.'));
 }
 
@@ -364,7 +414,7 @@ function tripal_galaxy_add_user_custom_quota_validate($form, &$form_state) {
   // Check that the values of quota and expiration date are numberical and with
   // digital storage nomenclature
 
-  // Validate the qutoa
+  // Validate the quota
   $matches = array();
   preg_match("/[^\-\d](\d+) ?(MB|GB|TB)?$/", $form['custom_quota']['#value'], $matches);
   // $matches[0] will be the numeric value

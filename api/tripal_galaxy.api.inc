@@ -899,7 +899,7 @@ function tripal_galaxy_update_user_quota($update_entry, $uid){
       // Add the workflow as a link to file_usage
       // Place the links of this particular file into the file_usage column
       $links = '';
-      $links += . l($entry->filename,"/user/$uid/galaxy-jobs/$sub->sid") . ' ';
+      $links .= l($entry->filename,"/user/$uid/galaxy-jobs/$sub->sid") . ' ';
     }
     $rows[] = array(
       'fid' => $entry->fid,
@@ -929,24 +929,106 @@ function tripal_galaxy_file_human_readable_size($total_size) {
   // Create a switch statment here to present the consumption in either MB, GB,
   // or TB, truncate to the 100th's place.
   $human_readable_size = "";
-  switch($total_size){
-    case (($total_size / $tb) >= 1):
-    $human_readable_size = (string)floor(($total_size / $tb) * 100) / 100 . " TB";
-    break;
-    case (($total_size / $gb) >= 1):
-    $human_readable_size = (string)floor(($total_size / $gb) * 100) / 100 . " GB";
-    break;
-    case (($total_size / $mb) >= 1):
-    $human_readable_size = (string)floor(($total_size / $mb) * 100) / 100 . " MB";
-    break;
-    case (($total_size / $kb) >= 1):
-    $human_readable_size = (string)floor(($total_size / $kb) * 100) / 100 . " KB";
-    break;
-    // Measure in bytes
-    default:
-    $human_readable_size = (string)floor(($total_size) * 100) / 100 . " Bytes";
-    break;
+
+  if($total_size) {
+    switch($total_size) {
+      case (($total_size / $tb) >= 1):
+        $human_readable_size = (string)floor(($total_size / $tb) * 100) / 100 . " TB";
+        break;
+      case (($total_size / $gb) >= 1):
+        $human_readable_size = (string)floor(($total_size / $gb) * 100) / 100 . " GB";
+        break;
+      case (($total_size / $mb) >= 1):
+        $human_readable_size = (string)floor(($total_size / $mb) * 100) / 100 . " MB";
+        break;
+      case (($total_size / $kb) >= 1):
+        $human_readable_size = (string)floor(($total_size / $kb) * 100) / 100 . " KB";
+        break;
+      // Measure in bytes
+      default:
+        $human_readable_size = (string)floor(($total_size) * 100) / 100 . " Bytes";
+        break;
+    }
   }
+    else {
+      $human_readable_size = "0 Bytes";
+    }
 
   return $human_readable_size;
+}
+
+/**
+ * Iterate through the fid's in the tripal_galaxy_file_expiration table for
+ * files that match the current day of the Expiration
+ * if it matches delete the file (Time to visit crontab!)
+ * https://www.drupal.org/project/examples <== One of the things to teach new
+ * coders with
+ *
+**/
+function tripal_galaxy_check_file_expiration() {
+  $results = db_select('tripal_galaxy_file_expiration', 'tgfe')
+                      ->fields('tgfe')
+                      ->execute();
+    while($result = $results->fetchObject()) {
+      if(time() <= $result->expiration_date){
+        // remove the file from the server as it is outdated and has not been
+        // renewed through user action
+        // TRUE to force the file to be deleted and dropped from all tables
+        file_delete(file_load($result->fid), TRUE);
+      }
+    }
+}
+
+/**
+ * User action to renew the expiration of a file by adding the current time
+ * and the expiration date (either from default or if the user has a custom
+ * expiration date) to tripal_galaxy_file_expiration table
+ *
+ *
+ *
+**/
+function tripal_galaxy_user_renew_file($uid,$fid) {
+  // Get the file
+  $result = db_select('tripal_galaxy_file_expiration', 'tgfe')
+           ->fields('tgfe')
+           ->condition('fid', $fid)
+           ->execute()
+           ->fetchObject();
+  // Search the custom quota table based off of uid to see if the user has a
+  // custom id or not
+  $quota = db_select('tripal_galaxy_custom_quota', 'tgcq')
+            ->fields('tgcq')
+            ->condition('uid', $uid)
+            ->execute();
+
+  // The db_update argument to update the expiration_date of the file
+  $update = array(
+    'fid' => $fid,
+  );
+  if($entry = $quota->fetchObject()) {
+    // If there is an entry of this user add to their custom expiration as the
+    // time to append to the current time() to update the expiration_date of
+    // the file clicked
+    $update['expiration_date'] = time() + $entry->custom_expiration;
+  }
+  // A custom expiration entry was not found so add the site wide default time
+  // to the expiration date
+  else {
+    $update['expiration_date'] = time() + variable_get('tripal_galaxy_default_file_expiration', 60);
+  }
+
+  // Write the update to the db_table
+  $count = db_update('tripal_galaxy_file_expiration')
+          ->fields($update)
+          ->condition('fid', $form_id)
+          ->execute();
+
+}
+
+function tripal_galaxy_user_download_file($uid,$fid) {
+
+}
+
+function tripal_galaxy_user_delete_file($uid,$fid) {
+
 }
