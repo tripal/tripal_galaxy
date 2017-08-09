@@ -49,7 +49,7 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
     );
 
     // Connect to the Galaxy instance.
-    $galaxy = tripal_get_galaxy_connection($galaxy_id);
+    $galaxy = tripal_galaxy_get_connection($galaxy_id);
 
 
     // Check to make sure the connection is good.

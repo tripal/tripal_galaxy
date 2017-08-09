@@ -10,7 +10,7 @@
  *   A galaxyInstance object or FALSE on error.
  *
  */
-function tripal_get_galaxy_connection($galaxy_id) {
+function tripal_galaxy_get_connection($galaxy_id) {
   // Get the galaxy server for this workflow
   $galaxy_server = db_select('tripal_galaxy', 'tg')
     ->fields('tg')
@@ -23,7 +23,7 @@ function tripal_get_galaxy_connection($galaxy_id) {
     drupal_set_message($library['error message'], 'error');
     return FALSE;
   }
-  $connect = tripal_split_galaxy_url($galaxy_server->url);
+  $connect = tripal_galaxy_split_url($galaxy_server->url);
   $galaxy = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
   $galaxy->setAPIKey($galaxy_server->api_key);
   $error = $galaxy->getErrorType();
@@ -42,7 +42,9 @@ function tripal_get_galaxy_connection($galaxy_id) {
  * @return
  *   An array with three keys: host, port and use_https.
  */
-function tripal_split_galaxy_url($url) {
+function tripal_galaxy_split_url($url) {
+
+  // TODO: should this go into blend4php?
 
   // First check a URL with a port
   $matches = array();
@@ -85,7 +87,7 @@ function tripal_split_galaxy_url($url) {
  * Each Galaxy workflow has a unique UUID.  Each time the workflow is changed
  * that UUID changes as well.
  */
-function tripal_check_galaxy_workflow_status($galaxy_workflow_id) {
+function tripal_galaxy_check_workflow_status($galaxy_workflow_id) {
 
   if (!$galaxy_workflow_id) {
     return FALSE;
@@ -100,7 +102,7 @@ function tripal_check_galaxy_workflow_status($galaxy_workflow_id) {
     ->fetchObject();
 
   // Connect to the Galaxy instance and get the list of workflows
-  $galaxy = tripal_get_galaxy_connection($workflow->galaxy_id);
+  $galaxy = tripal_galaxy_get_connection($workflow->galaxy_id);
   $workflows = new GalaxyWorkflows($galaxy);
   $gworkflow = $workflows->show(array('workflow_id' => $workflow->workflow_id));
 
@@ -132,7 +134,7 @@ function tripal_check_galaxy_workflow_status($galaxy_workflow_id) {
  * Each Galaxy workflow has a unique UUID.  Each time the workflow is changed
  * that UUID changes as well.
  */
-function tripal_check_galaxy_submission_status($sid) {
+function tripal_galaxy_check_submission_status($sid) {
 
   if (!$sid) {
     return FALSE;
@@ -152,7 +154,7 @@ function tripal_check_galaxy_submission_status($sid) {
   $node = node_load($submission->nid);
 
   // Connect to the Galaxy instance and get the list of workflows
-  $galaxy = tripal_get_galaxy_connection($submission->galaxy_id);
+  $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
   $gworkflows = new GalaxyWorkflows($galaxy);
   $error = $galaxy->getError();
 
@@ -250,7 +252,7 @@ function tripal_check_galaxy_submission_status($sid) {
  *
  *
  */
-function tripal_invoke_galaxy_workflow($sid) {
+function tripal_galaxy_invoke_workflow($sid) {
 
   // Get the workflows that need execution
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
@@ -261,7 +263,7 @@ function tripal_invoke_galaxy_workflow($sid) {
   $submission = $query->execute()->fetchObject();
 
   // Get a connection to the remote galaxy instance.
-  $galaxy = tripal_get_galaxy_connection($submission->galaxy_id);
+  $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
   if (!$galaxy) {
     $error = $galaxy->getError();
     throw new Exception('Cannot connect to Galaxy server:' . $error['message']);
@@ -283,7 +285,7 @@ function tripal_invoke_galaxy_workflow($sid) {
 
   // Get the history that we'll use for this submission.
   $error = array();
-  $history = tripal_get_galaxy_history($galaxy, "TG-" . $user->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . time(), $error);
+  $history = tripal_galaxy_get_history($galaxy, "TG-" . $user->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . time(), $error);
   if (!$history) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);
@@ -488,7 +490,9 @@ function tripal_invoke_galaxy_workflow($sid) {
  *   A history array for the specified history.  If a failure occured then
  *   FALSE is returned and the $error argument is set.
  */
-function tripal_get_current_history(GalaxyInstance $galaxy, &$error) {
+function tripal_galaxy_get_current_history(GalaxyInstance $galaxy, &$error) {
+  // TODO: should this go in blend4php?
+
   $ghistories = new GalaxyHistories($galaxy);
   $current_history = $ghistories->getMostRecentlyUsed();
 
@@ -516,7 +520,9 @@ function tripal_get_current_history(GalaxyInstance $galaxy, &$error) {
  *   A history array for the specified history.  If a failure occured then
  *   FALSE is returned and the $error argument is set.
  */
-function tripal_get_galaxy_history(GalaxyInstance $galaxy, $history_name, &$error) {
+function tripal_galaxy_get_history(GalaxyInstance $galaxy, $history_name, &$error) {
+
+  // TODO: should this go into blend4php?
 
   $ghistories = new GalaxyHistories($galaxy);
 
@@ -554,7 +560,7 @@ function tripal_get_galaxy_history(GalaxyInstance $galaxy, $history_name, &$erro
  *   Returns TRUE if accessible. FALSE otherwise.  A Drupal message is
  *   also provided that indicates if the test was successful.
  */
-function tripal_test_galaxy_connection($connect) {
+function tripal_galaxy_test_connection($connect) {
 
   $library = libraries_load('blend4php');
   if (array_key_exists('error', $library)) {
@@ -564,7 +570,7 @@ function tripal_test_galaxy_connection($connect) {
 
   if (array_key_exists('galaxy_id', $connect)) {
     $galaxy_id = $connect['galaxy_id'];
-    $galaxy = tripal_get_galaxy_connection($galaxy_id);
+    $galaxy = tripal_galaxy_get_connection($galaxy_id);
     $error = $galaxy->getError();
     if ($error['message']) {
       drupal_set_message('Could not connect: ' . $error['message'], 'error');
@@ -612,10 +618,11 @@ function tripal_test_galaxy_connection($connect) {
  *   Returns an associative array with the keys being the name of the step and
  *   the values being the URLs of the results of that particular step.
  */
- function tripal_get_current_galaxy_history_download_links(GalaxyInstance $galaxy, &$error) {
+ function tripal_galaxy_history_download_links(GalaxyInstance $galaxy, &$error) {
 
+   // TODO: should this function go in blend4php rather than here?
    $links = array();
-   $whole_history = tripal_get_current_history($galaxy, $error);
+   $whole_history = tripal_galaxy_get_current_history($galaxy, $error);
 
    $ghistories = new GalaxyHistories($galaxy);
    $ghistory_contents = new GalaxyHistoryContents($galaxy);
@@ -658,53 +665,39 @@ function tripal_test_galaxy_connection($connect) {
 
  }
 
- /**
- *  Generate the client prompt based off of the history/history_content.
- *  TODO: Generate a variable number of the contents within a history
- *  TODO: Generate a history_content file as a compressed file.
- * @param $galaxy
- *   A GalaxyInstance object
- * @param $error
- *   An empty array into which the error type and message will be placed
- *   if an error occurs.
- * @param $history_id
- *   The history to prepare for download.
- * @param $history_content_id
- *   Optional, specify the content_id to download only that piece from the
- *   history.
- */
- function tripal_generate_history_file(GalaxyInstance $galaxy, &$error, $history_id, $history_content_id = NULL) {
-   // Check if we're looking for a whole history or a single history content.
-   $ghistory_contents = new GalaxyHistoryContents($galaxy);
-   $params = array();
-   $params['history_id'] = $history_id;
-   // Download the whold history
-   if(!$history_content_id) {
-     return $ghistory_contents->download_history($params);
-   }
-   // Else download the specified content
-   else {
-     // Include the specified content_id
-     $params['history_content_id'] = $history_content_id;
-     return $ghistory_contents->download_history_content($params);
-   }
- }
+//  /**
+//  *  Generate the client prompt based off of the history/history_content.
+//  *  TODO: Generate a variable number of the contents within a history
+//  *  TODO: Generate a history_content file as a compressed file.
+//  * @param $galaxy
+//  *   A GalaxyInstance object
+//  * @param $error
+//  *   An empty array into which the error type and message will be placed
+//  *   if an error occurs.
+//  * @param $history_id
+//  *   The history to prepare for download.
+//  * @param $history_content_id
+//  *   Optional, specify the content_id to download only that piece from the
+//  *   history.
+//  */
+//  function tripal_galaxy_generate_history_file(GalaxyInstance $galaxy, &$error, $history_id, $history_content_id = NULL) {
+//    // Check if we're looking for a whole history or a single history content.
+//    $ghistory_contents = new GalaxyHistoryContents($galaxy);
+//    $params = array();
+//    $params['history_id'] = $history_id;
+//    // Download the whold history
+//    if(!$history_content_id) {
+//      return $ghistory_contents->download_history($params);
+//    }
+//    // Else download the specified content
+//    else {
+//      // Include the specified content_id
+//      $params['history_content_id'] = $history_content_id;
+//      return $ghistory_contents->download_history_content($params);
+//    }
+//  }
 
-/**
- * API call to remove a user from the custom quota table
- *
- * @return Boolean value to confirm removal from the table.
- **/
- function tripal_galaxy_admin_remove_user_quota($uid) {
-   $query = "DELETE
-             FROM {tripal_galaxy_custom_quota}
-             WHERE uid =:uid";
-   db_query($query, array('uid' => $uid));
-   // Verify that the entry IS deleted
 
-   drupal_set_message("User removed from custom quota");
-   drupal_goto('admin/tripal/files');
- }
 
 /**
  * API call to edit an existing user's custom quota
@@ -800,185 +793,71 @@ function tripal_galaxy_update_user_quota($update_entry, $uid){
   ->execute();
 }
 
-
 /**
- *  API call to add a user to the custom quota
+ * Sets a user's file space quota and default file expiration.
  *
- *  @param $values
- *         Associative array of the columns to write
- *         - uid => XX
- *         - custom_quota => XX
- *         - custom_expiration => XX
+ * @param $uid
+ *   The User ID for whom the quota will be set.
+ * @param $quota
+ *   The quota
+ * @param $expriation
  *
- * @return Associative array of user's non-defualt quota and exp_date
- **/
- function tripal_galaxy_add_user_quota($values) {
-   db_insert('tripal_galaxy_custom_quota')
-   ->fields($values)
-   ->execute();
+ * @return
+ *   The inserted record.
+ */
+ function tripal_galaxy_set_user_quota($uid, $quota, $expriation) {
 
+   $values = array(
+     'uid' => $uid,
+     'custom_quota' => $quota,
+     'custom_expiration' => $expriation,
+   );
+   return db_insert('tripal_galaxy_custom_quota')
+     ->fields($values)
+     ->execute();
  }
 
-/**
- * API call to gather all files from a user with a given module.
- * This call is used to populate the table found on /user/%/files
- *
- *
- * @return (array) rows of files associated to the user of the given module
-**/
- function tripal_galaxy_gather_user_files($uid, $module) {
-
-//    // Return to populate the table (the associative keys will match keys in the
-//    // header of the table)
-//    $rows = array();
-//    $file_results;
-
-//    // Query the tripal_galaxy_custom_quota table for user entry
-//    $query = "SELECT custom_quota, custom_expiration
-//              FROM {tripal_galaxy_custom_quota}
-//              WHERE uid = :uid";
-//    $results = db_query($query, array(':uid' => $uid))->fetchObject();
-
-//    // If there is an entry include the custom quota/expiration date to the
-//    // rows to return
-//    // NOTE: be sure to delete in the interfacing function so they don't show
-//    // up in the rows of the table
-
-//    // Select all files regardless of module
-//    if($module == 'all') {
-//      $query = db_select('file_managed', 'fm')
-//        ->fields('fm', array('filename', 'fid', 'filesize', 'uri', 'timestamp'));
-//      $query->innerJoin('file_usage', 'fu', 'fm.fid = fu.fid AND fm.uid = :uid',
-//        array(':uid' => $uid));
-//      $file_results = $query->execute();
-//    }
-
-//    // Select files of only a certain type of module that the particular
-//    // user has uploaded
-//    else {
-//      $query = db_select('file_usage', 'fu')
-//        ->fields('fu');
-//      $query->innerJoin('file_managed', 'fm', 'fm.fid = fu.fid AND fm.uid = :uid AND fu.module = :module',
-//        array(':uid' => $uid, ':module' => $module));
-//      $file_results = $query
-//       ->fields('fm')
-//       ->execute();
-//    }
-
-//    // Associate each file with a worklfow, each workflow is associated to a
-//    // certain nid, and each file has an id association with a node in the
-//    // file_usage table
-//    $entries = array();
-
-//    // Query file_usage id and tripal_galaxay_workflow nid, populate file_usage
-//    // foreach fid found in the file_results
-//    // Make the workflows clickable from the file_usage tab (will need to query
-//    // tripal_galaxy_workflow_submission table for the sid)
-//    while($entry = $file_results->fetchObject()){
-//      // HACK: For now to force uniqeness of entries use the fid as a key
-//      $entries[$entry->fid] = $entry;
-//    }
-
-//    // BUG: Just found out that the files that get uploaded do not get taken
-//    //      off of the server after the workflow has been deleted ...
-//    // TODO: In the file usage if the galaxy workflow is deleted then there can
-//    //       not be a link to it
-//    // TODO: Keep in mind that there will be repeats from the file usage table
-//    //        because the files are used on different steps, for now suppress this
-
-//    // This query will get us the workflows but we will also need the
-//    // sid to associate the file to the proper workflow in the usage column
-
-   $sql = "
-     SELECT FM.fid, TGEF.expiration_date, array_agg(FU.id) as workflow_nids
-     FROM {file_managed} FM
-       INNER JOIN {file_usage} FU on FM.fid = FU.fid and FM.uid = :user_id
-       LEFT JOIN {tripal_galaxy_expiration_files} TGEF on TGEF.fid = FU.fid
-     WHERE FU.module = 'tripal_galaxy'
-     GROUP BY FM.fid, TGEF.expiration_date
-   ";
-   $files = db_query($sql, array(':user_id' => $uid));
-   $rows = array();
-   While ($entry = $files->fetchObject()) {
-    $file = file_load($entry->fid);
-
-    // Don't list files that don't exist on the file system.
-    if (!file_exists($file->uri)) {
-      continue;
-    }
-
-    $date_uploaded = date('Y-m-d H:i:s', $file->timestamp);
-    $expiration = $entry->expiration_date ? date('Y-m-d H:i:s', $entry->expiration_date) : '';
-    $workflow_nids = preg_replace('/[\{\}]/', '', $entry->workflow_nids);
-    $workflow_nids = explode(',', $workflow_nids);
-
-    // Add the workflow as a link to file_usage
-    // Place the links of this particular file into the file_usage column
-    $wf_links = '';
-    foreach ($workflow_nids as $nid) {
-      $query = db_select('tripal_galaxy_workflow', 'tgw');
-      $query->fields('tgw', array('workflow_name'));
-      $query->innerJoin('tripal_galaxy_workflow_submission', 'tgws', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-      $query->fields('tgws', array('sid'));
-      $query->condition('nid', $nid, '=');
-      $results = $query->execute();
-      $workflow = $results->fetchObject();
-      if ($workflow) {
-        $wf_links .= l($workflow->workflow_name . ' (' . $workflow->sid . ')', "user/$uid/galaxy-jobs/$workflow->sid") . ' ';
-      }
-    }
-
-    $rows[] = array(
-      'fid' => $entry->fid,
-      'filename' => l($file->filename,"/user/$uid/galaxy-files/$file->fid/download"),
-      'timestamp' => $date_uploaded,
-      'expiration_date' => $expiration,
-      'filesize' => tripal_galaxy_file_human_readable_size($file->filesize),
-      'file_usage' => $wf_links,
-      'actions' => l('Delete', "/user/$uid/galaxy-files/$file->fid/delete") . ' ' . l('Renew', "/user/$uid/galaxy-files/$file->fid/renew")
-    );
-  }
-  return $rows;
-}
+ /**
+  * Removes a user's file space and default file expiration.
+  *
+  * @param $uid
+  *   The User ID for whom the quota will be removed.
+  *
+  * @return
+  */
+ function tripal_galaxy_remove_user_quota($uid) {
+   db_delete('tripal_galaxy_custom_quota')
+     ->condition('uid', $uid)
+     ->execute();
+ }
 
 
-function tripal_galaxy_file_human_readable_size($total_size) {
-  // XXX: Ask Stephen if there's something more graceful than this
-  // NOTE: this file size is stored in bytes so
-  $kb = 1024;
-  $mb = pow(1024, 2);
-  $gb = pow(1024, 3);
-  $tb = pow(1024, 4);
-  // Create a switch statment here to present the consumption in either MB, GB,
-  // or TB, truncate to the 100th's place.
-  $human_readable_size = "";
+ /**
+  * Formats a size (in bytes) in human readable format.
+  *
+  * Function taken from php.net
+  *
+  * @param $bytes
+  *   The size of the file in bytes
+  * @param $precision
+  *   The number of decimal places to use in the final number if needed
+  *
+  * @return string
+  *   A formatted string indicating the size of the file
+  */
+ function tripal_galaxy_format_bytes($bytes, $precision = 2) {
+   $units = array('B', 'KB', 'MB', 'GB', 'TB');
 
-  if($total_size) {
-    switch($total_size) {
-      case (($total_size / $tb) >= 1):
-        $human_readable_size = (string)floor(($total_size / $tb) * 100) / 100 . " TB";
-        break;
-      case (($total_size / $gb) >= 1):
-        $human_readable_size = (string)floor(($total_size / $gb) * 100) / 100 . " GB";
-        break;
-      case (($total_size / $mb) >= 1):
-        $human_readable_size = (string)floor(($total_size / $mb) * 100) / 100 . " MB";
-        break;
-      case (($total_size / $kb) >= 1):
-        $human_readable_size = (string)floor(($total_size / $kb) * 100) / 100 . " KB";
-        break;
-      // Measure in bytes
-      default:
-        $human_readable_size = (string)floor(($total_size) * 100) / 100 . " Bytes";
-        break;
-    }
-  }
-    else {
-      $human_readable_size = "0 Bytes";
-    }
+   $bytes = max($bytes, 0);
+   $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+   $pow = min($pow, count($units) - 1);
 
-  return $human_readable_size;
-}
+   // Uncomment one of the following alternatives
+   $bytes /= pow(1024, $pow);
+   // $bytes /= (1 << (10 * $pow));
+
+   return round($bytes, $precision) . ' ' . $units[$pow];
+ }
 
 /**
  * Iterate through the fid's in the tripal_galaxy_file_expiration table for
@@ -1002,143 +881,5 @@ function tripal_galaxy_check_file_expiration() {
   }
 }
 
-/**
- * User action to renew the expiration of a file by adding the current time
- * and the expiration date (either from default or if the user has a custom
- * expiration date) to tripal_galaxy_file_expiration table
- *
- *
- *
-**/
-function tripal_galaxy_user_renew_file($fid) {
-  $file = file_load($fid);
-
-  // Get the file expiration information.
-  $current = db_select('tripal_galaxy_expiration_files', 'tgfe')
-    ->fields('tgfe')
-    ->condition('fid', $fid)
-    ->execute()
-    ->fetchObject();
-
-  // Search the custom quota table based off of uid to see if the user has a
-  // custom quota setting.
-  $quota = db_select('tripal_galaxy_custom_quota', 'tgcq')
-    ->fields('tgcq')
-    ->condition('uid', $file->uid)
-    ->execute();
-
-  // The db_update argument to update the expiration_date of the file
-  $values = array(
-    'fid' => $fid,
-  );
-  if($entry = $quota->fetchObject()) {
-    // If there is an entry of this user add to their custom expiration as the
-    // time to append to the current time() to update the expiration_date of
-    // the file clicked
-    $values['expiration_date'] = time() + $entry->custom_expiration;
-  }
-  // A custom expiration entry was not found so add the site wide default time
-  // to the expiration date
-  else {
-    $values['expiration_date'] = time() + variable_get('tripal_galaxy_default_file_expiration', 60);
-  }
-
-  // Write the update to the db_table
-  if ($current) {
-    db_update('tripal_galaxy_expiration_files')
-      ->fields($values)
-      ->condition('fid', $fid)
-      ->execute();
-    drupal_set_message('Successfully updated expiration date.');
-  }
-  else {
-    db_insert('tripal_galaxy_expiration_files')
-      ->fields($values)
-      ->execute();
-    drupal_set_message('Successfully set the expiration date.');
-  }
-
-  drupal_goto('user/' . $file->uid . '/galaxy-files/');
-
-}
-
-/**
- *
- * @param $fid
- */
-function tripal_galaxy_user_download_file($fid) {
-  $file = file_load($fid);
-  if (file_exists($file->uri)) {
-   // TODO: add code here for downloading file.....
-  }
-  else {
-    drupal_set_message('Cannot download. The file no longer exists on the server.', 'error');
-    drupal_goto('user/' . $file->uid . '/galaxy-files/');
-  }
-}
-
-/**
- * Provides a confirmation form for deleting a galaxy workflow uploaded file.
- *
- * @param $fid
- */
-function tripal_galaxy_user_delete_file_form($form, $form_state, $uid, $fid) {
-  $form = array();
-
-  $file = file_load($fid);
-
-  $form['uid'] = array(
-    '#type' => 'value',
-    '#value' => $uid,
-  );
-  $form['fid'] = array(
-    '#type' => 'value',
-    '#value' => $fid,
-  );
-
-  return confirm_form($form,
-    t('Confirm deletion of the file named "' . $file->filename . '"?'),
-    'user/' . $uid . '/galaxy-files/',
-    t('Warning.  If this file is intended to be used with a analysis workflow submission that has not yet started then the workflow will fail. Once deleted, the file can no longer be used for new workflow submissions without uploading again.')
-  );
-}
-
-/**
- * Implements a form submit for deleting a galaxy workflow uploaded file.
- */
-function tripal_galaxy_user_delete_file_form_submit($form, &$form_state) {
-  $fid = $form_state['values']['fid'];
-  $uid = $form_state['values']['uid'];
-  $file = file_load($fid);
-
-  // Remove the file from the file_usage table for all entries that link
-  // to the tripal_galaxy module.
-  file_usage_delete($file, 'tripal_galaxy', NULL, NULL, 0);
-
-  // Get any remaining usage for other modules
-  $file_usage = file_usage_list($file);
-
-  // If this file is still used by the tripal_galaxy module then something
-  // didn't work right.
-  if (in_array('tripal_galaxy', $file_usage)) {
-    drupal_set_message('The file could not be removed.  Please contact the site administrator.', 'error');
-  }
-
-  // If there is no other usage of this file from other modules then delete it.
-  if (count(array_keys($file_usage)) == 0) {
-    if (file_unmanaged_delete($file->uri)) {
-
-      // Also remove the md5 checksum.
-      if (file_exists(file_unmanaged_delete($file->uri . '.md5'))) {
-        file_unmanaged_delete($file->uri . '.md5');
-      }
-      drupal_set_message('The file has been fully removed.');
-    }
-    else {
-      drupal_set_message('The file has removed from this list and does not count against your quota, but other components of this site rely on this file. Thus it has not been fully removed.');
-    }
-  }
-  drupal_goto('user/' . $file->uid . '/galaxy-files/');
-}
 
 

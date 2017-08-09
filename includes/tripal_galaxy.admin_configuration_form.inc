@@ -200,7 +200,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
   else {
     $form_state['rebuild'] = TRUE;
 
-    $connect = tripal_split_galaxy_url($data['url']);
-    tripal_test_galaxy_connection($connect);
+    $connect = tripal_galaxy_split_url($data['url']);
+    tripal_galaxy_test_connection($connect);
   }
 }

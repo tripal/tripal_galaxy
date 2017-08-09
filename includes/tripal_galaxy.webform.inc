@@ -17,7 +17,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $webform->conditionals = array();
 
   // Get a connection to Galaxy.
-  $galaxy = tripal_get_galaxy_connection($galaxy_id);
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
   if (!$galaxy) {
     $error = $galaxy->getError();
     drupal_set_message('Could not connect to Galaxy server. ' . $error['message'], 'error');
@@ -36,7 +36,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // Create a history which will be used for building tools. We have to build
   // the tools so that we can get all of the inputs and their default values.
   $error = array();
-  $history = tripal_get_galaxy_history($galaxy, 'TG-import-tools', $error);
+  $history = tripal_galaxy_get_history($galaxy, 'TG-import-tools', $error);
   if (!$history) {
     drupal_set_message('Error retrieving tool build history. ' . $error['message'], 'error');
     return FALSE;

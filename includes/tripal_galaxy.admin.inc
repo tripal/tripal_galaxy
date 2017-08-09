@@ -183,6 +183,6 @@ function tripal_galaxy_admin_confirm_remove_workflow_form($form, &$form_state, $
  *   A galaxy server ID
  */
 function tripal_galaxy_admin_test_server($galaxy_id) {
-  tripal_test_galaxy_connection(array('galaxy_id' => $galaxy_id));
+  tripal_galaxy_test_connection(array('galaxy_id' => $galaxy_id));
   drupal_goto('admin/tripal/extension/galaxy');
 }

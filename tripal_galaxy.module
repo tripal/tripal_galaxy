@@ -67,10 +67,6 @@ function tripal_galaxy_permission() {
       'title' => t ( 'Administer Galaxy' ),
       'description' => t ( 'Allows a user to configure site-wide default Galaxy instances.' )
     ),
-    'monitor quota' => array (
-      'title' => t('Monitor quota'),
-      'description' => t('Monitor, change, create quotas for users')
-    ),
   );
 }
 
@@ -180,6 +176,9 @@ function tripal_galaxy_menu() {
     'weight' => 10,
   );
 
+  //
+  // USER SUBMITTED WORKFLOW JOBS
+  //
   // User submission report.
   $items['user/%/galaxy-jobs/%'] = array (
     'title' => 'Workflow Submission Details',
@@ -206,7 +205,7 @@ function tripal_galaxy_menu() {
     'weight' => 10,
   );
 
-  //Usage
+  // Usage
   $items['admin/tripal/extension/galaxy/usage'] = array (
     'title' => 'Usage',
     'description' => 'View Usage of Galaxy Workflows',
@@ -218,90 +217,83 @@ function tripal_galaxy_menu() {
     'weight' => 20,
   );
 
+  //
+  // FILE QUOTAS
+  //
+
   // Admin view quota
-  $items['admin/tripal/files'] = array (
-    'title' => 'Files',
+  $items['admin/tripal/extension/galaxy/quota'] = array (
+    'title' => 'Quota',
     'description' => 'Table of the default quota, expiration date, and custom quotas',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_admin_quota_usage'),
-    'access arguments' => array('monitor quota'),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'page arguments' => array('tripal_galaxy_admin_manage_quota_form'),
+    'access arguments' => array('administer galaxy'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 30,
   );
 
   // Admin remove user quota
-  $items['admin/tripal/files/remove/%'] = array (
+  $items['admin/tripal/extension/galaxy/quota/remove/%'] = array (
     'title' => 'Remove custom user quota',
     'description' => "Revert's a user's quota and expiration of files to the site wide defaults.",
-    'page callback' => 'tripal_galaxy_admin_remove_user_quota',
-    'page arguments' => array (4),
-    'access arguments' => array ('monitor quota'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array ('tripal_galaxy_admin_remove_quota_form', 6),
+    'access arguments' => array ('administer galaxy'),
     'type' => MENU_CALLBACK,
-    'file' => 'api/tripal_galaxy.api.inc',
+    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
 
   // Add user quota
-  $items['admin/tripal/files/add_user'] = array (
-    'title' => 'Add user to custom quota',
+  $items['admin/tripal/extension/galaxy/quota/add'] = array (
+    'title' => 'Add Custom Quota',
     'description' => 'Gives the user a new quota and expiration date',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_add_user_custom_quota'),
-    'access arguments' => array ('monitor quota'),
+    'page arguments' => array('tripal_galaxy_admin_add_custom_form'),
+    'access arguments' => array ('administer galaxy'),
     // TODO: Ask Stephen is this is fine as a link at the top of the form
     // as well as a link in the table
-    'type' => MENU_LOCAL_ACTION,
-    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
 
   // Autocomplete path for the users on the site
-  $items['admin/tripal/files/user/autocomplete'] = array (
+  $items['admin/tripal/extension/galaxy/quota/user/autocomplete'] = array (
     'title' => 'Autocomplete for existing users',
     'description' => 'Provide a list of existing users on the site.',
-    'page callback' => '_users_autocomplete',
-    'access arguments' => array ('monitor quota'),
+    'page callback' => 'tripal_galaxy_users_autocomplete',
+    'access arguments' => array ('administer galaxy'),
     'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.admin_usage.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
-
-  // Confirmation page to overwrite existing quota
-  // XXX: This is really sloppy, I don't know how else to effieciently transfer
-  // the values from the validation form to the confirmation form without
-  // the values through the url, is there a simple funciton I can call that
-  // can transfer the form values to this new form?
-  $items['admin/tripal/files/user/overwrite_user/confirm/%/%/%'] = array (
-    'title' => 'Overwrite quota of existing user',
-    'description' => 'Catch admin attempt to add an existing user to the custom quota table.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array ('tripal_galaxy_confirm_overwrite_user_quota', 6, 7, 8),
-    'access arguments' => array ('monitor quota'),
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
 
   // Edit user quota
-  $items['admin/tripal/files/user/edit_user/%'] = array (
-    'title' => 'Edit quota of existing user',
+  $items['admin/tripal/extension/galaxy/quota/edit/%'] = array (
+    'title' => 'Edit Custom Quota',
     'description' => 'Edit an existing user\'s quota and/or expiration date.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array ('tripal_galaxy_edit_user_quota', 5),
-    'access arguments' => array ('monitor quota'),
+    'page arguments' => array ('tripal_galaxy_admin_edit_quota_form', 6),
+    'access arguments' => array ('administer galaxy'),
     'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.admin_usage.inc',
+    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
+
+  //
+  // USER FILES
+  //
 
   // User view quota (Tab)
   $items['user/%/galaxy-files'] = array (
     'title' => 'Uploads',
     'description' => 'Monitors what files that have been uploaded by user through the tripal_galaxy module',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_user_view_files'),
-    'access arguments' => array ('monitor quota'),
+    'page arguments' => array('tripal_galaxy_user_files_page'),
+    'access arguments' => array ('administer galaxy'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
@@ -312,24 +304,24 @@ function tripal_galaxy_menu() {
   $items['user/%/galaxy-files/%/renew'] = array (
     'title' => 'Renew File',
     'description' => "Renew a user's file",
-    'page callback' => 'tripal_galaxy_user_renew_file',
+    'page callback' => 'tripal_galaxy_renew_file',
     'page arguments' => array(3),
     'access callback' => 'tripal_galaxy_file_action_access',
     'access arguments' => array('renew', 3),
     'type' => MENU_CALLBACK,
-    'file' => 'api/tripal_galaxy.api.inc',
+    'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
   // User file download.
   $items['user/%/galaxy-files/%/download'] = array (
     'title' => 'Download File',
     'description' => "Download a user's file based off of the link clicked in the table",
-    'page callback' => 'tripal_galaxy_user_download_file',
+    'page callback' => 'tripal_galaxy_download_file',
     'page arguments' => array(3),
     'access arguments' => array('download', 3),
     'access callback' => 'tripal_galaxy_file_action_access',
     'type' => MENU_CALLBACK,
-    'file' => 'api/tripal_galaxy.api.inc',
+    'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
   // User file delete.
@@ -337,11 +329,11 @@ function tripal_galaxy_menu() {
     'title' => 'Delete File',
     'description' => "Delete a user's file based on either user action or expired file",
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_user_delete_file_form', 1, 3),
+    'page arguments' => array('tripal_galaxy_delete_file_form', 1, 3),
     'access callback' => 'tripal_galaxy_file_action_access',
     'access arguments' => array ('delete', 3),
     'type' => MENU_CALLBACK,
-    'file' => 'api/tripal_galaxy.api.inc',
+    'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
 
@@ -532,7 +524,7 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
 
   // XXX: Finalize this with the submission handler querying on Tripal's
   // Send the job to Tripal's job handler as it is more efficient than Drupal's.
-  // tripal_add_job("test $sid", 'tripal_galaxy', 'tripal_invoke_galaxy_workflow', array($sid), $user->uid);
+  // tripal_add_job("test $sid", 'tripal_galaxy', 'tripal_galaxy_invoke_workflow', array($sid), $user->uid);
 
   drupal_set_message(t('Your job is successfully submitted to the job queue! You will be notified by email when your job begins and completes.'));
   drupal_goto('user/' . $user->uid . '/galaxy-jobs');
@@ -864,7 +856,7 @@ function tripal_galaxy_workflow_report($sid) {
 
 
   $state = '';
-  $links = tripal_get_current_galaxy_history_download_links(tripal_get_galaxy_connection($submission->galaxy_id), $hist_error);
+  $links = tripal_galaxy_history_download_links(tripal_galaxy_get_connection($submission->galaxy_id), $hist_error);
   // dpm($links);
   // dpm($submission->errors);
   // TODO: Include the Preview here
@@ -1199,7 +1191,7 @@ function tripal_galaxy_download_from_links($link_clicked, $links) {
  * Implementation of callback_queue_worker().
  */
 function tripal_galaxy_queue_check_workflow_status($workflow) {
-  tripal_check_galaxy_workflow_status($workflow->galaxy_workflow_id);
+  tripal_galaxy_check_workflow_status($workflow->galaxy_workflow_id);
 }
 
 /**
@@ -1207,14 +1199,14 @@ function tripal_galaxy_queue_check_workflow_status($workflow) {
  * XXX: This will need to be replaced by the tripal jobs handler
  */
 function tripal_galaxy_queue_invoke_workflow($submission) {
-  tripal_invoke_galaxy_workflow($submission->sid);
+  tripal_galaxy_invoke_workflow($submission->sid);
 }
 
 /**
  * Implementation of callback_queue_worker().
  */
 function tripal_galaxy_queue_check_submission_status($submission) {
-  tripal_check_galaxy_submission_status($submission->sid);
+  tripal_galaxy_check_submission_status($submission->sid);
 }
 
 /**
@@ -1416,4 +1408,22 @@ function tripal_galaxy_handle_uploaded_file($filename, $filepath, $type) {
   $file = file_load($fid);
   file_usage_add($file, 'tripal_galaxy', $form_key, $id);
   return $fid;
+}
+
+/**
+ * Autocomplete function for listing existing users on the site.
+ *
+ * @return json array of users that match the query in the textfield
+ **/
+function tripal_galaxy_users_autocomplete($string) {
+  $matches = array();
+  $result = db_select('users', 'u')
+    ->fields('u', array('name'))
+    ->condition('name', '%' . db_like($string) . '%', 'LIKE')
+    ->execute();
+
+  foreach ($result as $row) {
+    $matches[$row->name] = check_plain($row->name);
+  }
+  drupal_json_output($matches);
 }
