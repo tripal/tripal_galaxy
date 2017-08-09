@@ -816,7 +816,7 @@ function tripal_galaxy_test_connection($connect) {
      ->execute()
      ->fetchObject();
    if ($quota) {
-     $quota->custom_quota = tripal_galaxy_format_bytes($quota->custom_quota * 1000);
+     $quota->custom_quota = tripal_galaxy_format_bytes($quota->custom_quota * 1000000);
    }
    else {
      $quota = new stdClass();

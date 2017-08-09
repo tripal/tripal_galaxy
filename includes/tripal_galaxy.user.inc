@@ -113,6 +113,15 @@
     )
   );
 
+
+  $quota_size = preg_replace('/(MB|GB|TB)/', '', $quota->custom_quota) * 1000000;
+  if ($total_size < $quota_size) {
+     drupal_set_message('Your account is currently under quota.');
+  }
+  else {
+    drupal_set_message('Your account is currently over quota. Please remove some files before uploading more', 'warning');
+  }
+
   return $content;
 }
 
@@ -184,10 +193,14 @@ function tripal_galaxy_renew_file($fid) {
 function tripal_galaxy_download_file($fid) {
   $file = file_load($fid);
   if (file_exists($file->uri)) {
-    // TODO: add code here for downloading file.....
+    $headers = array();
+    $headers['Content-Type'] = $file->filemime;
+    $headers['Content-Disposition']  = 'attachment; filename=' . $file->filename;
+    $headers['Content-Length'] = $file->filesize;
+    file_transfer($file->uri, $headers);
   }
   else {
-    drupal_set_message('Cannot download. The file no longer exists on the server.', 'error');
+    drupal_set_message('Can not download. The file no longer exists on the server.', 'error');
     drupal_goto('user/' . $file->uid . '/galaxy-files/');
   }
 }
@@ -321,7 +334,7 @@ function tripal_galaxy_view_file($uid, $fid) {
     $results = $query->execute();
     $workflow = $results->fetchObject();
     if ($workflow) {
-      $wf_links[] = l($workflow->workflow_name . ' (' . $workflow->sid . ')', "user/$uid/galaxy-jobs/$workflow->sid");
+      $wf_links[] = l($workflow->workflow_name . ' (submission ID: ' . $workflow->sid . ')', "user/$uid/galaxy-jobs/$workflow->sid");
     }
   }
   $rows[] = array(
