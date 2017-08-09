@@ -212,6 +212,7 @@ function tripal_galaxy_add_custom_quota_table(&$schema) {
       0 => 'uid',
     ),
   );
+  // TODO: missing indexes and unique constraints.
 }
 function tripal_galaxy_add_expiration_files_table(&$schema) {
   $schema['tripal_galaxy_expiration_files'] = array (
@@ -227,10 +228,11 @@ function tripal_galaxy_add_expiration_files_table(&$schema) {
         'not NULL' => TRUE
       ),
     ),
-      'primary key' => array(
-        0 => 'fid'
-      ),
-    );
+    'primary key' => array(
+      0 => 'fid'
+    ),
+  );
+  // TODO: missing indexes and unique constraints.
 }
 
 /**
@@ -261,4 +263,24 @@ function tripal_galaxy_uninstall () {
   db_drop_table('tripal_galaxy_workflow_submission');
   db_drop_table('tripal_galaxy_custom_quota');
   db_drop_table('tripal_galaxy_expiration_files');
+}
+
+
+
+
+/**
+ * Adds support for file quotas.
+ */
+function tripal_galaxy_update_7100() {
+  try {
+    $schema = array();
+    tripal_galaxy_add_custom_quota_table($schema);
+    db_create_table('tripal_galaxy_custom_quota',$schema['tripal_galaxy_custom_quota']);
+    tripal_galaxy_add_expiration_files_table($schema);
+    db_create_table('tripal_galaxy_expiration_files',$schema['tripal_galaxy_expiration_files']);
+  }
+  catch (\PDOException $e) {
+    $error = $e->getMessage();
+    throw new DrupalUpdateException('Could not perform update: '. $error);
+  }
 }

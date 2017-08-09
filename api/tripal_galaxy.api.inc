@@ -827,96 +827,119 @@ function tripal_galaxy_update_user_quota($update_entry, $uid){
  * @return (array) rows of files associated to the user of the given module
 **/
  function tripal_galaxy_gather_user_files($uid, $module) {
-   // Return to populate the table (the associative keys will match keys in the
-   // header of the table)
+
+//    // Return to populate the table (the associative keys will match keys in the
+//    // header of the table)
+//    $rows = array();
+//    $file_results;
+
+//    // Query the tripal_galaxy_custom_quota table for user entry
+//    $query = "SELECT custom_quota, custom_expiration
+//              FROM {tripal_galaxy_custom_quota}
+//              WHERE uid = :uid";
+//    $results = db_query($query, array(':uid' => $uid))->fetchObject();
+
+//    // If there is an entry include the custom quota/expiration date to the
+//    // rows to return
+//    // NOTE: be sure to delete in the interfacing function so they don't show
+//    // up in the rows of the table
+
+//    // Select all files regardless of module
+//    if($module == 'all') {
+//      $query = db_select('file_managed', 'fm')
+//        ->fields('fm', array('filename', 'fid', 'filesize', 'uri', 'timestamp'));
+//      $query->innerJoin('file_usage', 'fu', 'fm.fid = fu.fid AND fm.uid = :uid',
+//        array(':uid' => $uid));
+//      $file_results = $query->execute();
+//    }
+
+//    // Select files of only a certain type of module that the particular
+//    // user has uploaded
+//    else {
+//      $query = db_select('file_usage', 'fu')
+//        ->fields('fu');
+//      $query->innerJoin('file_managed', 'fm', 'fm.fid = fu.fid AND fm.uid = :uid AND fu.module = :module',
+//        array(':uid' => $uid, ':module' => $module));
+//      $file_results = $query
+//       ->fields('fm')
+//       ->execute();
+//    }
+
+//    // Associate each file with a worklfow, each workflow is associated to a
+//    // certain nid, and each file has an id association with a node in the
+//    // file_usage table
+//    $entries = array();
+
+//    // Query file_usage id and tripal_galaxay_workflow nid, populate file_usage
+//    // foreach fid found in the file_results
+//    // Make the workflows clickable from the file_usage tab (will need to query
+//    // tripal_galaxy_workflow_submission table for the sid)
+//    while($entry = $file_results->fetchObject()){
+//      // HACK: For now to force uniqeness of entries use the fid as a key
+//      $entries[$entry->fid] = $entry;
+//    }
+
+//    // BUG: Just found out that the files that get uploaded do not get taken
+//    //      off of the server after the workflow has been deleted ...
+//    // TODO: In the file usage if the galaxy workflow is deleted then there can
+//    //       not be a link to it
+//    // TODO: Keep in mind that there will be repeats from the file usage table
+//    //        because the files are used on different steps, for now suppress this
+
+//    // This query will get us the workflows but we will also need the
+//    // sid to associate the file to the proper workflow in the usage column
+
+   $sql = "
+     SELECT FM.fid, TGEF.expiration_date, array_agg(FU.id) as workflow_nids
+     FROM {file_managed} FM
+       INNER JOIN {file_usage} FU on FM.fid = FU.fid and FM.uid = :user_id
+       LEFT JOIN {tripal_galaxy_expiration_files} TGEF on TGEF.fid = FU.fid
+     WHERE FU.module = 'tripal_galaxy'
+     GROUP BY FM.fid, TGEF.expiration_date
+   ";
+   $files = db_query($sql, array(':user_id' => $uid));
    $rows = array();
-   $file_results;
+   While ($entry = $files->fetchObject()) {
+    $file = file_load($entry->fid);
 
-   // Query the tripal_galaxy_custom_quota table for user entry
-   $query = "SELECT custom_quota, custom_expiration
-             FROM {tripal_galaxy_custom_quota}
-             WHERE uid = :uid";
-   $results = db_query($query, array(':uid' => $uid))->fetchObject();
-   // If there is an entry include the custom quota/expiration date to the
-   // rows to return
-   // NOTE: be sure to delete in the interfacing function so they don't show
-   // up in the rows of the table
-
-   // Select all files regardless of module
-   if($module == 'all') {
-     $query = db_select('file_managed', 'fm')
-                        ->fields('fm', array('filename', 'fid', 'filesize', 'uri', 'timestamp'));
-     $query->innerJoin('file_usage', 'fu', 'fm.fid = fu.fid AND fm.uid = :uid',
-                                       array(':uid' => $uid));
-     $file_results = $query->execute();
-   }
-
-   // Select files of only a certain type of module that the particular
-   // user has uploaded
-   else {
-     $query = db_select('file_usage', 'fu')
-                        ->fields('fu');
-     $query->innerJoin('file_managed', 'fm', 'fm.fid = fu.fid AND fm.uid = :uid AND fu.module = :module',
-                                       array(':uid' => $uid, ':module' => $module));
-     $file_results = $query
-                    ->fields('fm')
-                    ->execute();
-   }
-
-   // Associate each file with a worklfow, each workflow is associated to a
-   // certain nid, and each file has an id association with a node in the
-   // file_usage table
-   $entries = array();
-
-   // Query file_usage id and tripal_galaxay_workflow nid, populate file_usage
-   // foreach fid found in the file_results
-   // Make the workflows clickable from the file_usage tab (will need to query
-   // tripal_galaxy_workflow_submission table for the sid)
-   while($entry = $file_results->fetchObject()){
-     // HACK: For now to force uniqeness of entries use the fid as a key
-    $entries[$entry->fid] = $entry;
-   }
-
-   // BUG: Just found out that the files that get uploaded do not get taken
-   //      off of the server after the workflow has been deleted ...
-   // TODO: In the file usage if the galaxy workflow is deleted then there can
-   //       not be a link to it
-   // TODO: Keep in mind that there will be repeats from the file usage table
-  //        because the files are used on different steps, for now suppress this
-
-   // This will query will get us the workflows but we will also need the
-   // sid to associate the file to the proper workflow in the usage column
-   foreach($entries as $key  => $entry ) {
-   $query = db_select('tripal_galaxy_workflow', 'tgw')
-            ->fields('tgw')
-            ->condition('nid', $entry->id, '=');
-   $query->innerJoin('tripal_galaxy_workflow_submission', 'tgws', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-   $file_links = $query->fields('tgws')
-                       ->execute();
-    $date_uploaded = date('Y-m-d H:i:s', $entry->timestamp);
-
-    while($sub = $file_links->fetchObject()){
-      // Add the workflow as a link to file_usage
-      // Place the links of this particular file into the file_usage column
-      $links = '';
-      $links .= l($entry->filename,"/user/$uid/galaxy-jobs/$sub->sid") . ' ';
+    // Don't list files that don't exist on the file system.
+    if (!file_exists($file->uri)) {
+      continue;
     }
+
+    $date_uploaded = date('Y-m-d H:i:s', $file->timestamp);
+    $expiration = $entry->expiration_date ? date('Y-m-d H:i:s', $entry->expiration_date) : '';
+    $workflow_nids = preg_replace('/[\{\}]/', '', $entry->workflow_nids);
+    $workflow_nids = explode(',', $workflow_nids);
+
+    // Add the workflow as a link to file_usage
+    // Place the links of this particular file into the file_usage column
+    $wf_links = '';
+    foreach ($workflow_nids as $nid) {
+      $query = db_select('tripal_galaxy_workflow', 'tgw');
+      $query->fields('tgw', array('workflow_name'));
+      $query->innerJoin('tripal_galaxy_workflow_submission', 'tgws', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+      $query->fields('tgws', array('sid'));
+      $query->condition('nid', $nid, '=');
+      $results = $query->execute();
+      $workflow = $results->fetchObject();
+      if ($workflow) {
+        $wf_links .= l($workflow->workflow_name . ' (' . $workflow->sid . ')', "user/$uid/galaxy-jobs/$workflow->sid") . ' ';
+      }
+    }
+
     $rows[] = array(
       'fid' => $entry->fid,
-      'filename' => l($entry->filename,"/user/$uid/files/$entry->fid/download"),
-      // Calculate the expiration dates of the files based off of the expiration
-      // date and the timestamp of uploading
-       // NOTE: use date('Y-m-d H:i:s', $timestamp)
+      'filename' => l($file->filename,"/user/$uid/galaxy-files/$file->fid/download"),
       'timestamp' => $date_uploaded,
-      // TODO: come back here
-      'expiration_date' => '',//  time() + /* expiration_date variable here*/,
-      'filesize' => tripal_galaxy_file_human_readable_size($entry->filesize),
-      'file_usage' => !empty($links) ? $links:'',
-      'actions' => l('Delete', "/user/$uid/files/$entry->fid/delete") . ' ' . l('Renew', "/user/$fid/files/$entry->fid/renew")
+      'expiration_date' => $expiration,
+      'filesize' => tripal_galaxy_file_human_readable_size($file->filesize),
+      'file_usage' => $wf_links,
+      'actions' => l('Delete', "/user/$uid/galaxy-files/$file->fid/delete") . ' ' . l('Renew', "/user/$uid/galaxy-files/$file->fid/renew")
     );
- }
+  }
   return $rows;
- }
+}
 
 
 function tripal_galaxy_file_human_readable_size($total_size) {
@@ -967,16 +990,16 @@ function tripal_galaxy_file_human_readable_size($total_size) {
 **/
 function tripal_galaxy_check_file_expiration() {
   $results = db_select('tripal_galaxy_file_expiration', 'tgfe')
-                      ->fields('tgfe')
-                      ->execute();
-    while($result = $results->fetchObject()) {
-      if(time() <= $result->expiration_date){
-        // remove the file from the server as it is outdated and has not been
-        // renewed through user action
-        // TRUE to force the file to be deleted and dropped from all tables
-        file_delete(file_load($result->fid), TRUE);
-      }
+    ->fields('tgfe')
+    ->execute();
+  while($result = $results->fetchObject()) {
+    if(time() <= $result->expiration_date){
+      // remove the file from the server as it is outdated and has not been
+      // renewed through user action
+      // TRUE to force the file to be deleted and dropped from all tables
+      file_delete(file_load($result->fid), TRUE);
     }
+  }
 }
 
 /**
@@ -987,48 +1010,77 @@ function tripal_galaxy_check_file_expiration() {
  *
  *
 **/
-function tripal_galaxy_user_renew_file($uid,$fid) {
-  // Get the file
-  $result = db_select('tripal_galaxy_file_expiration', 'tgfe')
-           ->fields('tgfe')
-           ->condition('fid', $fid)
-           ->execute()
-           ->fetchObject();
+function tripal_galaxy_user_renew_file($fid) {
+  $file = file_load($fid);
+
+  // Get the file expiration information.
+  $current = db_select('tripal_galaxy_expiration_files', 'tgfe')
+    ->fields('tgfe')
+    ->condition('fid', $fid)
+    ->execute()
+    ->fetchObject();
+
   // Search the custom quota table based off of uid to see if the user has a
-  // custom id or not
+  // custom quota setting.
   $quota = db_select('tripal_galaxy_custom_quota', 'tgcq')
-            ->fields('tgcq')
-            ->condition('uid', $uid)
-            ->execute();
+    ->fields('tgcq')
+    ->condition('uid', $file->uid)
+    ->execute();
 
   // The db_update argument to update the expiration_date of the file
-  $update = array(
+  $values = array(
     'fid' => $fid,
   );
   if($entry = $quota->fetchObject()) {
     // If there is an entry of this user add to their custom expiration as the
     // time to append to the current time() to update the expiration_date of
     // the file clicked
-    $update['expiration_date'] = time() + $entry->custom_expiration;
+    $values['expiration_date'] = time() + $entry->custom_expiration;
   }
   // A custom expiration entry was not found so add the site wide default time
   // to the expiration date
   else {
-    $update['expiration_date'] = time() + variable_get('tripal_galaxy_default_file_expiration', 60);
+    $values['expiration_date'] = time() + variable_get('tripal_galaxy_default_file_expiration', 60);
   }
 
   // Write the update to the db_table
-  $count = db_update('tripal_galaxy_file_expiration')
-          ->fields($update)
-          ->condition('fid', $form_id)
-          ->execute();
+  if ($current) {
+    db_update('tripal_galaxy_expiration_files')
+      ->fields($values)
+      ->condition('fid', $fid)
+      ->execute();
+    drupal_set_message('Successfully updated experiation date.');
+  }
+  else {
+    db_insert('tripal_galaxy_expiration_files')
+      ->fields($values)
+      ->execute();
+    drupal_set_message('Successfully set the experiation date.');
+  }
+
+  drupal_goto('user/' . $file->uid . '/galaxy-files/');
 
 }
 
-function tripal_galaxy_user_download_file($uid,$fid) {
-
+/**
+ *
+ * @param $fid
+ */
+function tripal_galaxy_user_download_file($fid) {
+  $file = file_load($fid);
+  if (file_exists($file->uri)) {
+   // TODO: add code here for downloading file.....
+  }
+  else {
+    drupal_set_message('Cannot download. The file no longer exists on the server.', 'error');
+    drupal_goto('user/' . $file->uid . '/galaxy-files/');
+  }
 }
 
-function tripal_galaxy_user_delete_file($uid,$fid) {
+/**
+ *
+ * @param $fid
+ */
+function tripal_galaxy_user_delete_file($fid) {
 
 }
