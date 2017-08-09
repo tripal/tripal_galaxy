@@ -10,16 +10,19 @@
  * @return
  *   A Drupal render array.
  */
- function tripal_galaxy_files_page($uid) {
+ function tripal_galaxy_user_files_page($uid) {
 
    // Get all of the files that have been uploaded by the user.
+   // TODO: we should make this a paged query in case a user has a huge
+   // numbef of uploaded files.
    $sql = "
-     SELECT FM.fid, TGEF.expiration_date, array_agg(FU.id) as workflow_nids
+     SELECT FM.fid, FM.filename, TGEF.expiration_date
      FROM {file_managed} FM
        INNER JOIN {file_usage} FU on FM.fid = FU.fid and FM.uid = :user_id
        LEFT JOIN {tripal_galaxy_expiration_files} TGEF on TGEF.fid = FU.fid
      WHERE FU.module = 'tripal_galaxy'
      GROUP BY FM.fid, TGEF.expiration_date
+     ORDER BY FM.filename
    ";
    $files = db_query($sql, array(':user_id' => $uid));
    $rows = array();
@@ -33,36 +36,84 @@
 
     $date_uploaded = date('Y-m-d H:i:s', $file->timestamp);
     $expiration = $entry->expiration_date ? date('Y-m-d H:i:s', $entry->expiration_date) : '';
-    $workflow_nids = preg_replace('/[\{\}]/', '', $entry->workflow_nids);
-    $workflow_nids = explode(',', $workflow_nids);
-
-    // Add the workflow as a link to file_usage
-    // Place the links of this particular file into the file_usage column
-    $wf_links = '';
-    foreach ($workflow_nids as $nid) {
-      $query = db_select('tripal_galaxy_workflow', 'tgw');
-      $query->fields('tgw', array('workflow_name'));
-      $query->innerJoin('tripal_galaxy_workflow_submission', 'tgws', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-      $query->fields('tgws', array('sid'));
-      $query->condition('nid', $nid, '=');
-      $results = $query->execute();
-      $workflow = $results->fetchObject();
-      if ($workflow) {
-        $wf_links .= l($workflow->workflow_name . ' (' . $workflow->sid . ')', "user/$uid/galaxy-jobs/$workflow->sid") . ' ';
-      }
-    }
+    $actions = l('Delete', "user/$uid/galaxy-files/$file->fid/delete") . ' | ' .
+               l('Renew', "user/$uid/galaxy-files/$file->fid/renew");
 
     $rows[] = array(
-      'fid' => $entry->fid,
-      'filename' => l($file->filename,"/user/$uid/galaxy-files/$file->fid/download"),
-      'timestamp' => $date_uploaded,
-      'expiration_date' => $expiration,
-      'filesize' => tripal_galaxy_format_bytes($file->filesize),
-      'file_usage' => $wf_links,
-      'actions' => l('Delete', "/user/$uid/galaxy-files/$file->fid/delete") . ' ' . l('Renew', "/user/$uid/galaxy-files/$file->fid/renew")
+      $entry->fid,
+      l($file->filename,"/user/$uid/galaxy-files/$file->fid"),
+      $date_uploaded,
+      $expiration,
+      tripal_galaxy_format_bytes($file->filesize),
+      $actions,
     );
   }
-  return $rows;
+  $header = array('ID', 'File Name', 'Upload Date', 'Expiration', 'Size', 'Actions');
+
+  // Get the user quota settings.
+  $quota = tripal_galaxy_get_user_quota($uid);
+
+  // Get the user's current file usage
+  $sql = "SELECT DISTINCT FU.fid
+      FROM {file_usage} FU
+        INNER JOIN {file_managed} FM ON FM.fid = FU.fid and FU.module = 'tripal_galaxy'
+      WHERE FM.uid = :uid";
+  $fids = db_query($sql, array(':uid' => $uid));
+  $total_size = 0;
+  while($fid = $fids->fetchObject()) {
+    $sql = "SELECT filesize FROM {file_managed} WHERE fid = :fid";
+    $total_size += db_query($sql, array (':fid' => $fid->fid))->fetchObject()->filesize;
+  }
+  $form['total_size'] = array (
+    '#type' => 'item',
+    '#title' => t('Total Current Ussage'),
+    '#description' => t('The total amount of space consumed by user file uploads.'),
+    '#markup' => tripal_galaxy_format_bytes($total_size),
+  );
+
+  $content = array(
+    'page_title' => array(
+      '#type' => 'markup',
+      '#markup' => '<h2>Your Uploaded Files</h2>',
+    ),
+    'page_description' => array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('Each user is allowed to consume a limited amount of space with uploaded files. This page provides details about your current usage, your limits and files you\'ve uploaded.') . '</p>',
+    ),
+    'usage' => array(
+      '#type' => 'item',
+      '#title' => 'Current Usage',
+      '#markup' => tripal_galaxy_format_bytes($total_size),
+      '#description' => t('The total number of bytes you currently consume.'),
+    ),
+    'quota' => array(
+      '#type' => 'item',
+      '#title' => 'Current Quota',
+      '#markup' => $quota->custom_quota,
+      '#description' => t('The maximum number of bytes of files you can upload.')
+    ),
+    'expiration' => array(
+      '#type' => 'item',
+      '#title' => 'Current Days to Expire',
+      '#markup' => $quota->custom_expiration,
+      '#description' => t('The number of days a file will remain on the server before deltion. The expiration of date of a file can be renewed using the "Renew" link in the table below.')
+    ),
+    'file_list' => array(
+      '#type' => 'item',
+      '#title' => 'Uploaded Files',
+      '#markup' => theme_table(array(
+        'header' => $header,
+        'rows' => $rows,
+        'attributes' => array(),
+        'caption' => t('Click a file name for more details.'),
+        'colgroups' => array(),
+        'sticky' => TRUE,
+        'empty' => 'You currently have no uploaded files.',
+      )),
+    )
+  );
+
+  return $content;
 }
 
 /**
@@ -203,3 +254,119 @@ function tripal_galaxy_delete_file_form_submit($form, &$form_state) {
   drupal_goto('user/' . $file->uid . '/galaxy-files/');
 }
 
+/**
+ * Provides details about a file.
+ */
+function tripal_galaxy_view_file($uid, $fid) {
+  $file = file_load($fid);
+
+  $headers = array();
+  $rows = array();
+
+  $actions = l('Delete', "user/$uid/galaxy-files/$file->fid/delete") . '<br>' .
+             l('Download', "user/$uid/galaxy-files/$file->fid/download");
+
+  // Name row
+  $rows[] = array(
+    array(
+      'data' => 'File Name',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    $file->filename
+  );
+
+  $date_uploaded = date('Y-m-d H:i:s', $file->timestamp);
+  $rows[] = array(
+    array(
+      'data' => 'Upload Date',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    $date_uploaded
+  );
+
+  $expiration_date = db_select('tripal_galaxy_expiration_files', 'tgef')
+    ->fields('tgef', array('expiration_date'))
+    ->condition('fid', $fid)
+    ->execute()
+    ->fetchField();
+  $expiration = $expiration_date ? date('Y-m-d H:i:s', $expiration_date) : '';
+  $rows[] = array(
+    array(
+      'data' => 'Expiration Date',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    $expiration
+  );
+
+  // Find which workflow submissions are using this file.
+  $usage = file_usage_list($file);
+  $usage = $usage['tripal_galaxy'];
+  $workflow_nids = array();
+  foreach ($usage as $step => $nid) {
+    $nid = array_keys($nid)[0];
+    if (!in_array($nid, $workflow_nids)) {
+      $workflow_nids[] = $nid;
+    }
+  }
+  $wf_links = array();
+  foreach ($workflow_nids as $i => $nid) {
+    $query = db_select('tripal_galaxy_workflow', 'tgw');
+    $query->fields('tgw', array('workflow_name'));
+    $query->innerJoin('tripal_galaxy_workflow_submission', 'tgws', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+    $query->fields('tgws', array('sid'));
+    $query->condition('tgw.nid', $nid, '=');
+    $results = $query->execute();
+    $workflow = $results->fetchObject();
+    if ($workflow) {
+      $wf_links[] = l($workflow->workflow_name . ' (' . $workflow->sid . ')', "user/$uid/galaxy-jobs/$workflow->sid");
+    }
+  }
+  $rows[] = array(
+    array(
+      'data' => 'Usage',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    theme_item_list(array(
+      'items' => $wf_links,
+      'title' => '',
+      'type' => 'ul',
+      'attributes' => array(),
+    )),
+  );
+  $rows[] = array(
+    array(
+      'data' => 'Actions',
+      'header' => TRUE,
+      'width' => '20%',
+    ),
+    $actions
+  );
+
+  $content = array(
+    'description' => array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('The following file has been uploaded for use in an analytical workflow.') . '</p>',
+    ),
+    'return' => array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . l('View all Uploaded Files', "user/$uid/galaxy-files") . '</p>',
+    ),
+    'file_details' => array(
+      '#type' => 'markup',
+      '#markup' => theme_table(array(
+        'header' => $headers,
+        'rows' => $rows,
+        'attributes' => array(),
+        'sticky' => FALSE,
+        'caption' => '',
+        'colgroups' => array(),
+        'empty' => '',
+      )),
+    ),
+  );
+  return $content;
+}

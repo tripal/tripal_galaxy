@@ -774,24 +774,6 @@ function tripal_galaxy_test_connection($connect) {
    return $rows;
  }
 
-/**
- * API call to overwrite a user's current quota/exp date with a new one
- *
- * @param $uid
- *
- * @param $update_entry
- *        Associative array of the columns to overwrite
- *        - custom_quota => XX
- *        - custom_expiration => XX
- *
-**/
-function tripal_galaxy_update_user_quota($update_entry, $uid){
-
-  db_update('tripal_galaxy_custom_quota')
-  ->fields($update_entry)
-  ->condition('uid', $uid, '=')
-  ->execute();
-}
 
 /**
  * Sets a user's file space quota and default file expiration.
@@ -817,6 +799,32 @@ function tripal_galaxy_update_user_quota($update_entry, $uid){
      ->execute();
  }
 
+ /**
+  * Retrieves the user's quote and default days to expire.
+  *
+  * @param $uid
+  *   The User ID.
+  *
+  * @return
+  *   An associative array containing the quota and default days to
+  *   expire.
+  */
+ function tripal_galaxy_get_user_quota($uid) {
+   $quota =  db_select('tripal_galaxy_custom_quota', 'tgcq')
+     ->fields('tgcq', array('custom_quota', 'custom_expiration'))
+     ->condition('uid', $uid)
+     ->execute()
+     ->fetchObject();
+   if ($quota) {
+     $quota->custom_quota = tripal_galaxy_format_bytes($quota->custom_quota * 1000);
+   }
+   else {
+     $quota = new stdClass();
+     $quota->custom_quota = variable_get('tripal_galaxy_default_file_quota', '200MB');
+     $quota->custom_expiration = variable_get('tripal_galaxy_default_file_expiration', '60');
+   }
+   return $quota;
+}
  /**
   * Removes a user's file space and default file expiration.
   *

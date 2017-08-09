@@ -291,8 +291,8 @@ function tripal_galaxy_menu() {
   $items['user/%/galaxy-files'] = array (
     'title' => 'Uploads',
     'description' => 'Monitors what files that have been uploaded by user through the tripal_galaxy module',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_user_files_page'),
+    'page callback' => 'tripal_galaxy_user_files_page',
+    'page arguments' => array(1),
     'access arguments' => array ('administer galaxy'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.user.inc',
@@ -300,6 +300,17 @@ function tripal_galaxy_menu() {
     'weight' => 10,
   );
 
+  $items['user/%/galaxy-files/%'] = array (
+    'title' => 'File Details',
+    'description' => "View details about the file",
+    'page callback' => 'tripal_galaxy_view_file',
+    'page arguments' => array(1, 3),
+    'access callback' => 'tripal_galaxy_file_action_access',
+    'access arguments' => array('renew', 3),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.user.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
   // User file renew.
   $items['user/%/galaxy-files/%/renew'] = array (
     'title' => 'Renew File',
