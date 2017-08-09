@@ -1049,13 +1049,13 @@ function tripal_galaxy_user_renew_file($fid) {
       ->fields($values)
       ->condition('fid', $fid)
       ->execute();
-    drupal_set_message('Successfully updated experiation date.');
+    drupal_set_message('Successfully updated expiration date.');
   }
   else {
     db_insert('tripal_galaxy_expiration_files')
       ->fields($values)
       ->execute();
-    drupal_set_message('Successfully set the experiation date.');
+    drupal_set_message('Successfully set the expiration date.');
   }
 
   drupal_goto('user/' . $file->uid . '/galaxy-files/');
@@ -1078,9 +1078,67 @@ function tripal_galaxy_user_download_file($fid) {
 }
 
 /**
+ * Provides a confirmation form for deleting a galaxy workflow uploaded file.
  *
  * @param $fid
  */
-function tripal_galaxy_user_delete_file($fid) {
+function tripal_galaxy_user_delete_file_form($form, $form_state, $uid, $fid) {
+  $form = array();
 
+  $file = file_load($fid);
+
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#value' => $uid,
+  );
+  $form['fid'] = array(
+    '#type' => 'value',
+    '#value' => $fid,
+  );
+
+  return confirm_form($form,
+    t('Confirm deletion of the file named "' . $file->filename . '"?'),
+    'user/' . $uid . '/galaxy-files/',
+    t('Warning.  If this file is intended to be used with a analysis workflow submission that has not yet started then the workflow will fail. Once deleted, the file can no longer be used for new workflow submissions without uploading again.')
+  );
 }
+
+/**
+ * Implements a form submit for deleting a galaxy workflow uploaded file.
+ */
+function tripal_galaxy_user_delete_file_form_submit($form, &$form_state) {
+  $fid = $form_state['values']['fid'];
+  $uid = $form_state['values']['uid'];
+  $file = file_load($fid);
+
+  // Remove the file from the file_usage table for all entries that link
+  // to the tripal_galaxy module.
+  file_usage_delete($file, 'tripal_galaxy', NULL, NULL, 0);
+
+  // Get any remaining usage for other modules
+  $file_usage = file_usage_list($file);
+
+  // If this file is still used by the tripal_galaxy module then something
+  // didn't work right.
+  if (in_array('tripal_galaxy', $file_usage)) {
+    drupal_set_message('The file could not be removed.  Please contact the site administrator.', 'error');
+  }
+
+  // If there is no other usage of this file from other modules then delete it.
+  if (count(array_keys($file_usage)) == 0) {
+    if (file_unmanaged_delete($file->uri)) {
+
+      // Also remove the md5 checksum.
+      if (file_exists(file_unmanaged_delete($file->uri . '.md5'))) {
+        file_unmanaged_delete($file->uri . '.md5');
+      }
+      drupal_set_message('The file has been fully removed.');
+    }
+    else {
+      drupal_set_message('The file has removed from this list and does not count against your quota, but other components of this site rely on this file. Thus it has not been fully removed.');
+    }
+  }
+  drupal_goto('user/' . $file->uid . '/galaxy-files/');
+}
+
+
