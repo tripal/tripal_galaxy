@@ -285,7 +285,8 @@ function tripal_galaxy_invoke_workflow($sid) {
 
   // Get the history that we'll use for this submission.
   $error = array();
-  $history = tripal_galaxy_get_history($galaxy, "TG-" . $user->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . time(), $error);
+  $history_name = "TG-" . $node->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s');
+  $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
   if (!$history) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);

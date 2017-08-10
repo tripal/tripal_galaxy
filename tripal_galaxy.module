@@ -656,9 +656,98 @@ function tripal_galaxy_element_info() {
     '#process' => array('tripal_galaxy_BDSS_file_process'),
     '#element_validate' => array('tripal_galaxy_BDSS_file_validate'),
   );
+  $elements['single_upload'] = array(
+    '#input' => 'TRUE',
+    '#process' => array('tripal_galaxy_single_upload_process'),
+    '#element_validate' => array('tripal_galaxy_single_upload_validate'),
+    '#value_callback' => 'tripal_galaxy_single_upload_value',
+  );
   return $elements;
 }
 
+/**
+ * Implements the process hook for the galaxy_multi_upload form element.
+ */
+function tripal_galaxy_single_upload_process($element, $form_state, $complete_form) {
+
+  global $user;
+  $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
+  $quota = tripal_galaxy_get_user_quota($user->uid);
+  $quota = tripal_galaxy_format_bytes($quota->custom_quota);
+
+
+  $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
+
+  // We want to "inherit" the html5_file widget.
+  $element = tripal_html5_file_process($element, $form_state, $complete_form);
+  unset($element['html5_file_table']['#title']);
+  unset($element['html5_file_table']['#description']);
+
+  $element['description'] = array(
+    '#type' => 'item',
+    '#title' => $element['#title'] ? $element['#title'] : 'Data File',
+    '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+    '#weight' => -15,
+  );
+
+
+  $files_list = array();
+  $files_list[] = '-- Select a File --';
+  $query = db_select('file_managed', 'FM');
+  $query->fields('FM', array('fid'));
+  $query->distinct();
+  $query->condition('FM.uid', $user->uid);
+  $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal_galaxy'");
+  $query->orderBy('FM.filename');
+  $files = $query->execute();
+  while ($fid = $files->fetchField()) {
+    $file = file_load($fid);
+    foreach ($allowed_types as $type) {
+      if (preg_match('/\.' . $type . '$/', $file->filename)) {
+        $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
+      }
+    }
+  }
+  $element['existing'] = array(
+    '#type' => 'select',
+    '#title' => t('Select an Existing File'),
+    '#description' => t('Please select your file if it already exists on this site.'),
+    '#options' => $files_list,
+    '#weight' => -10,
+  );
+
+  return $element;
+}
+/**
+ * Implements the validate hook for the galaxy_multi_upload element.
+ */
+function tripal_galaxy_single_upload_validate($element, &$form_state) {
+  $is_required = $element['#required'];
+  $fid = $element['#value'];
+
+  if ($is_required and !$fid) {
+    form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
+  }
+}
+/**
+ * Implements the value callback for the galaxy_multi_upload element.
+ */
+function tripal_galaxy_single_upload_value($element, $input = FALSE, &$form_state) {
+  if ($input) {
+    if (is_array($input)) {
+      $name = $element['#name'];
+      $name = preg_replace('/[^\w]/', '_', $name);
+      $fid = $input[$name];
+      if (!$fid) {
+        $fid = $input['existing'];
+      }
+      return $fid;
+    }
+    else {
+      return $input;
+    }
+  }
+}
 /**
  *
  */
@@ -1109,10 +1198,6 @@ function tripal_galaxy_submission_admin_report($sid) {
  */
 function tripal_galaxy_cron() {
 
-  // TODO: Tripal jobs is more efficient in queuing and getting the job
-  // launched sooner than Drupal use tripal jobs to launch the workflow
-  // However the drupal cron will still be used to read the status
-
   // Invoke any workflows that are in the waiting state.
   // Get the list of submitted workflows that aren't in 'error' state or
   // in 'completed' state.
@@ -1149,6 +1234,7 @@ function tripal_galaxy_cron() {
   // Add the call to iterate through the expired files on the api
   tripal_galaxy_check_file_expiration();
 }
+
 /**
  * Implements hook_cron_queue_info().
  */
@@ -1396,7 +1482,7 @@ function tripal_galaxy_handle_uploaded_file($filename, $filepath, $type) {
   list($id, $form_key) = explode('-', $type);
 
 
-  // See if this file is already managed then add another entry fin the
+  // See if this file is already managed then add another entry in the
   // usage table.
   $fid = db_select('file_managed', 'fm')
     ->fields('fm', array('fid'))

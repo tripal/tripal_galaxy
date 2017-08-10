@@ -44,7 +44,7 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
     $allowed_types = array_values($component['extra']['filtering']['types']);
   }
   $element = array(
-    '#type' => 'html5_file',
+    '#type' => 'single_upload',
     '#title' => $component['name'],
     '#description' => array_key_exists('description', $component['extra']) ? $component['extra']['description'] : '',
     '#weight' => $component['weight'],
@@ -53,6 +53,7 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
     '#usage_id' => $component['nid'],
     '#usage_module' => 'tripal_galaxy',
     '#allowed_types' => $allowed_types,
+    '#required' => array_key_exists('required', $component) and  $component['required'] ? TRUE : FALSE,
   );
   return $element;
 }
@@ -63,6 +64,7 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
 function _webform_display_html5_file($component, $value, $format = 'html') {
   $filename = '';
 
+
   // Find the field ccontaining the fid.
   $fid = NULL;
   foreach ($value as $key => $val) {
@@ -70,11 +72,16 @@ function _webform_display_html5_file($component, $value, $format = 'html') {
       $fid = $val;
     }
   }
+  if (!$fid) {
+    $fid = $value['existing'];
+    $filename = 'No file selected';
+  }
 
   if ($fid) {
     $file = file_load($fid);
     $filename = $file->filename;
   }
+
 
   return array(
     '#title' => $component['name'],
@@ -84,7 +91,7 @@ function _webform_display_html5_file($component, $value, $format = 'html') {
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#format' => $format,
     '#value' => $filename,
-    '#title' => !empty($component['name']) ? $component['name'] : 'Input File',
+    '#title' => !empty($component['name']) ? $component['name'] : 'Input Data File',
   );
 }
 
