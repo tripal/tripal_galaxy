@@ -1438,3 +1438,27 @@ function tripal_galaxy_users_autocomplete($string) {
   }
   drupal_json_output($matches);
 }
+
+/**
+ * Implements hook_file_upload_check().
+ *
+ * This is a Tripal-defined hook to allow a module to interact with the
+ * Tripal file uploader.  If a message is returned then the uploader
+ * will halt and report to the end-user them essage.
+ */
+function tripal_galaxy_file_upload_check($action, $details, &$message) {
+
+  global $user;
+
+  $usage = tripal_galaxy_get_user_usage($user->uid);
+  $quota = tripal_galaxy_get_user_quota($user->uid);
+  $quota_size = $quota->custom_quota;
+
+  $file_size = $details['file_size'];
+  if ($file_size + $usage > $quota_size) {
+    $message = t("Unfortunately, you cannot upload this file as the size exceeds the remainder of your quota. See your account page under the 'Uploads' tab to manage your uploaded files.");
+    return FALSE;
+  }
+
+  return TRUE;
+}

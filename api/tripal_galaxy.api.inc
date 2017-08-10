@@ -709,70 +709,6 @@ function tripal_galaxy_test_connection($connect) {
 
  }
 
-/**
- * API call to gather the user(s) with custom quotas.
- * The way this will be called is intended where the admin will have one or
- * the other, this funciton is not intended to see whether a particular user
- * exists in the table
- *
- * TODO: Create search fn to query the table and return the entry if it
- *       exists else return bool FALSE
- *
- * @param $uid
- *        The UID of the user
- *        use 'all' to gather all users in the table
- *
- * @return Associatve array of the users with custom quotas
-**/
- function tripal_galaxy_gather_user_custom_quotas($uid) {
-
-   $rows = array();
-   // Grab all of the users from the table
-  if($uid == 'all') {
-
-     $query = "SELECT *
-               FROM {tripal_galaxy_custom_quota}";
-     $data = db_query($query);
-
-
-     // Find ALL of the users
-     while($entry = $data->fetchObject()) {
-
-       $query = "SELECT name
-                 FROM {users}
-                 WHERE uid = :uid";
-
-       $rows[] = array(
-         'uid' => $entry->uid,
-         'user' => db_query($query, array('uid' => $entry->uid))->fetchObject()->name,
-         'custom_quota' => $entry->custom_quota,
-         'exp_date' => $entry->custom_expiration,
-       );
-   }
-  }
-
-  else {
-    $query = "SELECT *
-              FROM {tripal_galaxy_custom_quota}
-              WHERE uid = :uid";
-    $data = db_query($query, array ('uid' => $uid));
-
-    // Find a single user only
-    if($entry = $data->fetchObject()) {
-      $query = "SELECT name
-                FROM {users}
-                WHERE uid = :uid";
-
-      $rows[] = array(
-        'uid' => $entry->uid,
-        'user' => db_query($query, array('uid' => $uid))->fetchObject()->name,
-        'custom_quota' => $entry->custom_quota,
-        'exp_date' => $entry->custom_expiration,
-      );
-    }
-  }
-   return $rows;
- }
 
 
 /**
@@ -815,15 +751,38 @@ function tripal_galaxy_test_connection($connect) {
      ->condition('uid', $uid)
      ->execute()
      ->fetchObject();
-   if ($quota) {
-     $quota->custom_quota = tripal_galaxy_format_bytes($quota->custom_quota * 1000000);
-   }
-   else {
+   if (!$quota) {
      $quota = new stdClass();
-     $quota->custom_quota = variable_get('tripal_galaxy_default_file_quota', '200MB');
+     $quota->custom_quota = variable_get('tripal_galaxy_default_file_quota', pow(20,6));
      $quota->custom_expiration = variable_get('tripal_galaxy_default_file_expiration', '60');
    }
    return $quota;
+}
+
+/**
+ * Retrieves the current size of all files uploaded by the user.
+ *
+ * @param $uid
+ *   The User ID.
+ *
+ * @return
+ *   The total number of bytes currently used.
+ */
+function tripal_galaxy_get_user_usage($uid) {
+  // Get the user's current file usage
+  $sql = "
+    SELECT DISTINCT FU.fid
+    FROM {file_usage} FU
+      INNER JOIN {file_managed} FM ON FM.fid = FU.fid and FU.module = 'tripal_galaxy'
+    WHERE FM.uid = :uid
+  ";
+  $fids = db_query($sql, array(':uid' => $uid));
+  $total_size = 0;
+  while($fid = $fids->fetchObject()) {
+    $sql = "SELECT filesize FROM {file_managed} WHERE fid = :fid";
+    $total_size += db_query($sql, array (':fid' => $fid->fid))->fetchObject()->filesize;
+  }
+  return $total_size;
 }
  /**
   * Removes a user's file space and default file expiration.
@@ -861,10 +820,10 @@ function tripal_galaxy_test_connection($connect) {
    $pow = min($pow, count($units) - 1);
 
    // Uncomment one of the following alternatives
-   $bytes /= pow(1024, $pow);
+   $bytes /= pow(1000, $pow);
    // $bytes /= (1 << (10 * $pow));
 
-   return round($bytes, $precision) . ' ' . $units[$pow];
+   return round($bytes, $precision) . '' . $units[$pow];
  }
 
 /**

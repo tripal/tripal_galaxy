@@ -38,6 +38,11 @@ function _webform_edit_html5_file($component) {
  * Defines how the form element is sent to the webform itself.
  */
 function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
+  $allowed_types = array();
+  if (array_key_exists('filtering', $component['extra']) and
+      array_key_exists('types', $component['extra']['filtering'])) {
+    $allowed_types = array_values($component['extra']['filtering']['types']);
+  }
   $element = array(
     '#type' => 'html5_file',
     '#title' => $component['name'],
@@ -47,6 +52,7 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
     '#usage_type' => $component['form_key'],
     '#usage_id' => $component['nid'],
     '#usage_module' => 'tripal_galaxy',
+    '#allowed_types' => $allowed_types,
   );
   return $element;
 }

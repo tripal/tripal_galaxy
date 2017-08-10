@@ -52,24 +52,7 @@
 
   // Get the user quota settings.
   $quota = tripal_galaxy_get_user_quota($uid);
-
-  // Get the user's current file usage
-  $sql = "SELECT DISTINCT FU.fid
-      FROM {file_usage} FU
-        INNER JOIN {file_managed} FM ON FM.fid = FU.fid and FU.module = 'tripal_galaxy'
-      WHERE FM.uid = :uid";
-  $fids = db_query($sql, array(':uid' => $uid));
-  $total_size = 0;
-  while($fid = $fids->fetchObject()) {
-    $sql = "SELECT filesize FROM {file_managed} WHERE fid = :fid";
-    $total_size += db_query($sql, array (':fid' => $fid->fid))->fetchObject()->filesize;
-  }
-  $form['total_size'] = array (
-    '#type' => 'item',
-    '#title' => t('Total Current Ussage'),
-    '#description' => t('The total amount of space consumed by user file uploads.'),
-    '#markup' => tripal_galaxy_format_bytes($total_size),
-  );
+  $usage = tripal_galaxy_get_user_usage($uid);
 
   $content = array(
     'page_title' => array(
@@ -83,13 +66,13 @@
     'usage' => array(
       '#type' => 'item',
       '#title' => 'Current Usage',
-      '#markup' => tripal_galaxy_format_bytes($total_size),
+      '#markup' => tripal_galaxy_format_bytes($usage),
       '#description' => t('The total number of bytes you currently consume.'),
     ),
     'quota' => array(
       '#type' => 'item',
       '#title' => 'Current Quota',
-      '#markup' => $quota->custom_quota,
+      '#markup' => tripal_galaxy_format_bytes($quota->custom_quota),
       '#description' => t('The maximum number of bytes of files you can upload.')
     ),
     'expiration' => array(
@@ -114,9 +97,8 @@
   );
 
 
-  $quota_size = preg_replace('/(MB|GB|TB)/', '', $quota->custom_quota) * 1000000;
-  if ($total_size < $quota_size) {
-     drupal_set_message('Your account is currently under quota.');
+  if ($usage < $quota->custom_quota) {
+    drupal_set_message('Your account is currently under quota.');
   }
   else {
     drupal_set_message('Your account is currently over quota. Please remove some files before uploading more', 'warning');

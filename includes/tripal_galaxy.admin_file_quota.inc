@@ -6,7 +6,7 @@
 function tripal_galaxy_admin_add_custom_form($form, &$form_state) {
 
   $username = '';
-  $default_quota = variable_get('tripal_galaxy_default_file_quota', '200MB');
+  $default_quota = variable_get('tripal_galaxy_default_file_quota', pow(20,6));
   $default_expiration = variable_get('tripal_galaxy_default_file_expiration', '60');
 
   if (array_key_exists('values', $form_state)) {
@@ -29,7 +29,7 @@ function tripal_galaxy_admin_add_custom_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => 'Custom User Quota',
     '#description' => 'Set the number of megabytes that a user can consume. The number must be followed by the suffix "MB" (megabytes) or "GB" (gigabytes) with no space between the number and the suffix (e.g.: 200MB).',
-    '#default_value' => $default_quota,
+    '#default_value' => tripal_galaxy_format_bytes($default_quota),
   );
 
   // Custom exp date textfield (prepopulated with defualt value)
@@ -112,16 +112,15 @@ function tripal_galaxy_admin_add_custom_form_submit($form, &$form_state) {
     $size = $matches[1];
   }
 
-
   switch ($multiplier) {
     case 'GB':
-      $size = $quota * 1024;
+      $size = (int) $quota * pow(10,9);
       break;
     case 'TB':
-      $size = $quota * 1024 * 1024;
+      $size = (int) $quota * pow(10,12);
       break;
     default:
-      // leave as is
+      $size = (int) $quota * pow(10,6);
       break;
   }
 
@@ -144,8 +143,9 @@ function tripal_galaxy_admin_add_custom_form_submit($form, &$form_state) {
  **/
 function tripal_galaxy_admin_edit_quota_form($form, &$form_state, $uid) {
 
-  $default_quota = variable_get('tripal_galaxy_default_file_quota', '200MB');
-  $default_expiration = variable_get('tripal_galaxy_default_file_expiration', '60');
+  $quota = tripal_galaxy_get_user_quota($uid);
+  $default_quota = $quota->custom_quota;
+  $default_expiration = $quota->custom_expiration;
 
   if (array_key_exists('values', $form_state)) {
     $default_quota = $form_state['values']['default_quota'];
@@ -171,7 +171,7 @@ function tripal_galaxy_admin_edit_quota_form($form, &$form_state, $uid) {
     '#type' => 'textfield',
     '#title' => 'Custom User Quota',
     '#description' => 'Set the number of megabytes that a user can consume. The number must be followed by the suffix "MB" (megabytes) or "GB" (gigabytes) with no space between the number and the suffix (e.g.: 200MB).',
-    '#default_value' => $default_quota,
+    '#default_value' => tripal_galaxy_format_bytes($default_quota),
   );
 
   // Custom exp date textfield (prepopulated with defualt value)
@@ -236,13 +236,13 @@ function tripal_galaxy_admin_edit_quota_form_submit($form, &$form_state) {
 
   switch ($multiplier) {
     case 'GB':
-      $size = $quota * 1024;
+      $size = (int) $quota * pow(10,9);
       break;
     case 'TB':
-      $size = $quota * 1024 * 1024;
+      $size = (int) $quota * pow(10,12);
       break;
     default:
-      // leave as is
+      $size = (int) $quota * pow(10,6);
       break;
   }
 
@@ -250,8 +250,9 @@ function tripal_galaxy_admin_edit_quota_form_submit($form, &$form_state) {
   tripal_galaxy_remove_user_quota($uid);
   tripal_galaxy_set_user_quota($uid, $size, $expiration);
 
+  $user = user_load($uid);
 
-  drupal_set_message(t('Custom quota set for the user: @username', array('@username' => $username)));
+  drupal_set_message(t('Custom quota set for the user: @username', array('@username' => $user->name)));
   drupal_goto('admin/tripal/extension/galaxy/quota');
 }
 
@@ -267,7 +268,7 @@ function tripal_galaxy_admin_manage_quota_form($form, &$form_state) {
   // Provide overall server consumption (and space remaining)
   $total_size = 0;
 
-  $default_quota = variable_get('tripal_galaxy_default_file_quota', '200MB');
+  $default_quota = variable_get('tripal_galaxy_default_file_quota', pow(20,6));
   $default_expiration = variable_get('tripal_galaxy_default_file_expiration', '60');
 
   if (array_key_exists('values', $form_state)) {
@@ -286,7 +287,7 @@ function tripal_galaxy_admin_manage_quota_form($form, &$form_state) {
   }
   $form['total_size'] = array (
     '#type' => 'item',
-    '#title' => t('Total Current Ussage'),
+    '#title' => t('Total Current Usage'),
     '#description' => t('The total amount of space consumed by user file uploads.'),
     '#markup' => tripal_galaxy_format_bytes($total_size),
   );
@@ -297,7 +298,7 @@ function tripal_galaxy_admin_manage_quota_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => 'Default System-Wide User Quota',
     '#description' => 'Set the number of megabytes that a user can consume. The number must be followed by the suffix "MB" (megabytes) or "GB" (gigabytes) with no space between the number and the suffix (e.g.: 200MB).',
-    '#default_value' => $default_quota,
+    '#default_value' => tripal_galaxy_format_bytes($default_quota),
   );
 
   $form['default_expiration_date'] = array (
@@ -318,8 +319,17 @@ function tripal_galaxy_admin_manage_quota_form($form, &$form_state) {
 
   // API call to the gather the users that have a custom quota
   $rows = array();
-
-  $rows = tripal_galaxy_gather_user_custom_quotas('all');
+  $query = "SELECT * FROM {tripal_galaxy_custom_quota}";
+  $data = db_query($query);
+  while($entry = $data->fetchObject()) {
+    $user = user_load($entry->uid);
+    $rows[] = array(
+      'uid' => $user->uid,
+      'user' => $user->name,
+      'custom_quota' => tripal_galaxy_format_bytes($entry->custom_quota),
+      'exp_date' => $entry->custom_expiration,
+    );
+  }
 
   // Add the Actions links
   foreach($rows as $key => $entry){
@@ -363,6 +373,7 @@ function tripal_galaxy_admin_manage_quota_form($form, &$form_state) {
   return $form;
 }
 
+
 /**
  * Validate the form's values: proper numbers and/or MB, GB, TB for quota field.
  **/
@@ -389,8 +400,31 @@ function tripal_galaxy_admin_manage_quota_form_submit($form, &$form_state) {
   $quota = $form_state['values']['default_quota'];
   $expiration = $form_state['values']['default_expiration_date'];
 
+  // if the 2nd element of the qutoa string occupied by a valid suffix we need to check to see
+  // what we have to multiply the value by (1024 for GB 1024^2 for TB because
+  // we assume that the initial number is already in MB)
+  $matches = array();
+  $multiplier = 'MB';
+  $size = $quota;
+  if (preg_match("/^(\d+)(MB|GB|TB)$/", $quota, $matches)) {
+    $multiplier = $matches[2];
+    $size = $matches[1];
+  }
+
+  switch ($multiplier) {
+    case 'GB':
+      $size = (int) $quota * pow(10,9);
+      break;
+    case 'TB':
+      $size = (int) $quota * pow(10,12);
+      break;
+    default:
+      $size = (int) $quota * pow(10,6);
+      break;
+  }
+
   // Grab the quota value and exp_date to write to the drupal variables
-  variable_set('tripal_galaxy_default_file_quota', $quota);
+  variable_set('tripal_galaxy_default_file_quota', $size);
   variable_set('tripal_galaxy_default_file_expiration', $expiration);
 
   drupal_set_message('Default quota settings have been set.');
