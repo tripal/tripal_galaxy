@@ -1736,7 +1736,7 @@ function tripal_galaxy_results_viewer_full_page($proxy_id) {
   else {
     $content['name'] = array(
       '#type' => 'markup',
-      '#markup' => t('This link has expired'),
+      '#markup' => t('This link has expired. Please reload the job results page for uploaded links.'),
     );
     return $content;
   }
@@ -1775,7 +1775,7 @@ function tripal_galaxy_results_viewer_page($proxy_id) {
   else {
     $content['name'] = array(
       '#type' => 'markup',
-      '#markup' => t('This link has expired'),
+      '#markup' => t('This link has expired. Please reload the job results page for uploaded links.'),
     );
     return $content;
   }
@@ -1792,7 +1792,10 @@ function tripal_galaxy_results_download($proxy_id) {
 
   $headers = get_headers($url);
   foreach ($headers as $header) {
-    drupal_add_http_header($header);
+    $results = preg_split('/:/', $header, 2);
+    if (count($results) == 2) {
+      drupal_add_http_header($results[0], $results[1]);
+    }
   }
   print tripal_galaxy_stream_url_proxy($proxy_id);
 
