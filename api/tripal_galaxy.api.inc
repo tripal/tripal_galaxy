@@ -247,6 +247,22 @@ function tripal_galaxy_check_submission_status($sid) {
   return TRUE;
 }
 
+
+/**
+ * Constructs the history name for a given submission.
+ *
+ * @param $submission
+ *    A submission object that contains the galaxy_workflow_id, sid,
+ *    and submit_date properties.
+ * @param $node
+ *    The sumbission node object.
+ *
+ * @return
+ *   The history name.
+ */
+function tripal_galaxy_get_history_name($submission, $node) {
+  return "TG-" . $node->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s', $submission->submit_date);
+}
 /**
  * Invokes all submitted workflows that are in the 'Waiting' state.
  *
@@ -285,7 +301,7 @@ function tripal_galaxy_invoke_workflow($sid) {
 
   // Get the history that we'll use for this submission.
   $error = array();
-  $history_name = "TG-" . $node->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s');
+  $history_name = tripal_galaxy_get_history_name($submission, $node);
   $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
   if (!$history) {
     $error = $galaxy->getError();
@@ -479,33 +495,6 @@ function tripal_galaxy_invoke_workflow($sid) {
 }
 
 /**
- * Retrieves the current history from Galaxy.
- *
- * @param $galaxy
- *   A GalaxyInstance object
- * @param $error
- *   An empty array into which the error type and message will be placed
- *   if an error occurs.
- *
- * @return
- *   A history array for the specified history.  If a failure occured then
- *   FALSE is returned and the $error argument is set.
- */
-function tripal_galaxy_get_current_history(GalaxyInstance $galaxy, &$error) {
-  // TODO: should this go in blend4php?
-
-  $ghistories = new GalaxyHistories($galaxy);
-  $current_history = $ghistories->getMostRecentlyUsed();
-
-  if (!$current_history){
-    $error = $galaxy->getError();
-    return FALSE;
-  }
-
-  return $current_history;
-}
-
-/**
  * Retrieves a history by name from Galaxy.
  *
  * @param $galaxy
@@ -602,103 +591,6 @@ function tripal_galaxy_test_connection($connect) {
   }
   return TRUE;
 }
-
-/**
- * Generates the contents of the current history from the Galaxy server.
- *
- *  The first element in the array should be the entire history compressed
- *  as a single file.
- *  'entire' => [url_to_download_whole_history]
- * @param $galaxy
- *   A GalaxyInstance object
- * @param $error
- *   An empty array into which the error type and message will be placed
- *   if an error occurs.
-  *
- * @param
- *   Returns an associative array with the keys being the name of the step and
- *   the values being the URLs of the results of that particular step.
- */
- function tripal_galaxy_history_download_links(GalaxyInstance $galaxy, &$error) {
-
-   // TODO: should this function go in blend4php rather than here?
-   $links = array();
-   $whole_history = tripal_galaxy_get_current_history($galaxy, $error);
-
-   $ghistories = new GalaxyHistories($galaxy);
-   $ghistory_contents = new GalaxyHistoryContents($galaxy);
-
-   // Acquire the individual contents from the current history.
-   $contents = $ghistory_contents->index(array('history_id' => $whole_history['id']));
-
-   if(!$contents) {
-     $error = $galaxy->getError();
-     return FALSE;
-   }
-
-   $history_params['url_only'] = TRUE;
-
-   // Iterate through the contents and generate the other id's.
-   $download_history_content_params = array();
-
-   $download_history_content_params['history_id'] = $whole_history['id'];
-   $download_history_content_params['url_only'] = TRUE;
-   // Generate the clickable URLs.
-   foreach($contents as $key => $val) {
-     $download_history_content_params['history_content_id'] = $val['id'];
-     // If the history content has been marked as deleted or purged DO NOT
-     // include the file as a downloadable link
-     if($ghistory_contents->download_history_content($download_history_content_params)){
-       // Create a nested array for holding the particular job id that started
-       // the creation of the history content that we are viewing.
-
-       // API call to the specific history_content to to get the creating_job
-       // id
-       $links[$val['hid'] . ': ' . $val['name']] = array();
-
-       $links[$val['hid'] . ': ' . $val['name']]['job_id'] = $ghistory_contents->show(array('id' => $val['id'], 'history_id' => $whole_history['id']))['creating_job'];
-       $links[$val['hid'] . ': ' . $val['name']]['id'] = $val['id'];
-       $links[$val['hid'] . ': ' . $val['name']]['link'] = $ghistory_contents->download_history_content($download_history_content_params);
-     }
-   }
-
-   return $links;
-
- }
-
-//  /**
-//  *  Generate the client prompt based off of the history/history_content.
-//  *  TODO: Generate a variable number of the contents within a history
-//  *  TODO: Generate a history_content file as a compressed file.
-//  * @param $galaxy
-//  *   A GalaxyInstance object
-//  * @param $error
-//  *   An empty array into which the error type and message will be placed
-//  *   if an error occurs.
-//  * @param $history_id
-//  *   The history to prepare for download.
-//  * @param $history_content_id
-//  *   Optional, specify the content_id to download only that piece from the
-//  *   history.
-//  */
-//  function tripal_galaxy_generate_history_file(GalaxyInstance $galaxy, &$error, $history_id, $history_content_id = NULL) {
-//    // Check if we're looking for a whole history or a single history content.
-//    $ghistory_contents = new GalaxyHistoryContents($galaxy);
-//    $params = array();
-//    $params['history_id'] = $history_id;
-//    // Download the whold history
-//    if(!$history_content_id) {
-//      return $ghistory_contents->download_history($params);
-//    }
-//    // Else download the specified content
-//    else {
-//      // Include the specified content_id
-//      $params['history_content_id'] = $history_content_id;
-//      return $ghistory_contents->download_history_content($params);
-//    }
-//  }
-
-
 
 /**
  * API call to edit an existing user's custom quota
