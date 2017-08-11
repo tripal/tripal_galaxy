@@ -1095,10 +1095,11 @@ function tripal_galaxy_workflow_report($sid) {
                 // their key.
                 $link = $ghistory_contents->download_history_content($params);
                 $proxy_id = tripal_galaxy_set_proxy_url($link, $history_content, $submission, $node);
+                $file_size = tripal_galaxy_format_bytes($history_content['file_size']);
                 $step_content['history_content_' . $step_index . '_' . $index]['download_link'] = array(
                   '#type' => 'item',
                   '#title' => t('Download Results'),
-                  '#markup' => l($history_content['name'], 'galaxy/download/' . $proxy_id) . ' (' . tripal_galaxy_format_bytes($history_content['file_size']) . ')',
+                  '#markup' => l($history_content['name'], 'galaxy/download/' . $proxy_id) . ' (' . $file_size . ')',
                 );
                 break;
               default:
@@ -1116,6 +1117,23 @@ function tripal_galaxy_workflow_report($sid) {
                 );
                 break;
               default:
+                // Any files that are smaller than 1MB can be shown in a browser.
+                if ($history_content['file_size'] < pow(10,6)) {
+                  $url = $galaxy_server->url . $history_content['download_url'];
+                  $proxy_id = tripal_galaxy_set_proxy_url($url, $history_content, $submission, $node);
+                  $step_content['history_content_' . $step_index . '_' . $index]['html_view'] = array(
+                    '#type' => 'item',
+                    '#title' => t('View Results'),
+                    '#markup' => l($history_content['name'], 'galaxy/viewer/'. $proxy_id, array('attributes' => array('target' => '_blank'))),
+                  );
+                }
+                else {
+                  $step_content['history_content_' . $step_index . '_' . $index]['html_view'] = array(
+                    '#type' => 'item',
+                    '#title' => t('View Results'),
+                    '#markup' => 'Result file is too large to view. Please download.',
+                  );
+                }
                 $step_content['history_content_' . $step_index . '_' . $index]['peek'] = array(
                   '#type' => 'item',
                   '#title' => ('Peek'),
