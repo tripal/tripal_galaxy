@@ -729,11 +729,11 @@ function tripal_galaxy_single_upload_process($element, $form_state, $complete_fo
   $files = $query->execute();
   while ($fid = $files->fetchField()) {
     $file = file_load($fid);
-    foreach ($allowed_types as $type) {
-      if (preg_match('/\.' . $type . '$/', $file->filename)) {
+    //foreach ($allowed_types as $type) {
+      //if (preg_match('/\.' . $type . '$/', $file->filename)) {
         $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-      }
-    }
+      //}
+    //}
   }
   $element['existing'] = array(
     '#type' => 'select',
