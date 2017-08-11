@@ -738,7 +738,7 @@ function tripal_galaxy_single_upload_process($element, $form_state, $complete_fo
   $element['existing'] = array(
     '#type' => 'select',
     '#title' => t('Select an Existing File'),
-    '#description' => t('Please select your file if it already exists on this site.'),
+    '#description' => t('Please select your file if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
     '#weight' => -10,
   );
