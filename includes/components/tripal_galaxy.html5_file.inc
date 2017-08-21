@@ -53,6 +53,7 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
     '#usage_id' => $component['nid'],
     '#usage_module' => 'tripal_galaxy',
     '#allowed_types' => $allowed_types,
+    '#cardinality' => 1,
     '#required' => array_key_exists('required', $component) and  $component['required'] ? TRUE : FALSE,
   );
   return $element;

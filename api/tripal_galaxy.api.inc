@@ -364,7 +364,7 @@ function tripal_galaxy_invoke_workflow($sid) {
 
   // Iterate through the submitted data values and create an input aray
   // for Galaxy workflow submission.
-  while($data = $submitted_data->fetchObject()) {
+  while ($data = $submitted_data->fetchObject()) {
     $value = '';
 
     // The component 'extra' data is serialized so we need to convert it.
