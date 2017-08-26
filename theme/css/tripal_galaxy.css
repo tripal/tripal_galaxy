@@ -13,3 +13,10 @@
   display: block;
   border: 1px solid #AAAAAA;
 }
+
+.tripal-galaxy-enabled-file {
+  background-color: #EEFFEE !important;
+}
+.tripal-galaxy-disabled-file {
+  background-color: #FFEEEE !important;
+}

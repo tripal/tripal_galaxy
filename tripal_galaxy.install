@@ -17,6 +17,7 @@ function tripal_galaxy_schema() {
   tripal_galaxy_add_workflow_submission_table($schema);
   tripal_galaxy_add_custom_quota_table($schema);
   tripal_galaxy_add_expiration_files_table($schema);
+  tripal_galaxy_add_site_wide_files_table($schema);
 
   return $schema;
 }
@@ -235,6 +236,54 @@ function tripal_galaxy_add_expiration_files_table(&$schema) {
   // TODO: missing indexes and unique constraints.
 }
 
+function tripal_galaxy_add_site_wide_files_table(&$schema) {
+  $schema['tripal_galaxy_site_files'] = array (
+    'table' => 'tripal_galaxy_site_files',
+    'fields' => array (
+      'swfid' => array(
+        'type' => 'serial',
+        'not null' => TRUE
+      ),
+      'fid' => array(
+        'type' => 'int',
+      ),
+      'url' => array(
+        'type' => 'text',
+      ),
+      'filename' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => TRUE,
+      ),
+      'short_desc' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'filetype' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE
+      ),
+      'enabled' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+    ),
+    'primary key' => array(
+      0 => 'swfid'
+    ),
+    'unique keys' => array(
+      'uq1' => array('url'),
+      'uq2' => array('fid')
+    ),
+    'indexes' => array(
+      'idx1' => array('filetype'),
+    )
+  );
+}
+
 /**
  * Implements hook_requirements().
  */
@@ -278,6 +327,21 @@ function tripal_galaxy_update_7100() {
     db_create_table('tripal_galaxy_custom_quota',$schema['tripal_galaxy_custom_quota']);
     tripal_galaxy_add_expiration_files_table($schema);
     db_create_table('tripal_galaxy_expiration_files',$schema['tripal_galaxy_expiration_files']);
+  }
+  catch (\PDOException $e) {
+    $error = $e->getMessage();
+    throw new DrupalUpdateException('Could not perform update: '. $error);
+  }
+}
+
+/**
+ * Adds support for site-wide files
+ */
+function tripal_galaxy_update_7101() {
+  try {
+    $schema = array();
+    tripal_galaxy_add_site_wide_files_table($schema);
+    db_create_table('tripal_galaxy_site_files',$schema['tripal_galaxy_site_files']);
   }
   catch (\PDOException $e) {
     $error = $e->getMessage();
