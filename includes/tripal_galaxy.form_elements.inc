@@ -142,7 +142,7 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
 /**
  * Implements the validate hook for the galaxy_multi_upload element.
  */
-function tripal_galaxy_sflist_process_validate($element, &$form_state) {
+function tripal_galaxy_sflist_validate($element, &$form_state) {
   $is_required = $element['#required'];
   $fid = $element['#value'];
 
@@ -154,7 +154,7 @@ function tripal_galaxy_sflist_process_validate($element, &$form_state) {
  * Implements the value callback for the galaxy_multi_list element.
  * Order does not matter for the multi list
  */
-function tripal_galaxy_sflist_process_value($element, $input = FALSE, &$form_state) {
+function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
 
   if ($input) {
     if (is_array($input)) {
@@ -290,7 +290,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
 /**
  * Implements the validate hook for the galaxy_multi_upload element.
  */
-function tripal_galaxy_sfile_process_validate($element, &$form_state) {
+function tripal_galaxy_sfile_validate($element, &$form_state) {
   $is_required = $element['#required'];
   $fid = $element['#value'];
 
@@ -302,7 +302,7 @@ function tripal_galaxy_sfile_process_validate($element, &$form_state) {
 /**
  * Implements the value callback for the galaxy_multi_upload element.
  */
-function tripal_galaxy_sfile_process_value($element, $input = FALSE, &$form_state) {
+function tripal_galaxy_sfile_value($element, $input = FALSE, &$form_state) {
   if ($input) {
     if (is_array($input)) {
       $name = $element['#name'];
@@ -378,7 +378,7 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 /**
  * Implements the validate hook for the galaxy_multi_upload element.
  */
-function tripal_galaxy_pflist_process_validate($element, &$form_state) {
+function tripal_galaxy_pflist_validate($element, &$form_state) {
   $is_required = $element['#required'];
   $fid = $element['#value'];
 
@@ -390,7 +390,7 @@ function tripal_galaxy_pflist_process_validate($element, &$form_state) {
 /**
  * Implements the value callback for the galaxy_multi_upload element.
  */
-function tripal_galaxy_pflist_process_value($element, $input = FALSE, &$form_state) {
+function tripal_galaxy_pflist_value($element, $input = FALSE, &$form_state) {
   if ($input) {
     if (is_array($input)) {
       $name = $element['#name'];
