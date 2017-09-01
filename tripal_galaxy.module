@@ -218,6 +218,57 @@ function tripal_galaxy_menu() {
   );
 
   //
+  // SITE-WIDE FILES
+  //
+  $items['admin/tripal/extension/galaxy/files'] = array (
+    'title' => 'Files',
+    'description' => t('Files available site-wide for workflows.'),
+    'page callback' => 'tripal_galaxy_admin_manage_files',
+    'access arguments' => array('administer galaxy'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/tripal_galaxy.admin_files.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 40,
+  );
+  $items['admin/tripal/extension/galaxy/files/add'] = array (
+    'title' => 'Add a New File',
+    'description' => t('Files available site-wide for workflows.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tripal_galaxy_admin_add_file_form'),
+    'access arguments' => array('administer galaxy'),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'includes/tripal_galaxy.admin_files.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+  $items['admin/tripal/extension/galaxy/files/disable/%'] = array (
+    'description' => "Disable a file.",
+    'page callback' => 'tripal_galaxy_admin_disable_file',
+    'page arguments' => array (6),
+    'access arguments' => array ('administer galaxy'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_files.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+  $items['admin/tripal/extension/galaxy/files/enable/%'] = array (
+    'description' => "Enable a file.",
+    'page callback' => 'tripal_galaxy_admin_enable_file',
+    'page arguments' => array (6),
+    'access arguments' => array ('administer galaxy'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_files.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+  $items['admin/tripal/extension/galaxy/files/edit/%'] = array (
+    'title' => t('Edit File Details'),
+    'description' => "Edit a site-wide file.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array ('tripal_galaxy_admin_edit_file_form', 6),
+    'access arguments' => array ('administer galaxy'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_files.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  );
+  //
   // FILE QUOTAS
   //
 
