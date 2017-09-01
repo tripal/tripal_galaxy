@@ -122,6 +122,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
             'name' => $step['tool_inputs']['name'],
             'full_name' => $step['tool_inputs']['name'],
             'type' => 'data_collection_input',
+            'collection_type' => $step['tool_inputs']['collection_type']
           );
           tripal_galaxy_build_webform_add_component($webform, $workflow,
               $step, $tool, $input, $cid);
@@ -657,16 +658,30 @@ function tripal_galaxy_build_webform_add_component($webform,
       // we want to use this same function to create components so we fake
       // a tool and input and use this type.
       $webform_type = 'single_file';
-      // $extra['filtering']['types'] = array();
+      $extra['filtering']['types'] = array();
       // The webform 'file' component wants a size.  Let this default to the
       // server settings.
       $extra['filtering']['size'] = '0';
       // Set the allowed extension as per the rules on Galaxy.
-      // $extra['filtering']['addextensions'] = '';
+      $extra['filtering']['addextensions'] = '';
       break;
 
     case 'data_collection_input':
-      $webform_type = 'multiple_file';
+      // Here there needs to be another switch statement as there are three
+      // types of data collections sets
+      switch($input['collection_type']){
+        case 'list':
+        // NOTE: The component's name cannot be longer than 16 chars as I found
+        //       out, strange no?
+        $webform_type = 'multiple_list';
+        break;
+        case 'paired':
+        // $webform_type = 'multiple_pair';
+        break;
+        case 'list:paired':
+        // $webform_type = 'mult_pair_list'
+        break;
+      }
       break;
 
     case 'integer':

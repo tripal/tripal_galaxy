@@ -517,6 +517,8 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
 function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
   global $user;
 
+  dpm($form_state);
+
   // Don't do anything if the webform isn't finished being filled out.
   if ($form_state['webform_completed'] != TRUE) {
     return;
@@ -656,7 +658,7 @@ function tripal_galaxy_webform_component_info() {
     ),
     'file' => 'includes/components/tripal_galaxy.single_file.inc',
   );
-  $components['multiple_file'] = array(
+  $components['multiple_list'] = array(
     'label' => t('Multiple Files'),
     'description' => t('Allows multiple paths (URL, upload, Tripal web services) that files may be attached.'),
     'features' =>  array(
@@ -673,7 +675,7 @@ function tripal_galaxy_webform_component_info() {
       'attachment' => FALSE,
       'conditional_action_set' => TRUE,
     ),
-    'file' => 'includes/components/tripal_galaxy.multiple_file.inc',
+    'file' => 'includes/components/tripal_galaxy.multiple_list.inc',
   );
   $components['fixed_value'] = array(
     'label' => t('Fixed Value'),
@@ -720,11 +722,12 @@ function tripal_galaxy_element_info() {
     '#element_validate' => array('tripal_galaxy_single_upload_validate'),
     '#value_callback' => 'tripal_galaxy_single_upload_value',
   );
-  $elements['multiple_upload'] = array(
+  $elements['multiple_list'] = array(
     '#input' => 'TRUE',
-    '#process' => array('tripal_galaxy_multiple_upload_process'),
-    '#element_validate' => array('tripal_galaxy_multiple_upload_validate'),
-    '#value_callback' => 'tripal_galaxy_multiple_upload_value',
+    '#process' => array('tripal_galaxy_multiple_list_process'),
+    '#element_validate' => array('tripal_galaxy_multiple_list_validate'),
+    // Call back will be an array of fid's
+    '#value_callback' => 'tripal_galaxy_multiple_list_value',
   );
   return $elements;
 }
@@ -794,6 +797,7 @@ function tripal_galaxy_single_upload_validate($element, &$form_state) {
   if ($is_required and !$fid) {
     form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
   }
+
 }
 /**
  * Implements the value callback for the galaxy_multi_upload element.
@@ -820,18 +824,21 @@ function tripal_galaxy_single_upload_value($element, $input = FALSE, &$form_stat
 
 /**
  * Implements the process hook for the galaxy_multi_upload form element.
+ *
+ * This function needs to be looking both at the select file and the html5
+ * upload to see if files came from both components.
  */
-function tripal_galaxy_multiple_upload_process($element, $form_state, $complete_form) {
+function tripal_galaxy_multiple_list_process($element, $form_state, $complete_form) {
 
   global $user;
   $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
   $quota = tripal_galaxy_get_user_quota($user->uid);
   $quota = tripal_galaxy_format_bytes($quota->custom_quota);
 
-
   $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
 
   // We want to "inherit" the html5_file widget.
+  // I also want the fid from the upload, how do I get that?
   $element = tripal_html5_file_process($element, $form_state, $complete_form);
   unset($element['html5_file_table']['#title']);
   unset($element['html5_file_table']['#description']);
@@ -842,7 +849,6 @@ function tripal_galaxy_multiple_upload_process($element, $form_state, $complete_
     '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
-
 
   $files_list = array();
   $files_list[] = '-- Select a File --';
@@ -863,20 +869,24 @@ function tripal_galaxy_multiple_upload_process($element, $form_state, $complete_
       //}
     //}
   }
-  $element['existing'] = array(
+
+
+  $element['existing_files'] = array(
     '#type' => 'select',
-    '#title' => t('Select an Existing File'),
-    '#description' => t('Please select your file if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#multiple' => TRUE,
+    '#title' => t('Select Existing File(s)'),
+    // TODO: Look for acceptable extensions with the tool
+    '#description' => t('Please select your file(s) if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
-    '#weight' => -10,
+    '#weight' => -100,
   );
 
-  return $element;
+    return $element;
 }
 /**
  * Implements the validate hook for the galaxy_multi_upload element.
  */
-function tripal_galaxy_multiple_upload_validate($element, &$form_state) {
+function tripal_galaxy_multiple_list_validate($element, &$form_state) {
   $is_required = $element['#required'];
   $fid = $element['#value'];
 
@@ -885,16 +895,23 @@ function tripal_galaxy_multiple_upload_validate($element, &$form_state) {
   }
 }
 /**
- * Implements the value callback for the galaxy_multi_upload element.
+ * Implements the value callback for the galaxy_multi_list element.
+ * Order does not matter for the multi list
  */
-function tripal_galaxy_multiple_upload_value($element, $input = FALSE, &$form_state) {
+function tripal_galaxy_multiple_list_value($element, $input = FALSE, &$form_state) {
+
+  dpm($input);
+  dpm($element);
+
   if ($input) {
     if (is_array($input)) {
       $name = $element['#name'];
       $name = preg_replace('/[^\w]/', '_', $name);
       $fid = $input[$name];
+      dpm($fid);
+      // Inlcude the fid's in the existing files as well
       if (!$fid) {
-        $fid = $input['existing'];
+        $fid = $input['existing_files'];
       }
       return $fid;
     }

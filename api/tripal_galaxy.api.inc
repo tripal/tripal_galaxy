@@ -420,8 +420,9 @@ function tripal_galaxy_invoke_workflow($sid) {
         }
       }
     }
-    else if($data->type == 'multiple_file') {
-
+    else if($data->type == 'multiple_list') {
+      // TODO: Check that the from the workflow are now in the specified
+      // collection_type
     }
 
     // Deal with the BDSS_file type.  It will have two rows in the
