@@ -44,7 +44,7 @@ function _webform_render_galaxy_sfile($component, $value = NULL, $filter = TRUE)
     $allowed_types = array_values($component['extra']['filtering']['types']);
   }
   $element = array(
-    '#type' => 'single_upload',
+    '#type' => 'galaxy_sfile',
     '#title' => $component['name'],
     '#description' => array_key_exists('description', $component['extra']) ? $component['extra']['description'] : '',
     '#weight' => $component['weight'],

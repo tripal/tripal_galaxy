@@ -20,30 +20,30 @@ function tripal_galaxy_element_info() {
   $elements['galaxy_sfile'] = array(
     '#input' => 'TRUE',
     '#process' => array('tripal_galaxy_sfile_process'),
-    '#element_validate' => array('tripal_galaxy_single_upload_validate'),
-    '#value_callback' => 'tripal_galaxy_single_upload_value',
+    '#element_validate' => array('tripal_galaxy_sfile_validate'),
+    '#value_callback' => 'tripal_galaxy_sfile_value',
   );
   // A form element for uploading/selecting a list of single files.
   $elements['galaxy_sflist'] = array(
     '#input' => 'TRUE',
     '#process' => array('tripal_galaxy_sflist_process'),
-    '#element_validate' => array('tripal_galaxy_single_upload_validate'),
-    '#value_callback' => 'tripal_galaxy_single_upload_value',
+    '#element_validate' => array('tripal_galaxy_sflist_validate'),
+    '#value_callback' => 'tripal_galaxy_sflist_value',
   );
   // A form element for uploading/selecting a paired file.
   $elements['galaxy_pfile'] = array(
     '#input' => 'TRUE',
     '#process' => array('tripal_galaxy_pfile_process'),
-    '#element_validate' => array('tripal_galaxy_single_upload_validate'),
-    '#value_callback' => 'tripal_galaxy_single_upload_value',
+    '#element_validate' => array('tripal_galaxy_pfile_validate'),
+    '#value_callback' => 'tripal_galaxy_pfile_value',
   );
   // A form element for uploading/selecting a list of paired files.
   $elements['galaxy_pflist'] = array(
     '#input' => 'TRUE',
     '#process' => array('tripal_galaxy_pflist_process'),
-    '#element_validate' => array('tripal_galaxy_multiple_list_validate'),
+    '#element_validate' => array('tripal_galaxy_pflist_validate'),
     // Call back will be an array of fid's
-    '#value_callback' => 'tripal_galaxy_multiple_list_value',
+    '#value_callback' => 'tripal_galaxy_pflist_value',
   );
   return $elements;
 }
@@ -155,9 +155,6 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
    * Order does not matter for the multi list
    */
   function tripal_galaxy_sflist_process_value($element, $input = FALSE, &$form_state) {
-
-    dpm($input);
-    dpm($element);
 
     if ($input) {
       if (is_array($input)) {

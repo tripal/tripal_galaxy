@@ -640,7 +640,7 @@ function tripal_galaxy_build_webform_add_component($webform,
     case 'data':
       // Data appears to be a file selection of files that already
       // exists in the user's history.
-      $webform_type = 'single_file';
+      $webform_type = 'galaxy_sfile';
       $extra['filtering']['types'] = array('');
       // The webform 'file' component wants a size.  Let this default to the
       // server settings.

@@ -689,7 +689,7 @@ function tripal_galaxy_webform_component_info() {
     ),
     'file' => 'includes/components/tripal_galaxy.BDSS_file.inc',
   );
-  $components['single_file'] = array(
+  $components['galaxy_sfile'] = array(
     'label' => t('Single File'),
     'description' => t('Allows multiple paths (URL, upload, Tripal web services) that a file may be attached.'),
     'features' =>  array(
@@ -706,9 +706,9 @@ function tripal_galaxy_webform_component_info() {
       'attachment' => FALSE,
       'conditional_action_set' => TRUE,
     ),
-    'file' => 'includes/components/tripal_galaxy.single_file.inc',
+    'file' => 'includes/components/tripal_galaxy.galaxy_sfile.inc',
   );
-  $components['multiple_list'] = array(
+  $components['galaxy_sflist'] = array(
     'label' => t('Multiple Files'),
     'description' => t('Allows multiple paths (URL, upload, Tripal web services) that files may be attached.'),
     'features' =>  array(
@@ -725,7 +725,7 @@ function tripal_galaxy_webform_component_info() {
       'attachment' => FALSE,
       'conditional_action_set' => TRUE,
     ),
-    'file' => 'includes/components/tripal_galaxy.multiple_list.inc',
+    'file' => 'includes/components/tripal_galaxy.galaxy_sflist.inc',
   );
   $components['fixed_value'] = array(
     'label' => t('Fixed Value'),

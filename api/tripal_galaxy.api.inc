@@ -408,7 +408,7 @@ function tripal_galaxy_invoke_workflow($sid) {
         }
       }
     }
-    else if ($data->type == 'single_file') {
+    else if ($data->type == 'galaxy_sfile') {
       $file = $managed_files[$data->data];
       foreach ($hcontents as $hcontent) {
         if ($hcontent['name'] == $file->filename) {
@@ -420,9 +420,10 @@ function tripal_galaxy_invoke_workflow($sid) {
         }
       }
     }
-    else if($data->type == 'multiple_list') {
+    else if($data->type == 'sflist') {
       // TODO: Check that the from the workflow are now in the specified
       // collection_type
+      // Fix the datasetcollection create funciton in blend4php
     }
 
     // Deal with the BDSS_file type.  It will have two rows in the
