@@ -11,10 +11,10 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
   // Grab the galaxy id from the form state and Obtain the default galaxy server
   // from the database.
   $galaxy_id = '';
-  if (array_key_exists( 'values', $form_state )) {
+  if (array_key_exists('values', $form_state)) {
     $galaxy_id = $form_state['values']['galaxy_id'];
   }
-  $results = db_select( 'tripal_galaxy', 'tg' )
+  $results = db_select('tripal_galaxy', 'tg')
     ->fields('tg', array('galaxy_id', 'servername'))
     ->execute();
   $galaxies[0] = 'Select';
@@ -42,21 +42,24 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
   // If a galaxy instance has been selected, Ajax-complete the form
   if ($galaxy_id) {
 
+    // Connect to the Galaxy instance.
+    $galaxy = tripal_galaxy_get_connection($galaxy_id);
+    if (!$galaxy) {
+      drupal_set_message('Cannot connect to Galaxy Instance', 'error');
+      return $form;
+    }
+
+    // Check to make sure the connection is good.
+    if ($galaxy->getVersion() == NULL) {
+      drupal_set_message('Cannot connect to Galaxy Instance', 'error');
+      return $form;
+    }
+
     // Galaxy id for the server
     $form['galaxy_id-server'] = array(
       '#type' => 'value',
       '#value' => $galaxy_id
     );
-
-    // Connect to the Galaxy instance.
-    $galaxy = tripal_galaxy_get_connection($galaxy_id);
-
-
-    // Check to make sure the connection is good.
-    if ($galaxy->getVersion() == NULL) {
-      drupal_set_message('Cannot connect to Galaxy Instance', 'error');
-      return;
-    }
 
     // Obtain the workflows
     $gworkflows = new GalaxyWorkflows($galaxy);

@@ -50,6 +50,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $steps = $workflow['steps'];
   // Keep track of the the data_inputs for appending the allowable extensions
   $data_input_index = array();
+  $data_collection_input_index = array();
   foreach ($steps as $step_index => $step) {
     // Each step is contained in a fieldset. We'll name the field set after
     // it's step and if a tool is present we'll include the tool info.
@@ -110,24 +111,24 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         // Create reference variables of input variables so we can get back to
         // them
         // NOTE: Assuming that input variables are always first
-                $data_input_index[] = end($webform->components);
+        $data_input_index[] = end($webform->components);
         break;
 
-        case 'data_collection_input':
-          $tool = array(
-            'id' => NULL,
-            'name' => $step['tool_inputs']['name'],
-          );
-          $input = array(
-            'name' => $step['tool_inputs']['name'],
-            'full_name' => $step['tool_inputs']['name'],
-            'type' => 'data_collection_input',
-            'collection_type' => $step['tool_inputs']['collection_type']
-          );
-          tripal_galaxy_build_webform_add_component($webform, $workflow,
-              $step, $tool, $input, $cid);
-          // No need to keep track of extensions..... yet
-        break;
+      case 'data_collection_input':
+        $tool = array(
+          'id' => NULL,
+          'name' => $step['tool_inputs']['name'],
+        );
+        $input = array(
+          'name' => $step['tool_inputs']['name'],
+          'full_name' => $step['tool_inputs']['name'],
+          'type' => 'data_collection_input',
+          'collection_type' => $step['tool_inputs']['collection_type']
+        );
+        tripal_galaxy_build_webform_add_component($webform, $workflow,
+            $step, $tool, $input, $cid);
+        $data_collection_input_index[] = end($webform->components);
+      break;
 
       // If this is a tool step then handle it.
       case 'tool':
@@ -150,49 +151,32 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
 
-        // Check if the tool derives its file from file upload step
-        // If so that file upload step should only allow file types that its
-        // associated tool allows
-
-        // NOTE: Need to associate the right input extensions within the tools
-        // i.e. ht-seq
-        // XXX: Check this with tools that have multiple inputs
-        $file_metadata = array();
-        $source_steps = array();
-        // Check if the tool has inputs
-        if(array_key_exists('input_steps', $workflow['steps'][$step_index])) {
+        // If the tool has a 'data_input' step as a soruce step then we need
+        // to copy the allowed extensions to that input step.
+        if (array_key_exists('input_steps', $workflow['steps'][$step_index])) {
           $i = 0;
-          foreach($step['input_steps'] as $input_key => $value_array) {
+          foreach ($step['input_steps'] as $input_key => $value_array) {
+            dpm($value_array);
             // Check for source step
             if(array_key_exists('source_step', $value_array)) {
-              $file_metadata[] = array(
-                // The name of the input
-                'source_step' => $value_array['source_step'],
-                'name_of_tool_input' => $input_key,
-                // This number should match the input number index as you build
-                // the tool
-                'input_number' => $i,
-                // The $i is used because in the tool build the tools inputs
-                // are 0-based indexed, not a name as found in a workflow step
-                'allowable_extensions' => $tool['inputs'][$i]['extensions']
-              );
-            }
-            // Check the file_metadata if its source steps matches one of the
-            // keys in data_input_index array, if so write to that particular
-            // webform components extra field the proper filtering
-            if(array_key_exists($file_metadata[$i]['source_step'], $data_input_index)) {
-              $data_input_source_step_index = $file_metadata[$i]['source_step'];
-              $data_input_cid = $data_input_index[$data_input_source_step_index]['cid'] - 1;
-              // TODO: Check if the hardcoded 0 will need to an index if there
-              //       are multiple inputs to a given tool
-              $webform->components[$data_input_cid]['extra']['filtering']['types'] = $file_metadata[0]['allowable_extensions'];
-              $webform->components[$data_input_cid]['extra']['filtering']['addextensions'] = implode(", ", $file_metadata[0]['allowable_extensions']);
+              // Is the source step a data_input? If so, the set the
+              // allowed types on the data_input component.
+              $source_step_index = $value_array['source_step'];
+              if(array_key_exists($source_step_index, $data_input_index)) {
+                // Get th component ID of the source step and set the allowd types.
+                $source_step_cid = $data_input_index[$source_step_index]['cid'] - 1;
+                $webform->components[$source_step_cid]['extra']['filtering']['types'] = $tool['inputs'][$i]['extensions'];
+                $webform->components[$source_step_cid]['extra']['filtering']['addextensions'] = implode(", ", $tool['inputs'][$i]['extensions']);
+              }
+              if(array_key_exists($source_step_index, $data_collection_input_index)) {
+                // Get th component ID of the source step and set the allowd types.
+                $source_step_cid = $data_collection_input_index[$source_step_index]['cid'] - 1;
+                $webform->components[$source_step_cid]['extra']['filtering']['types'] = $tool['inputs'][$i]['extensions'];
+                $webform->components[$source_step_cid]['extra']['filtering']['addextensions'] = implode(", ", $tool['inputs'][$i]['extensions']);
+              }
             }
             $i++;
-            $source_steps[] = $file_metadata;
           }
-          $current_index = end($webform->components);
-          $webform->components[$current_index['cid'] - 1]['extra']['input_source_steps'] = $source_steps;
         }
 
 
@@ -637,10 +621,26 @@ function tripal_galaxy_build_webform_add_component($webform,
       $extra['multiple'] = 0;
       break;
 
-    case 'data':
-      // Data appears to be a file selection of files that already
-      // exists in the user's history.
+    case 'data_input':
+      // The 'data_input' type is really not a Galaxy tool type. It's the type
+      // we created for the 'data_input' step that doesn't have a tool.
+      // we want to use this same function to create components so we fake
+      // a tool and input and use this type.
       $webform_type = 'galaxy_sfile';
+
+      // Intialize the allowed extension variables.  These get set in the
+      // appropraite 'data' tool type.
+      $extra['filtering']['types'] = array();
+      // The webform 'file' component wants a size.  Let this default to the
+      // server settings.
+      $extra['filtering']['size'] = '0';
+      // Set the allowed extension as per the rules on Galaxy.
+      $extra['filtering']['addextensions'] = '';
+      break;
+
+    case 'data':
+      // Data appears to be a refer to a file that exists in the user's history.
+      $webform_type = 'select';
       $extra['filtering']['types'] = array('');
       // The webform 'file' component wants a size.  Let this default to the
       // server settings.
@@ -652,25 +652,12 @@ function tripal_galaxy_build_webform_add_component($webform,
       }
       break;
 
-    case 'data_input':
-      // The 'data_input' type is really not a Galaxy tool type. It's the type
-      // we created for the 'data_input' step that doesn't have a tool.
-      // we want to use this same function to create components so we fake
-      // a tool and input and use this type.
-      $webform_type = 'galaxy_sfile';
-      $extra['filtering']['types'] = array();
-      // The webform 'file' component wants a size.  Let this default to the
-      // server settings.
-      $extra['filtering']['size'] = '0';
-      // Set the allowed extension as per the rules on Galaxy.
-      $extra['filtering']['addextensions'] = '';
-      break;
-
     case 'data_collection_input':
-      // Here there needs to be another switch statement as there are three
-      // types of data collections sets
-      // NOTE: The component's name cannot be longer than 16 chars as I found
-      //       out, strange no?
+      dpm($input);
+      // The 'data_collection_input' type is really not a Galaxy tool type.
+      // It's the type we created for the 'data_collection_input' step that
+      // doesn't have a tool. we want to use this same function to create
+      // components so we fake a tool and input and use this type.
       switch($input['collection_type']){
         case 'list':
           $webform_type = 'galaxy_sflist';
@@ -681,6 +668,31 @@ function tripal_galaxy_build_webform_add_component($webform,
         case 'list:paired':
           $webform_type = 'galaxy_pflist';
           break;
+      }
+      // Intialize the allowed extension variables.  These get set in the
+      // appropraite 'data' tool type.
+      $extra['filtering']['types'] = array();
+      // The webform 'file' component wants a size.  Let this default to the
+      // server settings.
+      $extra['filtering']['size'] = '0';
+      // Set the allowed extension as per the rules on Galaxy.
+      $extra['filtering']['addextensions'] = '';
+      break;
+
+    case 'data_collection':
+      dpm($input);
+      // Data collection type refers to an existing data collection in the
+      // history.
+
+      $webform_type = 'select';
+      $extra['filtering']['types'] = array('');
+      // The webform 'file' component wants a size.  Let this default to the
+      // server settings.
+      $extra['filtering']['size'] = '0';
+      // Set the allowed extension as per the rules on Galaxy.
+      if ($input['extensions']) {
+        $extra['filtering']['types'] = $input['extensions'];
+        $extra['filtering']['addextensions'] = implode(", ", $input['extensions']);
       }
       break;
 

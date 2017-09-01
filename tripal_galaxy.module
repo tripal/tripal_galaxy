@@ -690,8 +690,8 @@ function tripal_galaxy_webform_component_info() {
     'file' => 'includes/components/tripal_galaxy.BDSS_file.inc',
   );
   $components['galaxy_sfile'] = array(
-    'label' => t('Single File'),
-    'description' => t('Allows multiple paths (URL, upload, Tripal web services) that a file may be attached.'),
+    'label' => t('File'),
+    'description' => t('Provides a single file for a Galaxy input.'),
     'features' =>  array(
       'csv' => TRUE,
       'email' => FALSE,
@@ -709,8 +709,8 @@ function tripal_galaxy_webform_component_info() {
     'file' => 'includes/components/tripal_galaxy.galaxy_sfile.inc',
   );
   $components['galaxy_sflist'] = array(
-    'label' => t('Multiple Files'),
-    'description' => t('Allows multiple paths (URL, upload, Tripal web services) that files may be attached.'),
+    'label' => t('List Files'),
+    'description' => t('Provides a list of files for a Galaxy input.'),
     'features' =>  array(
       'csv' => TRUE,
       'email' => FALSE,
@@ -726,6 +726,25 @@ function tripal_galaxy_webform_component_info() {
       'conditional_action_set' => TRUE,
     ),
     'file' => 'includes/components/tripal_galaxy.galaxy_sflist.inc',
+  );
+  $components['galaxy_pflist'] = array(
+    'label' => t('List of Paired Files'),
+    'description' => t('Provides a list of paired files for a Galaxy input.'),
+    'features' =>  array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => FALSE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => TRUE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+      'conditional_action_set' => TRUE,
+    ),
+    'file' => 'includes/components/tripal_galaxy.galaxy_pflist.inc',
   );
   $components['fixed_value'] = array(
     'label' => t('Fixed Value'),

@@ -124,197 +124,285 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
     $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
     //}
     //}
-    }
-
-
-    $element['existing_files'] = array(
-      '#type' => 'select',
-      '#multiple' => TRUE,
-      '#title' => t('Select Existing File(s)'),
-      // TODO: Look for acceptable extensions with the tool
-      '#description' => t('Please select your file(s) if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
-      '#options' => $files_list,
-      '#weight' => -100,
-    );
-
-    return $element;
-  }
-  /**
-   * Implements the validate hook for the galaxy_multi_upload element.
-   */
-  function tripal_galaxy_sflist_process_validate($element, &$form_state) {
-    $is_required = $element['#required'];
-    $fid = $element['#value'];
-
-    if ($is_required and !$fid) {
-      form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
-    }
-  }
-  /**
-   * Implements the value callback for the galaxy_multi_list element.
-   * Order does not matter for the multi list
-   */
-  function tripal_galaxy_sflist_process_value($element, $input = FALSE, &$form_state) {
-
-    if ($input) {
-      if (is_array($input)) {
-        $name = $element['#name'];
-        $name = preg_replace('/[^\w]/', '_', $name);
-        $fid = $input[$name];
-        dpm($fid);
-        // Inlcude the fid's in the existing files as well
-        if (!$fid) {
-          $fid = $input['existing_files'];
-        }
-        return $fid;
-      }
-      else {
-        return $input;
-      }
-    }
-  }
-
-  /**
-   *
-   */
-  function tripal_galaxy_BDSS_file_process($element, $form_state, $complete_form) {
-    $file_URL = '';
-    $fid = '';
-
-    if (array_key_exists('values', $form_state)) {
-      $file_URL = array_key_exists('file_URL', $form_state['values']) ? webform_filter_xss($form_state['input']['file_URL']) : '';
-      $fid = array_key_exists('file_upload', $form_state['values']) ? webform_filter_xss($form_state['input']['file_upload']) : '';
-    }
-    $element['instructions'] = array(
-      '#type' => 'item',
-      '#markup' => array_key_exists('description', $element) ? $element['description'] : t('Please provide a URL for the file on a remote server or upload the file.'),
-      '#title_display' => 'invisible',
-    );
-    $element['file_URL'] = array(
-      '#type' => 'textfield',
-      '#default_value' => $file_URL,
-      '#description' => 'File URL',
-      '#title_display' => 'invisible',
-    );
-    $element['file_upload'] = array(
-      '#type' => 'managed_file',
-      '#default_value' => $fid,
-      '#description' => 'Upload a file',
-      '#title_display' => 'invisible',
-    );
-
-    return $element;
-  }
-
-  /**
-   *
-   */
-  function tripal_galaxy_BDSS_file_validate($element, $form_state) {
-    $is_required = $element['#webform_component']['required'];
-    $file_URL = $element['file_URL']['#value'];
-    $file_upload = $element['file_upload']['#value'];
-
-    if (is_array($file_upload)) {
-      $file_upload = $element['file_upload']['#value']['fid'];
-    }
-    if ($file_URL and $file_upload) {
-      form_error($element, t('Please select a file URL or upload a file but not both.'));
-    }
-
-    if (!$file_upload and $file_URL and !valid_url($file_URL, TRUE)) {
-      form_error($element['file_URL'], t('The URL is not valid. Please check for errors.'));
-    }
-
-    if ($is_required and !$file_URL and !$file_upload) {
-      form_error($element, t('Please provide a file URL or upload a file.'));
-    }
   }
 
 
+  $element['existing_files'] = array(
+    '#type' => 'select',
+    '#multiple' => TRUE,
+    '#title' => t('Select Existing File(s)'),
+    // TODO: Look for acceptable extensions with the tool
+    '#description' => t('Please select your file(s) if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#options' => $files_list,
+    '#weight' => -100,
+  );
 
-  /**
-   * Implements the process hook for the galaxy_multi_upload form element.
-   */
-  function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
+  return $element;
+}
+/**
+ * Implements the validate hook for the galaxy_multi_upload element.
+ */
+function tripal_galaxy_sflist_process_validate($element, &$form_state) {
+  $is_required = $element['#required'];
+  $fid = $element['#value'];
 
-    global $user;
-    $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
-    $quota = tripal_galaxy_get_user_quota($user->uid);
-    $quota = tripal_galaxy_format_bytes($quota->custom_quota);
+  if ($is_required and !$fid) {
+    form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
+  }
+}
+/**
+ * Implements the value callback for the galaxy_multi_list element.
+ * Order does not matter for the multi list
+ */
+function tripal_galaxy_sflist_process_value($element, $input = FALSE, &$form_state) {
 
-
-    $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
-
-    // We want to "inherit" the html5_file widget.
-    $element = tripal_html5_file_process($element, $form_state, $complete_form);
-    unset($element['html5_file_table']['#title']);
-    unset($element['html5_file_table']['#description']);
-
-    $element['description'] = array(
-      '#type' => 'item',
-      '#title' => $element['#title'] ? $element['#title'] : 'Data File',
-      '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
-      '#weight' => -15,
-    );
-
-
-    $files_list = array();
-    $files_list[] = '-- Select a File --';
-    $query = db_select('file_managed', 'FM');
-    $query->fields('FM', array('fid'));
-    $query->distinct();
-    $query->condition('FM.uid', $user->uid);
-    $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal_galaxy'");
-    $query->orderBy('FM.filename');
-    $files = $query->execute();
-    while ($fid = $files->fetchField()) {
-      $file = file_load($fid);
-      // TODO: uncomment the lines below when the code is fixed to provide
-      // the correct allowed types.
-      //foreach ($allowed_types as $type) {
-      //if (preg_match('/\.' . $type . '$/', $file->filename)) {
-      $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-      //}
-      //}
+  if ($input) {
+    if (is_array($input)) {
+      $name = $element['#name'];
+      $name = preg_replace('/[^\w]/', '_', $name);
+      $fid = $input[$name];
+      dpm($fid);
+      // Inlcude the fid's in the existing files as well
+      if (!$fid) {
+        $fid = $input['existing_files'];
       }
-      $element['existing'] = array(
-        '#type' => 'select',
-        '#title' => t('Select an Existing File'),
-        '#description' => t('Please select your file if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
-        '#options' => $files_list,
-        '#weight' => -10,
-      );
-
-      return $element;
+      return $fid;
     }
-    /**
-     * Implements the validate hook for the galaxy_multi_upload element.
-     */
-    function tripal_galaxy_sfile_process_validate($element, &$form_state) {
-      $is_required = $element['#required'];
-      $fid = $element['#value'];
+    else {
+      return $input;
+    }
+  }
+}
 
-      if ($is_required and !$fid) {
-        form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
+/**
+ *
+ */
+function tripal_galaxy_BDSS_file_process($element, $form_state, $complete_form) {
+  $file_URL = '';
+  $fid = '';
+
+  if (array_key_exists('values', $form_state)) {
+    $file_URL = array_key_exists('file_URL', $form_state['values']) ? webform_filter_xss($form_state['input']['file_URL']) : '';
+    $fid = array_key_exists('file_upload', $form_state['values']) ? webform_filter_xss($form_state['input']['file_upload']) : '';
+  }
+  $element['instructions'] = array(
+    '#type' => 'item',
+    '#markup' => array_key_exists('description', $element) ? $element['description'] : t('Please provide a URL for the file on a remote server or upload the file.'),
+    '#title_display' => 'invisible',
+  );
+  $element['file_URL'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $file_URL,
+    '#description' => 'File URL',
+    '#title_display' => 'invisible',
+  );
+  $element['file_upload'] = array(
+    '#type' => 'managed_file',
+    '#default_value' => $fid,
+    '#description' => 'Upload a file',
+    '#title_display' => 'invisible',
+  );
+
+  return $element;
+}
+
+/**
+ *
+ */
+function tripal_galaxy_BDSS_file_validate($element, $form_state) {
+  $is_required = $element['#webform_component']['required'];
+  $file_URL = $element['file_URL']['#value'];
+  $file_upload = $element['file_upload']['#value'];
+
+  if (is_array($file_upload)) {
+    $file_upload = $element['file_upload']['#value']['fid'];
+  }
+  if ($file_URL and $file_upload) {
+    form_error($element, t('Please select a file URL or upload a file but not both.'));
+  }
+
+  if (!$file_upload and $file_URL and !valid_url($file_URL, TRUE)) {
+    form_error($element['file_URL'], t('The URL is not valid. Please check for errors.'));
+  }
+
+  if ($is_required and !$file_URL and !$file_upload) {
+    form_error($element, t('Please provide a file URL or upload a file.'));
+  }
+}
+
+
+
+/**
+ * Implements the process hook for the galaxy_multi_upload form element.
+ */
+function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
+
+  global $user;
+  $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
+  $quota = tripal_galaxy_get_user_quota($user->uid);
+  $quota = tripal_galaxy_format_bytes($quota->custom_quota);
+
+
+  $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
+
+  // We want to "inherit" the html5_file widget.
+  $element = tripal_html5_file_process($element, $form_state, $complete_form);
+  unset($element['html5_file_table']['#title']);
+  unset($element['html5_file_table']['#description']);
+
+  $element['description'] = array(
+    '#type' => 'item',
+    '#title' => $element['#title'] ? $element['#title'] : 'Data File',
+    '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+    '#weight' => -15,
+  );
+
+
+  $files_list = array();
+  $files_list[] = '-- Select a File --';
+  $query = db_select('file_managed', 'FM');
+  $query->fields('FM', array('fid'));
+  $query->distinct();
+  $query->condition('FM.uid', $user->uid);
+  $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal_galaxy'");
+  $query->orderBy('FM.filename');
+  $files = $query->execute();
+  while ($fid = $files->fetchField()) {
+    $file = file_load($fid);
+    // TODO: uncomment the lines below when the code is fixed to provide
+    // the correct allowed types.
+    //foreach ($allowed_types as $type) {
+    //if (preg_match('/\.' . $type . '$/', $file->filename)) {
+    $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
+    //}
+    //}
+  }
+  $element['existing'] = array(
+    '#type' => 'select',
+    '#title' => t('Select an Existing File'),
+    '#description' => t('Please select your file if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#options' => $files_list,
+    '#weight' => -10,
+  );
+
+  return $element;
+}
+/**
+ * Implements the validate hook for the galaxy_multi_upload element.
+ */
+function tripal_galaxy_sfile_process_validate($element, &$form_state) {
+  $is_required = $element['#required'];
+  $fid = $element['#value'];
+
+  if ($is_required and !$fid) {
+    form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
+  }
+
+}
+/**
+ * Implements the value callback for the galaxy_multi_upload element.
+ */
+function tripal_galaxy_sfile_process_value($element, $input = FALSE, &$form_state) {
+  if ($input) {
+    if (is_array($input)) {
+      $name = $element['#name'];
+      $name = preg_replace('/[^\w]/', '_', $name);
+      $fid = $input[$name];
+      if (!$fid) {
+        $fid = $input['existing'];
       }
+      return $fid;
+    }
+    else {
+      return $input;
+    }
+  }
+}
 
-    }
-    /**
-     * Implements the value callback for the galaxy_multi_upload element.
-     */
-    function tripal_galaxy_sfile_process_value($element, $input = FALSE, &$form_state) {
-      if ($input) {
-        if (is_array($input)) {
-          $name = $element['#name'];
-          $name = preg_replace('/[^\w]/', '_', $name);
-          $fid = $input[$name];
-          if (!$fid) {
-            $fid = $input['existing'];
-          }
-          return $fid;
-        }
-        else {
-          return $input;
-        }
+
+/**
+ * Implements the process hook for the galaxy_multi_upload form element.
+ */
+function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
+
+  global $user;
+  $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
+  $quota = tripal_galaxy_get_user_quota($user->uid);
+  $quota = tripal_galaxy_format_bytes($quota->custom_quota);
+
+
+  $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
+
+  // We want to "inherit" the html5_file widget.
+  $element = tripal_html5_file_process($element, $form_state, $complete_form);
+  unset($element['html5_file_table']['#title']);
+  unset($element['html5_file_table']['#description']);
+
+  $element['description'] = array(
+    '#type' => 'item',
+    '#title' => $element['#title'] ? $element['#title'] : 'Data File',
+    '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+    '#weight' => -15,
+  );
+
+
+  $files_list = array();
+  $files_list[] = '-- Select a File --';
+  $query = db_select('file_managed', 'FM');
+  $query->fields('FM', array('fid'));
+  $query->distinct();
+  $query->condition('FM.uid', $user->uid);
+  $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal_galaxy'");
+  $query->orderBy('FM.filename');
+  $files = $query->execute();
+  while ($fid = $files->fetchField()) {
+    $file = file_load($fid);
+    // TODO: uncomment the lines below when the code is fixed to provide
+    // the correct allowed types.
+    //foreach ($allowed_types as $type) {
+    //if (preg_match('/\.' . $type . '$/', $file->filename)) {
+    $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
+    //}
+    //}
+  }
+  $element['existing'] = array(
+    '#type' => 'select',
+    '#title' => t('Select an Existing File'),
+    '#description' => t('Please select your file if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#options' => $files_list,
+    '#weight' => -10,
+  );
+
+  return $element;
+}
+/**
+ * Implements the validate hook for the galaxy_multi_upload element.
+ */
+function tripal_galaxy_pflist_process_validate($element, &$form_state) {
+  $is_required = $element['#required'];
+  $fid = $element['#value'];
+
+  if ($is_required and !$fid) {
+    form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
+  }
+
+}
+/**
+ * Implements the value callback for the galaxy_multi_upload element.
+ */
+function tripal_galaxy_pflist_process_value($element, $input = FALSE, &$form_state) {
+  if ($input) {
+    if (is_array($input)) {
+      $name = $element['#name'];
+      $name = preg_replace('/[^\w]/', '_', $name);
+      $fid = $input[$name];
+      if (!$fid) {
+        $fid = $input['existing'];
       }
+      return $fid;
     }
+    else {
+      return $input;
+    }
+  }
+}
