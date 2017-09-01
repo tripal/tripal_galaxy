@@ -155,7 +155,7 @@ function tripal_galaxy_sflist_process_validate($element, &$form_state) {
  * Order does not matter for the multi list
  */
 function tripal_galaxy_sflist_process_value($element, $input = FALSE, &$form_state) {
-
+  dpm($input);
   if ($input) {
     if (is_array($input)) {
       $name = $element['#name'];

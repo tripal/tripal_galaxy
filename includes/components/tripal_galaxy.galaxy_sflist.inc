@@ -73,7 +73,7 @@ function _webform_display_galaxy_sflist($component, $value, $format = 'html') {
     }
   }
   if (!$fid) {
-    $fid = $value['existing'];
+    $fid = $value['existing_files'];
     $filename = 'No file selected';
   }
 
@@ -81,6 +81,8 @@ function _webform_display_galaxy_sflist($component, $value, $format = 'html') {
     $file = file_load($fid);
     $filename = $file->filename;
   }
+
+  // Check both for selected files and uploaded files by the html5_file widget
 
 
   return array(
