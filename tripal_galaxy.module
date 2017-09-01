@@ -6,6 +6,7 @@
 
 require ('theme/tripal_galaxy.theme.inc');
 require ('api/tripal_galaxy.api.inc');
+require ('includes/tripal_galaxy.form_elements.inc');
 
 /**
  * Implementation of hook_init()
@@ -688,8 +689,8 @@ function tripal_galaxy_webform_component_info() {
     ),
     'file' => 'includes/components/tripal_galaxy.BDSS_file.inc',
   );
-  $components['html5_file'] = array(
-    'label' => t('HTML5 File'),
+  $components['single_file'] = array(
+    'label' => t('Single File'),
     'description' => t('Allows multiple paths (URL, upload, Tripal web services) that a file may be attached.'),
     'features' =>  array(
       'csv' => TRUE,
@@ -705,7 +706,26 @@ function tripal_galaxy_webform_component_info() {
       'attachment' => FALSE,
       'conditional_action_set' => TRUE,
     ),
-    'file' => 'includes/components/tripal_galaxy.html5_file.inc',
+    'file' => 'includes/components/tripal_galaxy.single_file.inc',
+  );
+  $components['multiple_list'] = array(
+    'label' => t('Multiple Files'),
+    'description' => t('Allows multiple paths (URL, upload, Tripal web services) that files may be attached.'),
+    'features' =>  array(
+      'csv' => TRUE,
+      'email' => FALSE,
+      'email_address' => FALSE,
+      'email_name' => FALSE,
+      'required' => FALSE,
+      'title_display' => FALSE,
+      'title_inline' => FALSE,
+      'conditional' => TRUE,
+      'group' => FALSE,
+      'spam_analysis' => FALSE,
+      'attachment' => FALSE,
+      'conditional_action_set' => TRUE,
+    ),
+    'file' => 'includes/components/tripal_galaxy.multiple_list.inc',
   );
   $components['fixed_value'] = array(
     'label' => t('Fixed Value'),
@@ -727,295 +747,6 @@ function tripal_galaxy_webform_component_info() {
     'file' => 'includes/components/tripal_galaxy.fixed_value.inc',
   );
   return $components;
-}
-
-/**
- * Implements hook_element_info().
- *
- * Used for creating new form API elements.  We nee a new fixed_value type
- * for webforms.
- */
-function tripal_galaxy_element_info() {
-
-  $elements['fixed_value'] = array(
-    '#input' => 'TRUE',
-    '#process' => array('tripal_galaxy_fixed_value_process'),
-  );
-  $elements['BDSS_file'] = array(
-    '#input' => 'TRUE',
-    '#process' => array('tripal_galaxy_BDSS_file_process'),
-    '#element_validate' => array('tripal_galaxy_BDSS_file_validate'),
-  );
-  $elements['single_upload'] = array(
-    '#input' => 'TRUE',
-    '#process' => array('tripal_galaxy_single_upload_process'),
-    '#element_validate' => array('tripal_galaxy_single_upload_validate'),
-    '#value_callback' => 'tripal_galaxy_single_upload_value',
-  );
-  $elements['paired_upload'] = array(
-    '#input' => 'TRUE',
-    '#process' => array('tripal_galaxy_paired_upload_process'),
-    '#element_validate' => array('tripal_galaxy_paired_upload_validate'),
-    '#value_callback' => 'tripal_galaxy_paired_upload_value',
-  );
-  return $elements;
-}
-
-/**
- * Implements the process hook for the galaxy_multi_upload form element.
- */
-function tripal_galaxy_single_upload_process($element, $form_state, $complete_form) {
-
-  global $user;
-  $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
-  $quota = tripal_galaxy_get_user_quota($user->uid);
-  $quota = tripal_galaxy_format_bytes($quota->custom_quota);
-
-
-  $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
-
-  // We want to "inherit" the html5_file widget.
-  $element = tripal_html5_file_process($element, $form_state, $complete_form);
-  unset($element['html5_file_table']['#title']);
-  unset($element['html5_file_table']['#description']);
-
-  $element['description'] = array(
-    '#type' => 'item',
-    '#title' => $element['#title'] ? $element['#title'] : 'Data File',
-    '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
-    '#weight' => -15,
-  );
-
-
-  $files_list = array();
-  $files_list[] = '-- Select a File --';
-  $query = db_select('file_managed', 'FM');
-  $query->fields('FM', array('fid'));
-  $query->distinct();
-  $query->condition('FM.uid', $user->uid);
-  $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal_galaxy'");
-  $query->orderBy('FM.filename');
-  $files = $query->execute();
-  while ($fid = $files->fetchField()) {
-    $file = file_load($fid);
-    // TODO: uncomment the lines below when the code is fixed to provide
-    // the correct allowed types.
-    //foreach ($allowed_types as $type) {
-      //if (preg_match('/\.' . $type . '$/', $file->filename)) {
-        $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-      //}
-    //}
-  }
-  $element['existing'] = array(
-    '#type' => 'select',
-    '#title' => t('Select an Existing File'),
-    '#description' => t('Please select your file if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
-    '#options' => $files_list,
-    '#weight' => -10,
-  );
-
-  return $element;
-}
-/**
- * Implements the validate hook for the galaxy_multi_upload element.
- */
-function tripal_galaxy_single_upload_validate($element, &$form_state) {
-  $is_required = $element['#required'];
-  $fid = $element['#value'];
-
-  if ($is_required and !$fid) {
-    form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
-  }
-}
-/**
- * Implements the value callback for the galaxy_multi_upload element.
- */
-function tripal_galaxy_single_upload_value($element, $input = FALSE, &$form_state) {
-  if ($input) {
-    if (is_array($input)) {
-      $name = $element['#name'];
-      $name = preg_replace('/[^\w]/', '_', $name);
-      $fid = $input[$name];
-      if (!$fid) {
-        $fid = $input['existing'];
-      }
-      return $fid;
-    }
-    else {
-      return $input;
-    }
-  }
-}
-
-/**
- * Implements the process hook for the galaxy_multi_upload form element.
- */
-function tripal_galaxy_paired_upload_process($element, $form_state, $complete_form) {
-
-  global $user;
-  $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
-  $quota = tripal_galaxy_get_user_quota($user->uid);
-  $quota = tripal_galaxy_format_bytes($quota->custom_quota);
-
-
-  $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
-
-  // We want to "inherit" the html5_file widget.
-  $element = tripal_html5_file_process($element, $form_state, $complete_form);
-  unset($element['html5_file_table']['#title']);
-  unset($element['html5_file_table']['#description']);
-
-  $element['description'] = array(
-    '#type' => 'item',
-    '#title' => $element['#title'] ? $element['#title'] : 'Data File',
-    '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
-    '#weight' => -15,
-  );
-
-
-  $files_list = array();
-  $files_list[] = '-- Select a File --';
-  $query = db_select('file_managed', 'FM');
-  $query->fields('FM', array('fid'));
-  $query->distinct();
-  $query->condition('FM.uid', $user->uid);
-  $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal_galaxy'");
-  $query->orderBy('FM.filename');
-  $files = $query->execute();
-  while ($fid = $files->fetchField()) {
-    $file = file_load($fid);
-    // TODO: uncomment the lines below when the code is fixed to provide
-    // the correct allowed types.
-    //foreach ($allowed_types as $type) {
-    //if (preg_match('/\.' . $type . '$/', $file->filename)) {
-    $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-    //}
-    //}
-    }
-    $element['existing'] = array(
-      '#type' => 'select',
-      '#title' => t('Select an Existing File'),
-      '#description' => t('Please select your file if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
-      '#options' => $files_list,
-      '#weight' => -10,
-    );
-
-    return $element;
-  }
-  /**
-   * Implements the validate hook for the galaxy_multi_upload element.
-   */
-  function tripal_galaxy_paired_upload_validate($element, &$form_state) {
-    $is_required = $element['#required'];
-    $fid = $element['#value'];
-
-    if ($is_required and !$fid) {
-      form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
-    }
-  }
-  /**
-   * Implements the value callback for the galaxy_multi_upload element.
-   */
-  function tripal_galaxy_paired_upload_value($element, $input = FALSE, &$form_state) {
-    if ($input) {
-      if (is_array($input)) {
-        $name = $element['#name'];
-        $name = preg_replace('/[^\w]/', '_', $name);
-        $fid = $input[$name];
-        if (!$fid) {
-          $fid = $input['existing'];
-        }
-        return $fid;
-      }
-      else {
-        return $input;
-      }
-    }
-  }
-/**
- *
- */
-function tripal_galaxy_BDSS_file_process($element, $form_state, $complete_form) {
-  $file_URL = '';
-  $fid = '';
-
-  if (array_key_exists('values', $form_state)) {
-    $file_URL = array_key_exists('file_URL', $form_state['values']) ? webform_filter_xss($form_state['input']['file_URL']) : '';
-    $fid = array_key_exists('file_upload', $form_state['values']) ? webform_filter_xss($form_state['input']['file_upload']) : '';
-  }
-  $element['instructions'] = array(
-    '#type' => 'item',
-    '#markup' => array_key_exists('description', $element) ? $element['description'] : t('Please provide a URL for the file on a remote server or upload the file.'),
-    '#title_display' => 'invisible',
-  );
-  $element['file_URL'] = array(
-    '#type' => 'textfield',
-    '#default_value' => $file_URL,
-    '#description' => 'File URL',
-    '#title_display' => 'invisible',
-  );
-  $element['file_upload'] = array(
-    '#type' => 'managed_file',
-    '#default_value' => $fid,
-    '#description' => 'Upload a file',
-    '#title_display' => 'invisible',
-  );
-
-  return $element;
-}
-
-/**
- *
- */
-function tripal_galaxy_BDSS_file_validate($element, $form_state) {
-  $is_required = $element['#webform_component']['required'];
-  $file_URL = $element['file_URL']['#value'];
-  $file_upload = $element['file_upload']['#value'];
-
-  if (is_array($file_upload)) {
-    $file_upload = $element['file_upload']['#value']['fid'];
-  }
-  if ($file_URL and $file_upload) {
-    form_error($element, t('Please select a file URL or upload a file but not both.'));
-  }
-
-  if (!$file_upload and $file_URL and !valid_url($file_URL, TRUE)) {
-    form_error($element['file_URL'], t('The URL is not valid. Please check for errors.'));
-  }
-
-  if ($is_required and !$file_URL and !$file_upload) {
-    form_error($element, t('Please provide a file URL or upload a file.'));
-  }
-}
-
-/**
- * Implements a theme for the the new fixed_value form API type.
- *
- * This field has a hidden value, title and markup description.
- */
-function tripal_galaxy_fixed_value_process($element, $form_state, $complete_form) {
-
-  // If the input type is 'linked' then we want to alter the way
-  // the value is presented so it makes sense to the user.
-  $value = $element['#markup'];
-  if (array_key_exists('linked', $element['#webform_component']['extra']) and
-      $element['#webform_component']['extra']['linked'] == TRUE) {
-    list ($step, $output) = explode('|', $value);
-    $value = 'For this input setting the ' . $output . ' file generated by step ' . ($step + 2) . ' is used.';
-  }
-  // We need to include a hidden field that contains the value so that
-  // it works with webform conditionals.
-  $element['details'] = array(
-    '#type' => 'item',
-    '#title' => $element['#title'],
-    '#markup' => $value,
-    '#title_display' => 'invisible',
-  );
-  $element['value'] = array(
-    '#type' => 'hidden',
-    '#value' => $element['#value'],
-  );
-  return $element;
 }
 
 /**

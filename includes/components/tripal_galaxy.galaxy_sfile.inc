@@ -3,7 +3,7 @@
 /**
  *
  */
-function _webform_defaults_html5_file() {
+function _webform_defaults_galaxy_sfile() {
   return array(
     'name' => '',
     'form_key' => NULL,
@@ -18,9 +18,9 @@ function _webform_defaults_html5_file() {
 /**
  * Adds additional information in to hook_theme().
  */
-function _webform_theme_html5_file() {
+function _webform_theme_galaxy_sfile() {
   return array(
-    'webform_display_html5_file' => array(
+    'webform_display_galaxy_sfile' => array(
       'render element' => 'element',
     ),
   );
@@ -30,14 +30,14 @@ function _webform_theme_html5_file() {
  * Here you define your additional form elements using the form API to add to
  * the edit screen of the component.
  */
-function _webform_edit_html5_file($component) {
+function _webform_edit_galaxy_sfile($component) {
  // TODO: revisit this function.
 }
 
 /**
  * Defines how the form element is sent to the webform itself.
  */
-function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
+function _webform_render_galaxy_sfile($component, $value = NULL, $filter = TRUE) {
   $allowed_types = array();
   if (array_key_exists('filtering', $component['extra']) and
       array_key_exists('types', $component['extra']['filtering'])) {
@@ -62,7 +62,7 @@ function _webform_render_html5_file($component, $value = NULL, $filter = TRUE) {
  * Defines how the value is displayed from the component in the various
  * reporting from webform.
  */
-function _webform_display_html5_file($component, $value, $format = 'html') {
+function _webform_display_galaxy_sfile($component, $value, $format = 'html') {
   $filename = '';
 
 
@@ -99,13 +99,13 @@ function _webform_display_html5_file($component, $value, $format = 'html') {
 /**
  *
  */
-function _webform_csv_headers_html5_file($component, $export_options){
+function _webform_csv_headers_galaxy_sfile($component, $export_options){
 
 }
 
 /**
  *
  */
-function _webform_csv_data_html5_file($component, $export_options, $value){
+function _webform_csv_data_galaxy_sfile($component, $export_options, $value){
 
 }

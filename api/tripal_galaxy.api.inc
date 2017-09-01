@@ -408,7 +408,7 @@ function tripal_galaxy_invoke_workflow($sid) {
         }
       }
     }
-    else if ($data->type == 'html5_file') {
+    else if ($data->type == 'single_file') {
       $file = $managed_files[$data->data];
       foreach ($hcontents as $hcontent) {
         if ($hcontent['name'] == $file->filename) {
@@ -420,6 +420,11 @@ function tripal_galaxy_invoke_workflow($sid) {
         }
       }
     }
+    else if($data->type == 'multiple_list') {
+      // TODO: Check that the from the workflow are now in the specified
+      // collection_type
+    }
+
     // Deal with the BDSS_file type.  It will have two rows in the
     // submitted data array. One for file_URL and one for file_upload.
     // they are mutually exclusive and only one will have a real value
@@ -740,6 +745,3 @@ function tripal_galaxy_check_file_expiration() {
     }
   }
 }
-
-
-

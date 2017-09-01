@@ -48,6 +48,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // Iterate through each step of the workflow.
   $tool_list = array();
   $steps = $workflow['steps'];
+  // Keep track of the the data_inputs for appending the allowable extensions
+  $data_input_index = array();
   foreach ($steps as $step_index => $step) {
     // Each step is contained in a fieldset. We'll name the field set after
     // it's step and if a tool is present we'll include the tool info.
@@ -71,17 +73,26 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'title_display' => 0,
         'collapsible' => 1,
         'collapsed' => 0,
-        // 'description' => $fieldset_desc,
       ),
       'required' => '0',
       'weight' => $cid,
     );
+
+
     $fieldset_cid = count($webform->components);
 
+
     // Handle the step type. So far we only know about 'data_input' and 'tool'.
+    // The succeeding tool to the
     switch ($step['type']) {
 
       // If this is for a data 'file' input
+      // XXX: For determining acceptable extensions there must be no ambiguity
+      // of which file input goes to which tool
+      // So I need to see the source step that the tool is deriving it's input
+      // So before the entire webform is rendered go back through the input
+      // steps and see what extensions are accepted by the tool that the file
+      // is going to
       case 'data_input' :
         // Make a fake tool and input so we can add the component for a
         // data_input step.
@@ -96,6 +107,26 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         );
         tripal_galaxy_build_webform_add_component($webform, $workflow,
             $step, $tool, $input, $cid);
+        // Create reference variables of input variables so we can get back to
+        // them
+        // NOTE: Assuming that input variables are always first
+                $data_input_index[] = end($webform->components);
+        break;
+
+        case 'data_collection_input':
+          $tool = array(
+            'id' => NULL,
+            'name' => $step['tool_inputs']['name'],
+          );
+          $input = array(
+            'name' => $step['tool_inputs']['name'],
+            'full_name' => $step['tool_inputs']['name'],
+            'type' => 'data_collection_input',
+            'collection_type' => $step['tool_inputs']['collection_type']
+          );
+          tripal_galaxy_build_webform_add_component($webform, $workflow,
+              $step, $tool, $input, $cid);
+          // No need to keep track of extensions..... yet
         break;
 
       // If this is a tool step then handle it.
@@ -118,6 +149,52 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         // the tool.
         $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
+
+        // Check if the tool derives its file from file upload step
+        // If so that file upload step should only allow file types that its
+        // associated tool allows
+
+        // NOTE: Need to associate the right input extensions within the tools
+        // i.e. ht-seq
+        // XXX: Check this with tools that have multiple inputs
+        $file_metadata = array();
+        $source_steps = array();
+        // Check if the tool has inputs
+        if(array_key_exists('input_steps', $workflow['steps'][$step_index])) {
+          $i = 0;
+          foreach($step['input_steps'] as $input_key => $value_array) {
+            // Check for source step
+            if(array_key_exists('source_step', $value_array)) {
+              $file_metadata[] = array(
+                // The name of the input
+                'source_step' => $value_array['source_step'],
+                'name_of_tool_input' => $input_key,
+                // This number should match the input number index as you build
+                // the tool
+                'input_number' => $i,
+                // The $i is used because in the tool build the tools inputs
+                // are 0-based indexed, not a name as found in a workflow step
+                'allowable_extensions' => $tool['inputs'][$i]['extensions']
+              );
+            }
+            // Check the file_metadata if its source steps matches one of the
+            // keys in data_input_index array, if so write to that particular
+            // webform components extra field the proper filtering
+            if(array_key_exists($file_metadata[$i]['source_step'], $data_input_index)) {
+              $data_input_source_step_index = $file_metadata[$i]['source_step'];
+              $data_input_cid = $data_input_index[$data_input_source_step_index]['cid'] - 1;
+              // TODO: Check if the hardcoded 0 will need to an index if there
+              //       are multiple inputs to a given tool
+              $webform->components[$data_input_cid]['extra']['filtering']['types'] = $file_metadata[0]['allowable_extensions'];
+              $webform->components[$data_input_cid]['extra']['filtering']['addextensions'] = implode(", ", $file_metadata[0]['allowable_extensions']);
+            }
+            $i++;
+            $source_steps[] = $file_metadata;
+          }
+          $current_index = end($webform->components);
+          $webform->components[$current_index['cid'] - 1]['extra']['input_source_steps'] = $source_steps;
+        }
+
 
         // Add the "Optional settings" fieldset.
         $dcid = count($webform->components) + 1;
@@ -174,6 +251,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       );
     }
   } // end foreach ($steps as $step_index => $step) { ...
+
+
 
   // Before creating a webform node we want to sort the conditionals.
   usort($webform->conditionals, 'tripal_galaxy_build_webform_sort_conditionals');
@@ -367,7 +446,6 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
   // specially.
   switch ($tool_input['type']) {
 
-
     case 'repeat':
 
       $inputs = $tool_input['inputs'];
@@ -381,7 +459,6 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
 
 
     case 'conditional':
-
 
       // We need to update the field name for the conditional so
       // we can find it's default value during recursion.
@@ -563,7 +640,7 @@ function tripal_galaxy_build_webform_add_component($webform,
     case 'data':
       // Data appears to be a file selection of files that already
       // exists in the user's history.
-      $webform_type = 'html5_file';
+      $webform_type = 'single_file';
       $extra['filtering']['types'] = array('');
       // The webform 'file' component wants a size.  Let this default to the
       // server settings.
@@ -580,27 +657,30 @@ function tripal_galaxy_build_webform_add_component($webform,
       // we created for the 'data_input' step that doesn't have a tool.
       // we want to use this same function to create components so we fake
       // a tool and input and use this type.
-      $webform_type = 'html5_file';
-      $extra['filtering']['types'] = array('fastq', 'fasta');
+      $webform_type = 'galaxy_sfile';
+      $extra['filtering']['types'] = array();
       // The webform 'file' component wants a size.  Let this default to the
       // server settings.
       $extra['filtering']['size'] = '0';
       // Set the allowed extension as per the rules on Galaxy.
-      $extra['filtering']['addextensions'] = 'fastq, fasta';
+      $extra['filtering']['addextensions'] = '';
       break;
 
-    case 'data_collection':
-      $webform_type = 'select';
-
-      foreach ($input['options'] as $key => $vals){
-        if(empty($vals)){
-          $extra['items'] .=  "na|Not Available\n";
-        }
-        else{
-          foreach ($vals as $details){
-            $extra['items'] .= $details['id'] . "|" . $details['name'] . "\n";
-          }
-        }
+    case 'data_collection_input':
+      // Here there needs to be another switch statement as there are three
+      // types of data collections sets
+      // NOTE: The component's name cannot be longer than 16 chars as I found
+      //       out, strange no?
+      switch($input['collection_type']){
+        case 'list':
+          $webform_type = 'galaxy_sflist';
+          break;
+        case 'paired':
+          $webform_type = 'galaxy_pfile';
+          break;
+        case 'list:paired':
+          $webform_type = 'galaxy_pflist';
+          break;
       }
       break;
 
