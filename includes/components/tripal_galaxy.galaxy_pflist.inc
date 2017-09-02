@@ -54,8 +54,10 @@ function _webform_render_galaxy_pflist($component, $value = NULL, $filter = TRUE
     '#usage_module' => 'tripal_galaxy',
     '#allowed_types' => $allowed_types,
     '#cardinality' => 1,
+    '#paired' => TRUE,
     '#required' => array_key_exists('required', $component) and  $component['required'] ? TRUE : FALSE,
   );
+  dpm($element);
   return $element;
 }
 /**
