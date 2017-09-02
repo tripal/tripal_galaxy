@@ -117,13 +117,11 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   $files = $query->execute();
   while ($fid = $files->fetchField()) {
     $file = file_load($fid);
-    // TODO: uncomment the lines below when the code is fixed to provide
-    // the correct allowed types.
-    //foreach ($allowed_types as $type) {
-    //if (preg_match('/\.' . $type . '$/', $file->filename)) {
-    $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-    //}
-    //}
+    foreach ($allowed_types as $type) {
+      if (preg_match('/\.' . $type . '$/', $file->filename)) {
+        $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
+      }
+    }
   }
 
 
@@ -161,7 +159,6 @@ function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
       $name = $element['#name'];
       $name = preg_replace('/[^\w]/', '_', $name);
       $fid = $input[$name];
-      dpm($fid);
       // Inlcude the fid's in the existing files as well
       if (!$fid) {
         $fid = $input['existing_files'];
@@ -269,13 +266,11 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
   $files = $query->execute();
   while ($fid = $files->fetchField()) {
     $file = file_load($fid);
-    // TODO: uncomment the lines below when the code is fixed to provide
-    // the correct allowed types.
-    //foreach ($allowed_types as $type) {
-    //if (preg_match('/\.' . $type . '$/', $file->filename)) {
-    $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-    //}
-    //}
+    foreach ($allowed_types as $type) {
+      if (preg_match('/\.' . $type . '$/', $file->filename)) {
+        $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
+      }
+    }
   }
   $element['existing'] = array(
     '#type' => 'select',
@@ -335,8 +330,8 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 
   // We want to "inherit" the html5_file widget.
   $element = tripal_html5_file_process($element, $form_state, $complete_form);
-  unset($element['html5_file_table']['#title']);
-  unset($element['html5_file_table']['#description']);
+  $element['html5_file_table']['#title'] = t('File Upload');
+  $element['html5_file_table']['#description'] = t('If your files do not already exist above please upload as many pair of files as desired.');
 
   $element['description'] = array(
     '#type' => 'item',
@@ -359,20 +354,72 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
     $file = file_load($fid);
     // TODO: uncomment the lines below when the code is fixed to provide
     // the correct allowed types.
-    //foreach ($allowed_types as $type) {
-    //if (preg_match('/\.' . $type . '$/', $file->filename)) {
-    $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-    //}
-    //}
+    foreach ($allowed_types as $type) {
+      if (preg_match('/\.' . $type . '$/', $file->filename)) {
+        $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
+      }
+    }
   }
+
+  // Generate the ID that will be used for the table.
+  $existing_table_id = $element['#name'];
+  $existing_table_id = strtolower(preg_replace('/[^\w]/', '-', $existing_table_id)) . '-selected-files-table';
+
+  $existing_value_id =  $element['#name'];
+  $existing_value_id = strtolower(preg_replace('/[^\w]/', '-', $existing_value_id)) . '-existing';
+  $existing_1_select_id =$existing_value_id . '-1';
+  $existing_2_select_id =$existing_value_id . '-2';
+
   $element['existing'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
+    '#attributes' => array(
+      'id' => $existing_value_id,
+    ),
+  );
+  $element['existing_1'] = array(
     '#type' => 'select',
-    '#title' => t('Select an Existing File'),
-    '#description' => t('Please select your file if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#title' => t('Select File of 1 of 2'),
+    '#description' => t('Please select the first pair file, or upload a file below. Hold the shift key and click to select more than one file. Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
     '#weight' => -10,
+    '#multiple' => TRUE,
+    '#attributes' => array(
+      'id' => $existing_1_select_id,
+      'onChange' => 'tripal_galaxy_set_pfile_existing(1, "' . $existing_table_id . '", "' . $existing_1_select_id . '", "' . $existing_2_select_id . '", "' . $existing_value_id . '")',
+    )
+  );
+  $element['existing_2'] = array(
+    '#type' => 'select',
+    '#title' => t('Select File of 2 of 2'),
+    '#description' => t('Please select the second pair file, or upload a file below. Hold the shift key and click to select more than one file. Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#options' => $files_list,
+    '#weight' => -10,
+    '#multiple' => TRUE,
+    '#attributes' => array(
+      'id' => $existing_2_select_id,
+      'onChange' => 'tripal_galaxy_set_pfile_existing(1, "' . $existing_table_id . '", "' . $existing_1_select_id . '", "' . $existing_2_select_id . '", "' . $existing_value_id . '")',
+    )
   );
 
+  $headers = array('File 1', 'File 2');
+  $rows = array();
+  $element['selected_files_table'] = array(
+    '#type' => 'item',
+    '#title' => 'Selected Files',
+    '#markup' => theme_table(array(
+      'header' => $headers,
+      'rows' => $rows,
+      'attributes' => array(
+        'id' => array($existing_table_id)
+      ),
+      'caption' => '',
+      'colgroups' => array(),
+      'sticky' => TRUE,
+      'empty' => t('There are no files. Please click the files in the boxes above to add them to this table.  Only files that appear in this table will be used for the analysis.')
+    )),
+    '#weight' => -5,
+  );
   return $element;
 }
 /**

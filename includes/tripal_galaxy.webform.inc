@@ -156,7 +156,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         if (array_key_exists('input_steps', $workflow['steps'][$step_index])) {
           $i = 0;
           foreach ($step['input_steps'] as $input_key => $value_array) {
-            dpm($value_array);
             // Check for source step
             if(array_key_exists('source_step', $value_array)) {
               // Is the source step a data_input? If so, the set the
@@ -653,7 +652,6 @@ function tripal_galaxy_build_webform_add_component($webform,
       break;
 
     case 'data_collection_input':
-      dpm($input);
       // The 'data_collection_input' type is really not a Galaxy tool type.
       // It's the type we created for the 'data_collection_input' step that
       // doesn't have a tool. we want to use this same function to create
@@ -680,7 +678,6 @@ function tripal_galaxy_build_webform_add_component($webform,
       break;
 
     case 'data_collection':
-      dpm($input);
       // Data collection type refers to an existing data collection in the
       // history.
 
