@@ -63,24 +63,34 @@ function _webform_render_galaxy_sflist($component, $value = NULL, $filter = TRUE
  * reporting from webform.
  */
 function _webform_display_galaxy_sflist($component, $value, $format = 'html') {
-  $filename = '';
+  dpm('Value');
+  dpm($value);
+  dpm('Component');
+  dpm($component);
 
-  // Find the field containing the fid.
-  $fid = NULL;
+  $filenames = '';
+
+  // See if any files were uploaded
+  $fids = array();
   foreach ($value as $key => $val) {
     if (preg_match('/submitted.*' . $component['form_key'] . '_/', $key)) {
-      $fid = $val;
+      // Extract the fid's from the bar seperated list
+      $fids[] = $val;
     }
   }
-  if (!$fid) {
-    $fid = $value['existing_files'];
-    $filename = 'No file selected';
-  }
+    // Add any fid's found in the existing_files element
+    foreach($value['existing_files'] as $existing_file){
+      $fids[] = $existing_files;
+    }
 
-  if ($fid) {
-    $file = file_load($fid);
-    $filename = $file->filename;
-  }
+    foreach($fids as $fid) {
+      $file = file_load($fid);
+      $filenames .= $file->filename . '\n';
+    }
+  // if ($fid) {
+  //   $file = file_load($fid);
+  //   $filename = $file->filename;
+  // }
 
   // Check both for selected files and uploaded files by the html5_file widget
 
@@ -92,7 +102,7 @@ function _webform_display_galaxy_sflist($component, $value, $format = 'html') {
     '#theme' => 'webform_display_textfield',
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#format' => $format,
-    '#value' => $filename,
+    '#value' => $filenames,
     '#title' => !empty($component['name']) ? $component['name'] : 'Input Data File',
   );
 }

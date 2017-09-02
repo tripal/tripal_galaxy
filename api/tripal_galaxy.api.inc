@@ -421,6 +421,7 @@ function tripal_galaxy_invoke_workflow($sid) {
       }
     }
     else if($data->type == 'sflist') {
+      dpm($data);
       // TODO: Check that the from the workflow are now in the specified
       // collection_type
       // Fix the datasetcollection create funciton in blend4php
