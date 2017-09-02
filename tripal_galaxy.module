@@ -942,7 +942,6 @@ function tripal_galaxy_workflow_report($sid) {
       'history_id' => $history['id'],
     ));
   }
-  //dpm($history_contents);
 
   $content['results'] = array(
     '#type' => 'item',
