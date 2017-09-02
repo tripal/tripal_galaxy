@@ -380,29 +380,37 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
   $element['existing_1'] = array(
     '#type' => 'select',
     '#title' => t('Select File of 1 of 2'),
-    '#description' => t('Please select the first pair file, or upload a file below. Hold the shift key and click to select more than one file. Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#description' => t('Please select the first pair file, or upload a file
+        below. After the file is selected it will disappear from the dropdown
+        and appear in the table below. You may select as many files as desired.
+        Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
     '#weight' => -10,
-    '#multiple' => TRUE,
     '#attributes' => array(
-      'id' => $existing_1_select_id,
-      'onChange' => 'tripal_galaxy_set_pfile_existing(1, "' . $existing_table_id . '", "' . $existing_1_select_id . '", "' . $existing_2_select_id . '", "' . $existing_value_id . '")',
+      'class' => array('tripal-galaxy-existing-pfile'),
+      'table_id' => $existing_table_id,
+      'target_id' => $existing_value_id,
+      'which_pair' => 1
     )
   );
   $element['existing_2'] = array(
     '#type' => 'select',
     '#title' => t('Select File of 2 of 2'),
-    '#description' => t('Please select the second pair file, or upload a file below. Hold the shift key and click to select more than one file. Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#description' => t('Please select the second pair file, or upload a file
+        below. After the file is selected it will disappear from the dropdown and
+        appear in the table below. You may select as many files as desired.
+        Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
     '#weight' => -10,
-    '#multiple' => TRUE,
     '#attributes' => array(
-      'id' => $existing_2_select_id,
-      'onChange' => 'tripal_galaxy_set_pfile_existing(1, "' . $existing_table_id . '", "' . $existing_1_select_id . '", "' . $existing_2_select_id . '", "' . $existing_value_id . '")',
+      'class' => array('tripal-galaxy-existing-pfile'),
+      'table_id' => $existing_table_id,
+      'target_id' => $existing_value_id,
+      'which_pair' => 2
     )
   );
 
-  $headers = array('File 1', 'File 2');
+  $headers = array('Pair', 'File 1', 'File 2', '');
   $rows = array();
   $element['selected_files_table'] = array(
     '#type' => 'item',
@@ -416,9 +424,13 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
       'caption' => '',
       'colgroups' => array(),
       'sticky' => TRUE,
-      'empty' => t('There are no files. Please click the files in the boxes above to add them to this table.  Only files that appear in this table will be used for the analysis.')
+      'empty' => t('There are no files.')
     )),
     '#weight' => -5,
+    '#description' => t('Please click the files in the boxes above to add
+        them to this table.  Only files that appear in this table will
+        be used for the analysis.  Paired files should appear on the same
+        row of the table.')
   );
   return $element;
 }
@@ -440,13 +452,7 @@ function tripal_galaxy_pflist_validate($element, &$form_state) {
 function tripal_galaxy_pflist_value($element, $input = FALSE, &$form_state) {
   if ($input) {
     if (is_array($input)) {
-      $name = $element['#name'];
-      $name = preg_replace('/[^\w]/', '_', $name);
-      $fid = $input[$name];
-      if (!$fid) {
-        $fid = $input['existing'];
-      }
-      return $fid;
+      return $input['existing'];
     }
     else {
       return $input;
