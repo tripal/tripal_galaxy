@@ -22,7 +22,6 @@ function _webform_theme_galaxy_pflist() {
   return array(
     'webform_display_galaxy_pflist' => array(
       'render element' => 'element',
-      'file' => drupal_get_path('module', 'tripal_galaxy') . "/includes/components/tripal_galaxy.galaxy_pflist.inc",
     ),
   );
 }

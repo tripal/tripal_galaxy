@@ -63,10 +63,6 @@ function _webform_render_galaxy_sflist($component, $value = NULL, $filter = TRUE
  * reporting from webform.
  */
 function _webform_display_galaxy_sflist($component, $value, $format = 'html') {
-  dpm('Value');
-  dpm($value);
-  dpm('Component');
-  dpm($component);
 
   $filenames = '';
 
@@ -80,26 +76,19 @@ function _webform_display_galaxy_sflist($component, $value, $format = 'html') {
   }
     // Add any fid's found in the existing_files element
     foreach($value['existing_files'] as $existing_file){
-      $fids[] = $existing_files;
+      $fids[] = $existing_file;
     }
 
     foreach($fids as $fid) {
       $file = file_load($fid);
-      $filenames .= $file->filename . '\n';
+      $filenames .= $file->filename . "\r\n";
     }
-  // if ($fid) {
-  //   $file = file_load($fid);
-  //   $filename = $file->filename;
-  // }
-
-  // Check both for selected files and uploaded files by the html5_file widget
-
 
   return array(
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
     '#weight' => $component['weight'],
-    '#theme' => 'webform_display_textfield',
+    '#theme' => 'webform_display_textarea',
     '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
     '#format' => $format,
     '#value' => $filenames,

@@ -94,10 +94,11 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
 
   // We want to "inherit" the html5_file widget.
-  // I also want the fid from the upload, how do I get that?
   $element = tripal_html5_file_process($element, $form_state, $complete_form);
   unset($element['html5_file_table']['#title']);
   unset($element['html5_file_table']['#description']);
+
+  dpm($element);
 
   $element['description'] = array(
     '#type' => 'item',
@@ -107,7 +108,6 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   );
 
   $files_list = array();
-  $files_list[] = '-- Select a File --';
   $query = db_select('file_managed', 'FM');
   $query->fields('FM', array('fid'));
   $query->distinct();
@@ -116,6 +116,7 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   $query->orderBy('FM.filename');
   $files = $query->execute();
   while ($fid = $files->fetchField()) {
+
     $file = file_load($fid);
     foreach ($allowed_types as $type) {
       if (preg_match('/\.' . $type . '$/', $file->filename)) {
@@ -139,10 +140,14 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
 }
 /**
  * Implements the validate hook for the galaxy_multi_upload element.
+ * There needs to be a check on the extensions of the files uploaded
  */
 function tripal_galaxy_sflist_process_validate($element, &$form_state) {
   $is_required = $element['#required'];
   $fid = $element['#value'];
+
+  dpm('test');
+  // Check if the files uploaded are
 
   if ($is_required and !$fid) {
     form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
@@ -342,7 +347,6 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 
 
   $files_list = array();
-  $files_list[] = '-- Select a File --';
   $query = db_select('file_managed', 'FM');
   $query->fields('FM', array('fid'));
   $query->distinct();
@@ -352,8 +356,6 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
   $files = $query->execute();
   while ($fid = $files->fetchField()) {
     $file = file_load($fid);
-    // TODO: uncomment the lines below when the code is fixed to provide
-    // the correct allowed types.
     foreach ($allowed_types as $type) {
       if (preg_match('/\.' . $type . '$/', $file->filename)) {
         $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';

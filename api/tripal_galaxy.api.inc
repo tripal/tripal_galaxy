@@ -123,7 +123,7 @@ function tripal_galaxy_check_workflow_status($galaxy_workflow_id) {
 /**
  * Checks and updates the status of a Galaxy workflow.
  *
- * XXX: This is being called twice?!
+ * XXX: This is being called twice?
  *      Stash and see what I messed up so I can get back to work
  *      Didn't work .... if this is called from the 'Run Cron' button on the
  *      Configuration tab then this get's called twice, however using the
@@ -420,11 +420,16 @@ function tripal_galaxy_invoke_workflow($sid) {
         }
       }
     }
-    else if($data->type == 'sflist') {
-      dpm($data);
+    else if($data->type == 'galaxy_sflist') {
+      print_r($data);
+      print_r($data->data);
       // TODO: Check that the from the workflow are now in the specified
       // collection_type
       // Fix the datasetcollection create funciton in blend4php
+    }
+
+    else if($data->type == 'galaxy_pflist') {
+
     }
 
     // Deal with the BDSS_file type.  It will have two rows in the
