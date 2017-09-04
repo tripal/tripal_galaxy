@@ -10,6 +10,10 @@
  */
 function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
+  // We need to keep track of data_input (and data_collection_inputs) so that
+  // we can map allowed extensions from tools to these input steps.
+  $data_inputs = array();
+
   // An object that will contain the componentns and conditions that
   // will be used to build the webform.
   $webform = new stdClass();
@@ -48,9 +52,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // Iterate through each step of the workflow.
   $tool_list = array();
   $steps = $workflow['steps'];
-  // Keep track of the the data_inputs for appending the allowable extensions
-  $data_input_index = array();
-  $data_collection_input_index = array();
   foreach ($steps as $step_index => $step) {
     // Each step is contained in a fieldset. We'll name the field set after
     // it's step and if a tool is present we'll include the tool info.
@@ -106,12 +107,9 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           'full_name' => $step['tool_inputs']['name'],
           'type' => 'data_input',
         );
-        tripal_galaxy_build_webform_add_component($webform, $workflow,
-            $step, $tool, $input, $cid);
-        // Create reference variables of input variables so we can get back to
-        // them
-        // NOTE: Assuming that input variables are always first
-        $data_input_index[] = end($webform->components);
+        $input_id = tripal_galaxy_build_webform_add_component($webform, $workflow,
+            $step, $tool, $input, $cid, $data_inputs);
+        $data_inputs[$step_index] = $input_id;
         break;
 
       case 'data_collection_input':
@@ -125,9 +123,9 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           'type' => 'data_collection_input',
           'collection_type' => $step['tool_inputs']['collection_type']
         );
-        tripal_galaxy_build_webform_add_component($webform, $workflow,
-            $step, $tool, $input, $cid);
-        $data_collection_input_index[] = end($webform->components);
+        $input_id = tripal_galaxy_build_webform_add_component($webform, $workflow,
+            $step, $tool, $input, $cid, $data_inputs);
+        $data_inputs[$step_index] = $input_id;
       break;
 
       // If this is a tool step then handle it.
@@ -150,34 +148,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         // the tool.
         $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
-
-        // If the tool has a 'data_input' step as a soruce step then we need
-        // to copy the allowed extensions to that input step.
-        if (array_key_exists('input_steps', $workflow['steps'][$step_index])) {
-          $i = 0;
-          foreach ($step['input_steps'] as $input_key => $value_array) {
-            // Check for source step
-            if(array_key_exists('source_step', $value_array)) {
-              // Is the source step a data_input? If so, the set the
-              // allowed types on the data_input component.
-              $source_step_index = $value_array['source_step'];
-              if(array_key_exists($source_step_index, $data_input_index)) {
-                // Get th component ID of the source step and set the allowd types.
-                $source_step_cid = $data_input_index[$source_step_index]['cid'] - 1;
-                $webform->components[$source_step_cid]['extra']['filtering']['types'] = $tool['inputs'][$i]['extensions'];
-                $webform->components[$source_step_cid]['extra']['filtering']['addextensions'] = implode(", ", $tool['inputs'][$i]['extensions']);
-              }
-              if(array_key_exists($source_step_index, $data_collection_input_index)) {
-                // Get th component ID of the source step and set the allowd types.
-                $source_step_cid = $data_collection_input_index[$source_step_index]['cid'] - 1;
-                $webform->components[$source_step_cid]['extra']['filtering']['types'] = $tool['inputs'][$i]['extensions'];
-                $webform->components[$source_step_cid]['extra']['filtering']['addextensions'] = implode(", ", $tool['inputs'][$i]['extensions']);
-              }
-            }
-            $i++;
-          }
-        }
-
 
         // Add the "Optional settings" fieldset.
         $dcid = count($webform->components) + 1;
@@ -210,7 +180,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           // name is used for finding component defaults.
           $input['full_name'] = $input['name'];
           tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
-              $step, $tool, $input, $cid, FALSE);
+              $step, $tool, $input, $cid, $data_inputs);
         }
 
         break;
@@ -414,7 +384,7 @@ function tripal_galaxy_build_webform_sort_conditionals($a, $b) {
  *   False otherwise.
  */
 function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
-    $step, $tool, $tool_input, $pid = 0) {
+    $step, $tool, $tool_input, $pid = 0, $data_inputs) {
 
   $step_index = $step['id'];
 
@@ -436,7 +406,7 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
         $repeat_input['full_name'] = $tool_input['name'] . '|' . $repeat_index . '|' . $repeat_input['name'];
         $repeat_input['is_repeat'] = TRUE;
         tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
-            $step, $tool, $repeat_input, $pid);
+            $step, $tool, $repeat_input, $pid, $data_inputs);
       }
       break;
 
@@ -453,7 +423,7 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
 
       // Now add the test param as a component for the webform.
       tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
-          $tool, $test_param, $pid, TRUE);
+          $tool, $test_param, $pid, $data_inputs, TRUE);
 
       // Each condition must have a "source" component that they refer too.
       // Our source component is the test param.
@@ -503,7 +473,7 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
             }
 
             tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
-                $step, $tool, $case_input, $pid);
+                $step, $tool, $case_input, $pid, $data_inputs);
 
             // Now add the action to the condition for this target.
             $target_id = $webform->components[$target_component_index]['cid'];
@@ -523,7 +493,7 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
     default:
       $input_values = $workflow['steps'][$step_index]['tool_inputs'];
       tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
-          $tool, $tool_input, $pid);
+          $tool, $tool_input, $pid, $data_inputs);
       break;
   }
 }
@@ -532,7 +502,7 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
  * Adds a single component to the webform.
  *
  * @param $webform
- *   The webvorm object containing conditoins and comonents that can be
+ *   The webform object containing conditionals and components that can be
  *   added to.
  * @param $step
  *   The step array in the workflow to which the tool belongs.
@@ -543,9 +513,12 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
  * @param $fixed
  *   Set to TRUE if this component should be fixed and not allowed to
  *   change by the end-user.
+ *
+ * @return
+ *   The component ID of the recently added component.
  */
 function tripal_galaxy_build_webform_add_component($webform,
-    $workflow, $step, $tool, $input, $pid, $fixed = FALSE) {
+    $workflow, $step, $tool, $input, $pid, $data_inputs, $fixed = FALSE) {
 
   // Get the input name.
   $input_name = $input['name'];
@@ -647,8 +620,14 @@ function tripal_galaxy_build_webform_add_component($webform,
       // Set the allowed extension as per the rules on Galaxy.
       if ($input['extensions']) {
         $extra['filtering']['types'] = $input['extensions'];
-        $extra['filtering']['addextensions'] = implode(", ", $input['extensions']);
+        $extra['filtering']['addextensions'] = implode(", ", array_values($input['extensions']));
       }
+
+      // We need to find the upstream data_input component and copy the
+      // allowed extensions there as well for the webform component to work
+      // properly.
+      tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $data_inputs, $webform);
+
       break;
 
     case 'data_collection_input':
@@ -691,6 +670,11 @@ function tripal_galaxy_build_webform_add_component($webform,
         $extra['filtering']['types'] = $input['extensions'];
         $extra['filtering']['addextensions'] = implode(", ", $input['extensions']);
       }
+
+      // We need to find the upstream data_input component and copy the
+      // allowed extensions there as well for the webform component to work
+      // properly.
+      tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $data_inputs, $webform);
       break;
 
     case 'integer':
@@ -776,6 +760,41 @@ function tripal_galaxy_build_webform_add_component($webform,
     'required' => $is_required,
   );
   $webform->components[] = $component;
+
+  return $cid;
+}
+
+/**
+ * Adds the allowed extensions to data_input and data_collection_input tools.
+ *
+ * @param $workflow
+ *   The Galaxy workflow array.
+ * @param $input
+ *   The tool input from the tool that will be added as a component.
+ * @param  $data_inputs
+ *   The array that maps the data_input steps to the component IDs.
+ * @param $webform
+ *   The webform object containing conditionals and components that can be
+ *   added to.
+ */
+function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $data_inputs, &$webform) {
+  $full_name = $input['full_name'];
+  foreach ($workflow['steps'] as $step_id => $step_details) {
+    if (array_key_exists('input_steps', $step_details) and $step_details['input_steps']) {
+      if (array_key_exists($full_name, $step_details['input_steps'])) {
+        $source_step = $step_details['input_steps'][$full_name]['source_step'];
+        if (array_key_exists($source_step, $data_inputs)) {
+          $source_cid = $data_inputs[$source_step];
+          for ($j = 0; $j < count($webform->components); $j++) {
+            if ($webform->components[$j]['cid'] == $source_cid) {
+              $webform->components[$j]['extra']['filtering']['types'] = $input['extensions'];
+              $extra['filtering']['addextensions'] = implode(", ", $input['extensions']);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 /**
