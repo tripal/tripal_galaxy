@@ -142,9 +142,15 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
  */
 function tripal_galaxy_sflist_validate($element, &$form_state) {
   $is_required = $element['#required'];
-  $fid = $element['#value'];
+  $fids = $element['#value'];
 
-  if ($is_required and !$fid) {
+  $set = explode('|', $fids);
+
+  if (count(array_unique($set)) != count($set)){
+    form_error($element, t('Please ensure that there are no duplicated files.  A file may only be used once.'));
+  }
+
+  if ($is_required and count($set) == 0) {
     form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
   }
 }
@@ -156,14 +162,22 @@ function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
 
   if ($input) {
     if (is_array($input)) {
+
+      // Get any selected existing files.
+      $efids = $input['existing'];
+      $eset = explode('|', $efids);
+
+      // Get any uploaded files.
       $name = $element['#name'];
       $name = preg_replace('/[^\w]/', '_', $name);
-      $fid = $input[$name];
-      // Inlcude the fid's in the existing files as well
-      if (!$fid) {
-        $fid = $input['existing_files'];
-      }
-      return $fid;
+      $ufids = $input[$name];
+      $uset = explode('|', $ufids);
+
+      // Merge the selected and uploaded files into a single value.
+      $set = array_merge($eset, $uset);
+
+      // Create the new combined value.
+      return trim(implode('|', $set1), '|');
     }
     else {
       return $input;
@@ -488,9 +502,6 @@ function tripal_galaxy_pflist_value($element, $input = FALSE, &$form_state) {
       // Merge the selected and uploaded files into a single value.
       $set1 = array_merge($eset1, $uset1);
       $set2 = array_merge($eset2, $uset2);
-
-      dpm($efids);
-      dpm($ufids);
 
       // Create the new combined value.
       return trim(implode('|', $set1), '|') . ',' . trim(implode('|', $set2), '|');
