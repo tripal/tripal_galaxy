@@ -98,8 +98,6 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   unset($element['html5_file_table']['#title']);
   unset($element['html5_file_table']['#description']);
 
-  dpm($element);
-
   $element['description'] = array(
     '#type' => 'item',
     '#title' => $element['#title'] ? $element['#title'] : 'Data File',
@@ -142,12 +140,9 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
  * Implements the validate hook for the galaxy_multi_upload element.
  * There needs to be a check on the extensions of the files uploaded
  */
-function tripal_galaxy_sflist_process_validate($element, &$form_state) {
+function tripal_galaxy_sflist_validate($element, &$form_state) {
   $is_required = $element['#required'];
   $fid = $element['#value'];
-
-  dpm('test');
-  // Check if the files uploaded are
 
   if ($is_required and !$fid) {
     form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
@@ -157,7 +152,7 @@ function tripal_galaxy_sflist_process_validate($element, &$form_state) {
  * Implements the value callback for the galaxy_multi_list element.
  * Order does not matter for the multi list
  */
-function tripal_galaxy_sflist_process_value($element, $input = FALSE, &$form_state) {
+function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
 
   if ($input) {
     if (is_array($input)) {
@@ -290,7 +285,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
 /**
  * Implements the validate hook for the galaxy_multi_upload element.
  */
-function tripal_galaxy_sfile_process_validate($element, &$form_state) {
+function tripal_galaxy_sfile_validate($element, &$form_state) {
   $is_required = $element['#required'];
   $fid = $element['#value'];
 
@@ -302,7 +297,7 @@ function tripal_galaxy_sfile_process_validate($element, &$form_state) {
 /**
  * Implements the value callback for the galaxy_multi_upload element.
  */
-function tripal_galaxy_sfile_process_value($element, $input = FALSE, &$form_state) {
+function tripal_galaxy_sfile_value($element, $input = FALSE, &$form_state) {
   if ($input) {
     if (is_array($input)) {
       $name = $element['#name'];
@@ -345,8 +340,8 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
     '#weight' => -15,
   );
 
-
   $files_list = array();
+  $files_list[] = '-- Select a File --';
   $query = db_select('file_managed', 'FM');
   $query->fields('FM', array('fid'));
   $query->distinct();
@@ -439,11 +434,23 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 /**
  * Implements the validate hook for the galaxy_multi_upload element.
  */
-function tripal_galaxy_pflist_process_validate($element, &$form_state) {
+function tripal_galaxy_pflist_validate($element, &$form_state) {
   $is_required = $element['#required'];
-  $fid = $element['#value'];
+  $fids = $element['#value'];
 
-  if ($is_required and !$fid) {
+  list($set1, $set2) = explode(',', $fids);
+  $set1 = $set1 ? explode('|', $set1) : array();
+  $set2 = $set2 ? explode('|', $set2) : array();
+
+  if (count($set1) != count($set2)) {
+    form_error($element, t('There are an uneven number of paired files. .'));
+  }
+
+  if (count(array_unique(array_merge($set1, $set2))) != count($set1) + count($set2)){
+    form_error($element, t('Please ensure that there are no duplicated files.  A file may only be used once.'));
+  }
+
+  if ($is_required and count(array_merge($set1, $set2)) == 0) {
     form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
   }
 
@@ -451,10 +458,42 @@ function tripal_galaxy_pflist_process_validate($element, &$form_state) {
 /**
  * Implements the value callback for the galaxy_multi_upload element.
  */
-function tripal_galaxy_pflist_process_value($element, $input = FALSE, &$form_state) {
+function tripal_galaxy_pflist_value($element, $input = FALSE, &$form_state) {
   if ($input) {
+
     if (is_array($input)) {
-      return $input['existing'];
+
+      // Get any selected existing files.
+      $efids = $input['existing'];
+      $eset1 = array();
+      $eset2 = array();
+      if ($efids) {
+        list($eset1, $eset2) = explode(',', $efids);
+        $eset1 = explode('|', $eset1);
+        $eset2 = explode('|', $eset2);
+      }
+
+      // Get any uploaded files.
+      $name = $element['#name'];
+      $name = preg_replace('/[^\w]/', '_', $name);
+      $ufids = $input[$name];
+      $uset1 = array();
+      $uset2 = array();
+      if ($ufids) {
+        list($uset1, $uset2) = explode(',', $ufids);
+        $uset1 = explode('|', $uset1);
+        $uset2 = explode('|', $uset2);
+      }
+
+      // Merge the selected and uploaded files into a single value.
+      $set1 = array_merge($eset1, $uset1);
+      $set2 = array_merge($eset2, $uset2);
+
+      dpm($efids);
+      dpm($ufids);
+
+      // Create the new combined value.
+      return trim(implode('|', $set1), '|') . ',' . trim(implode('|', $set2), '|');
     }
     else {
       return $input;
