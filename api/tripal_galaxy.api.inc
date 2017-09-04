@@ -294,10 +294,10 @@ function tripal_galaxy_invoke_workflow($sid) {
   $query = db_select('webform_submitted_data', 'wsd');
   $query->fields('wsd');
   $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
-  $query->fields('wc', array('type', 'extra'));
+  $query->fields('wc', array('form_key', 'type', 'extra'));
   $query->condition('wsd.sid', $submission->sid);
   $query->orderBy('wsd.cid');
-  $submitted_data = $query->execute();
+  $submitted_data = $query->execute()->fetchAll();;
 
   // Get the history that we'll use for this submission.
   $error = array();
@@ -309,20 +309,86 @@ function tripal_galaxy_invoke_workflow($sid) {
   }
 
   // Get the history contents so we don't upload the same file more than once
-  // in the event that this invokation occurs more than once.
+  // in the event that this invocation occurs more than once.
   $ghistory_contents = new GalaxyHistoryContents($galaxy);
-  $hcontents = $ghistory_contents->index(array('history_id' => $history['id']));
+  $history_contents = $ghistory_contents->index(array('history_id' => $history['id']));
   $error = $galaxy->getError();
   if ($error['message']) {
     throw new Exception($error['message']);
   }
 
-  $upload_files = array();
-  foreach ($hcontents as $file) {
-    if (!$file['deleted'] and $file['state'] == 'ok') {
-      $upload_files[] = $file['name'];
+  // Iterate through our submitted data to look for files that need
+  // uploading
+  $collections = array();
+  foreach ($submitted_data as $data) {
+    // Handle a single file upload.
+    if ($data->type == 'galaxy_sfile') {
+      if ($data->no == 'existing') {
+        $fid = $data->data;
+        tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
+      }
+    }
+    else if($data->type == 'galaxy_sflist') {
+
+    }
+    else if($data->type == 'galaxy_pflist') {
+      if ($data->no == 'existing') {
+        $efids = $data->data;
+        $eset1 = array();
+        $eset2 = array();
+        if ($efids) {
+          list($eset1, $eset2) = explode(',', $efids);
+          $eset1 = explode('|', $eset1);
+          $eset2 = explode('|', $eset2);
+        }
+        for ($i = 0; $i < count($eset1); $i++) {
+          $dataset1 = tripal_galaxy_upload_file($galaxy, $eset1[$i], $history['id'], $history_contents);
+          $dataset2 = tripal_galaxy_upload_file($galaxy, $eset2[$i], $history['id'], $history_contents);
+          $collections['list:paired'][$data->form_key][$i][] = array(
+            'id' => $dataset1['id'],
+            'name' => $dataset1['name'],
+            'src' => $dataset1['src'],
+          );
+          $collections['list:paired'][$data->form_key][$i][] = array(
+            'id' => $dataset2['id'],
+            'name' => $dataset2['name'],
+            'src' => $dataset2['src'],
+          );
+        }
+      }
+    }
+
+    // Deal with the BDSS_file type.  It will have two rows in the
+    // submitted data array. One for file_URL and one for file_upload.
+    // they are mutually exclusive and only one will have a real value
+    else if ($data->type == 'BDSS_file') {
+
     }
   }
+
+  print_r($collections);
+  // Now create a dataset collection
+  foreach ($collections as $ds_type => $ds_details) {
+    foreach ($ds_details as $ds_name => $ds_datasets) {
+      $gds_collection = new GalaxyDatasetCollections($galaxy);
+      $params = array(
+        'collection_type' => 'list',
+        'instance_type' => 'history',
+        'name' => $ds_name,
+        'history_id' => $history['id'],
+        'element_identifiers' => $ds_datasets[0],
+      );
+      $ds_collection = $gds_collection->create($params);
+      if (!$ds_collection) {
+        $error = $galaxy->getError();
+        throw new Exception($error['message']);
+      }
+      print_r($ds_collection);
+    }
+  }
+
+
+  return;
 
   // Upload any files that need uploading before submitting. These files are
   // in the file_usage table, managed by the webform module and associated
@@ -397,7 +463,7 @@ function tripal_galaxy_invoke_workflow($sid) {
     // If this component is a 'file' then we need to set the value to the
     // dataset ID.
     else if ($data->type == 'file') {
-    $file = $managed_files[$data->data];
+      $file = $managed_files[$data->data];
       foreach ($hcontents as $hcontent) {
         if ($hcontent['name'] == $file->filename) {
           $value = $hcontent['id'];
@@ -421,11 +487,7 @@ function tripal_galaxy_invoke_workflow($sid) {
       }
     }
     else if($data->type == 'galaxy_sflist') {
-      print_r($data);
-      print_r($data->data);
-      // TODO: Check that the from the workflow are now in the specified
-      // collection_type
-      // Fix the datasetcollection create funciton in blend4php
+
     }
 
     else if($data->type == 'galaxy_pflist') {
@@ -506,6 +568,59 @@ function tripal_galaxy_invoke_workflow($sid) {
 
 }
 
+
+/**
+ * Uploads a file to a given history on Galaxy.
+ *
+ * @param $galaxy
+ *   An instance of a Galaxy server object.
+ * @param $fid
+ *   The Drupal managed file ID.
+ * @param $history_id
+ *   The history ID.
+ * @param $history_contents
+ *   The Galaxy history contents array.
+ * @throws Exception
+ * @return
+ *   An array of the dataset details from Galaxy for the uploaded file.
+ */
+function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents) {
+  $file = file_load($fid);
+  $uploaded_file = NULL;
+
+  foreach ($history_contents as $hfile) {
+    if (!$hfile['deleted'] and $hfile['state'] == 'ok' and $hfile['name'] == $file->filename) {
+      $uploaded_file = $hfile;
+    }
+  }
+
+  // Only upload the file if it isn't already there.
+  if (!$uploaded_file) {
+    $file_list = array();
+    $file_list[] = array(
+      'name' => $file->filename,
+      'path' =>  drupal_realpath($file->uri)
+    );
+    // Now upload the files.
+    print "Uploading $file->filename...\n";
+    $gtool = new GalaxyTools($galaxy);
+    $tool = $gtool->create(array(
+      'tool_id' => 'upload1',
+      'history_id' => $history_id,
+      'files' => $file_list,
+    ));
+    print_r($tool);
+    if (!$tool) {
+      $error = $galaxy->getError();
+      throw new Exception($error['message']);
+    }
+    return $tool['outputs'][0];
+  }
+  else {
+    print "File already exists in history: $file->filename...\n";
+    return $uploaded_file;
+  }
+}
 /**
  * Retrieves a history by name from Galaxy.
  *

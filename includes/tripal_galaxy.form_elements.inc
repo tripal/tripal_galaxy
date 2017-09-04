@@ -294,6 +294,10 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
     '#weight' => -10,
   );
 
+  $element['value'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
+  );
   return $element;
 }
 /**
@@ -306,7 +310,6 @@ function tripal_galaxy_sfile_validate($element, &$form_state) {
   if ($is_required and !$fid) {
     form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
   }
-
 }
 /**
  * Implements the value callback for the galaxy_multi_upload element.
