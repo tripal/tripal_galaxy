@@ -42,7 +42,6 @@ function tripal_galaxy_element_info() {
     '#input' => 'TRUE',
     '#process' => array('tripal_galaxy_pflist_process'),
     '#element_validate' => array('tripal_galaxy_pflist_validate'),
-    // Call back will be an array of fid's
     '#value_callback' => 'tripal_galaxy_pflist_value',
   );
   return $elements;
@@ -123,17 +122,21 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
     }
   }
 
-
   $element['existing_files'] = array(
     '#type' => 'select',
     '#multiple' => TRUE,
     '#title' => t('Select Existing File(s)'),
-    // TODO: Look for acceptable extensions with the tool
     '#description' => t('Please select your file(s) if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
     '#weight' => -100,
   );
 
+  // https://api.drupal.org/api/drupal/includes!form.inc/function/form_builder/7.x
+  // As stated above, each element's #process functions are executed after its #value has been set
+  if($element['#value']){
+    // This will contain ALL of the fids, whether uploaded or existing
+    $element['existing_files']['#value'] = $element['#value'];
+  }
   return $element;
 }
 /**
@@ -153,19 +156,17 @@ function tripal_galaxy_sflist_validate($element, &$form_state) {
   if ($is_required and count($set) == 0) {
     form_error($element, t('Please provide a file by uploading a new file or selecting an existing file.'));
   }
+
 }
 /**
  * Implements the value callback for the galaxy_multi_list element.
  * Order does not matter for the multi list
  */
 function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
-
   if ($input) {
     if (is_array($input)) {
-
       // Get any selected existing files.
-      $efids = $input['existing'];
-      $eset = explode('|', $efids);
+      $eset = $input['existing_files'];
 
       // Get any uploaded files.
       $name = $element['#name'];
@@ -175,9 +176,9 @@ function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
 
       // Merge the selected and uploaded files into a single value.
       $set = array_merge($eset, $uset);
-
+      $ret = trim(implode('|', $set), '|');
       // Create the new combined value.
-      return trim(implode('|', $set1), '|');
+      return $ret;
     }
     else {
       return $input;

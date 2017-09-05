@@ -574,6 +574,8 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
     return;
   }
   try {
+    dpm($form);
+    dpm($form_state);
 
     // Get the sub
     $sid = $form_state['storage']['details']['sid'];
@@ -611,7 +613,7 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
     }
   }
   catch (Exception $e) {
-    drupal_set_message(t('Could not copmlete workflow submission.  Please contact the web site to report this issue.'), 'error');
+    drupal_set_message(t('Could not complete workflow submission.  Please contact the web site administrator to report this issue.'), 'error');
     watchdog_exception('tripal_galaxy', $e);
   }
 
@@ -1302,7 +1304,7 @@ function tripal_galaxy_queue_check_workflow_status($workflow) {
 
 /**
  * Implementation of callback_queue_worker().
- * XXX: This will need to be replaced by the tripal jobs handler
+ * XXX: This needs to be replaced by the tripal jobs handler
  */
 function tripal_galaxy_queue_invoke_workflow($submission) {
   tripal_galaxy_invoke_workflow($submission->sid);
