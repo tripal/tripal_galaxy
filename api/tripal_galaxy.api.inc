@@ -332,34 +332,41 @@ function tripal_galaxy_invoke_workflow($sid) {
       }
     }
     else if($data->type == 'galaxy_sflist') {
-      print_r($data);
-      $test = $data->data;
-      print_r("\ndata->data\n");
-      print_r($test);
-
+      if ($data->no == 'value' or preg_match('/^submitted_/', $data->no)) {
+        $fids = $data->data;
+        $set = array();
+        if ($fids) {
+          $set = explode('|', $fids);
+        }
+        for ($i = 0; $i < count($set); $i++) {
+          $dataset = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
+          $collections['list'][$data->form_key][$i][] = array(
+            'id' => $dataset['id'],
+            'name' => $dataset['name'],
+          );
+        }
+      }
     }
     else if($data->type == 'galaxy_pflist') {
-      if ($data->no == 'existing') {
-        $efids = $data->data;
-        $eset1 = array();
-        $eset2 = array();
-        if ($efids) {
-          list($eset1, $eset2) = explode(',', $efids);
-          $eset1 = explode('|', $eset1);
-          $eset2 = explode('|', $eset2);
+      if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+        $fids = $data->data;
+        $set1 = array();
+        $set2 = array();
+        if ($fids) {
+          list($set1, $set2) = explode(',', $fids);
+          $set1 = explode('|', $set1);
+          $set2 = explode('|', $set2);
         }
-        for ($i = 0; $i < count($eset1); $i++) {
-          $dataset1 = tripal_galaxy_upload_file($galaxy, $eset1[$i], $history['id'], $history_contents);
-          $dataset2 = tripal_galaxy_upload_file($galaxy, $eset2[$i], $history['id'], $history_contents);
+        for ($i = 0; $i < count($set1); $i++) {
+          $dataset1 = tripal_galaxy_upload_file($galaxy, $set1[$i], $history['id'], $history_contents);
+          $dataset2 = tripal_galaxy_upload_file($galaxy, $set2[$i], $history['id'], $history_contents);
           $collections['list:paired'][$data->form_key][$i][] = array(
             'id' => $dataset1['id'],
             'name' => $dataset1['name'],
-            'src' => $dataset1['src'],
           );
           $collections['list:paired'][$data->form_key][$i][] = array(
             'id' => $dataset2['id'],
             'name' => $dataset2['name'],
-            'src' => $dataset2['src'],
           );
         }
       }
