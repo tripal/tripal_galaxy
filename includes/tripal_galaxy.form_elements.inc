@@ -123,15 +123,18 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
     }
   }
 
-
-  $element['existing_files'] = array(
+  $element['existing'] = array(
     '#type' => 'select',
     '#multiple' => TRUE,
     '#title' => t('Select Existing File(s)'),
-    // TODO: Look for acceptable extensions with the tool
     '#description' => t('Please select your file(s) if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
     '#weight' => -100,
+  );
+
+  $element['value'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
   );
 
   return $element;
@@ -142,8 +145,8 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
  */
 function tripal_galaxy_sflist_validate($element, &$form_state) {
   $is_required = $element['#required'];
-  $fids = $element['#value'];
 
+  $fids = $element['#value'];
   $set = explode('|', $fids);
 
   if (count(array_unique($set)) != count($set)){
@@ -164,8 +167,7 @@ function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
     if (is_array($input)) {
 
       // Get any selected existing files.
-      $efids = $input['existing'];
-      $eset = explode('|', $efids);
+      $eset = $input['existing'];
 
       // Get any uploaded files.
       $name = $element['#name'];
@@ -177,7 +179,15 @@ function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
       $set = array_merge($eset, $uset);
 
       // Create the new combined value.
-      return trim(implode('|', $set1), '|');
+      $value = trim(implode('|', $set), '|');
+
+      $name = $element['#name'];
+      $name = preg_replace('/submitted/', "[submitted]", $name);
+      $name = preg_replacE('/\[/', "['", $name);
+      $name = preg_replacE('/\]/', "']", $name);
+      $exp = '$form_state[\'input\']' . $name . '[\'value\'] = $value;';
+      eval($exp);
+      return $value;
     }
     else {
       return $input;
@@ -294,10 +304,6 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
     '#weight' => -10,
   );
 
-  $element['value'] = array(
-    '#type' => 'hidden',
-    '#default_value' => '',
-  );
   return $element;
 }
 /**

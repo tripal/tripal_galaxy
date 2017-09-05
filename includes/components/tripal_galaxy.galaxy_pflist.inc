@@ -41,8 +41,6 @@ function theme_webform_display_galaxy_pflist($variables) {
   $set1 = explode('|', $set1);
   $set2 = explode('|', $set2);
 
-  $headers = array('Pair', 'File1', 'File2');
-  $rows = array();
   $num_rows = count($set1);
 
   for ($i = 0; $i < $num_rows; $i++) {
@@ -110,8 +108,40 @@ function _webform_display_galaxy_pflist($component, $value, $format = 'html') {
   $filename = '';
 
 
-  // Find the field ccontaining the fid.
-  $fids = $value['existing'];
+  // Get any selected existing files.
+  $efids = $input['existing'];
+  $eset1 = array();
+  $eset2 = array();
+  if ($efids) {
+    list($eset1, $eset2) = explode(',', $efids);
+    $eset1 = explode('|', $eset1);
+    $eset2 = explode('|', $eset2);
+  }
+
+  // Get any uploaded files.
+  $name = '';
+  foreach ($value as $key => $val) {
+    if (preg_match('/^submitted_/', $key)) {
+      $name = $key;
+      break;
+    }
+  }
+  $name = preg_replace('/[^\w]/', '_', $name);
+  $ufids = $input[$name];
+  $uset1 = array();
+  $uset2 = array();
+  if ($ufids) {
+    list($uset1, $uset2) = explode(',', $ufids);
+    $uset1 = explode('|', $uset1);
+    $uset2 = explode('|', $uset2);
+  }
+
+  // Merge the selected and uploaded files into a single value.
+  $set1 = array_merge($eset1, $uset1);
+  $set2 = array_merge($eset2, $uset2);
+
+  // Create the new combined value.
+  return trim(implode('|', $set1), '|') . ',' . trim(implode('|', $set2), '|');
 
   return array(
     '#title' => $component['name'],
