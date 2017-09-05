@@ -265,7 +265,8 @@ function tripal_galaxy_get_history_name($submission, $node) {
 }
 /**
  * Invokes all submitted workflows that are in the 'Waiting' state.
- *
+ *  TODO: Allow previous submissions to be reinvoked
+ *  XXX: Workflow submissions table is getting wiped
  *
  */
 function tripal_galaxy_invoke_workflow($sid) {
@@ -299,6 +300,8 @@ function tripal_galaxy_invoke_workflow($sid) {
   $query->orderBy('wsd.cid');
   $submitted_data = $query->execute()->fetchAll();;
 
+
+
   // Get the history that we'll use for this submission.
   $error = array();
   $history_name = tripal_galaxy_get_history_name($submission, $node);
@@ -329,6 +332,10 @@ function tripal_galaxy_invoke_workflow($sid) {
       }
     }
     else if($data->type == 'galaxy_sflist') {
+      print_r($data);
+      $test = $data->data;
+      print_r("\ndata->data\n");
+      print_r($test);
 
     }
     else if($data->type == 'galaxy_pflist') {
@@ -366,7 +373,7 @@ function tripal_galaxy_invoke_workflow($sid) {
     }
   }
 
-  print_r($collections);
+  //print_r($collections);
   // Now create a dataset collection
   foreach ($collections as $ds_type => $ds_details) {
     foreach ($ds_details as $ds_name => $ds_datasets) {
@@ -413,6 +420,7 @@ function tripal_galaxy_invoke_workflow($sid) {
       // Now upload the files.
       $gtool = new GalaxyTools($galaxy);
       $tool = $gtool->create(array(
+        // TODO: Why is is hard coded?
         'tool_id' => 'upload1',
         'history_id' => $history['id'],
         'files' => $file_list,
@@ -462,18 +470,18 @@ function tripal_galaxy_invoke_workflow($sid) {
 
     // If this component is a 'file' then we need to set the value to the
     // dataset ID.
-    else if ($data->type == 'file') {
-      $file = $managed_files[$data->data];
-      foreach ($hcontents as $hcontent) {
-        if ($hcontent['name'] == $file->filename) {
-          $value = $hcontent['id'];
-          $input_datasets[$step_index] = array(
-            'id' => $value,
-            'src' => 'hda',
-          );
-        }
-      }
-    }
+    // else if ($data->type == 'galaxy_sfile') {
+    //   $file = $managed_files[$data->data];
+    //   foreach ($hcontents as $hcontent) {
+    //     if ($hcontent['name'] == $file->filename) {
+    //       $value = $hcontent['id'];
+    //       $input_datasets[$step_index] = array(
+    //         'id' => $value,
+    //         'src' => 'hda',
+    //       );
+    //     }
+    //   }
+    // }
     else if ($data->type == 'galaxy_sfile') {
       $file = $managed_files[$data->data];
       foreach ($hcontents as $hcontent) {
@@ -487,6 +495,7 @@ function tripal_galaxy_invoke_workflow($sid) {
       }
     }
     else if($data->type == 'galaxy_sflist') {
+
 
     }
 
@@ -528,9 +537,6 @@ function tripal_galaxy_invoke_workflow($sid) {
     _tripal_galaxy_workflow_invoke_build_values($current_values, $input_name, $value);
     $parameters[$step_index] = $current_values;
   }
-
-   //print_r($parameters);
-   //print_r($input_datasets);
 
 
   // Invoke the workflow and check for errors

@@ -802,7 +802,7 @@ function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $da
  *
  * The workflow organizes values in a nested array based on the heirarchy of the
  * tool's inputs and their conditionals. Therefore, this funtion is
- * recursiv in order to descend through the nested array to find the value.
+ * recursive in order to descend through the nested array to find the value.
  *
  * @param $workflow
  *   The Galaxy workflow array.
@@ -904,7 +904,7 @@ function tripal_galaxy_build_webform_get_step_defaults($defaults, $tool_input,
       continue;
     }
 
-    // Depending on the input type, then the weborm element type will
+    // Depending on the input type, then the webform element type will
     // be different.
     switch($tool_input['type']){
       case 'integer':

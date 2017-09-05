@@ -42,7 +42,6 @@ function tripal_galaxy_element_info() {
     '#input' => 'TRUE',
     '#process' => array('tripal_galaxy_pflist_process'),
     '#element_validate' => array('tripal_galaxy_pflist_validate'),
-    // Call back will be an array of fid's
     '#value_callback' => 'tripal_galaxy_pflist_value',
   );
   return $elements;
@@ -145,8 +144,8 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
  */
 function tripal_galaxy_sflist_validate($element, &$form_state) {
   $is_required = $element['#required'];
-
   $fids = $element['#value'];
+
   $set = explode('|', $fids);
 
   if (count(array_unique($set)) != count($set)){
@@ -183,8 +182,8 @@ function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
 
       $name = $element['#name'];
       $name = preg_replace('/submitted/', "[submitted]", $name);
-      $name = preg_replacE('/\[/', "['", $name);
-      $name = preg_replacE('/\]/', "']", $name);
+      $name = preg_replace('/\[/', "['", $name);
+      $name = preg_replace('/\]/', "']", $name);
       $exp = '$form_state[\'input\']' . $name . '[\'value\'] = $value;';
       eval($exp);
       return $value;
