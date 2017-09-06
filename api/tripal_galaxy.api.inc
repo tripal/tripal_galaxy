@@ -380,10 +380,15 @@ function tripal_galaxy_invoke_workflow($sid) {
     }
   }
 
-  //print_r($collections);
+  // each ds_dataset is triplet?
+
+  print_r($collections);
   // Now create a dataset collection
   foreach ($collections as $ds_type => $ds_details) {
     foreach ($ds_details as $ds_name => $ds_datasets) {
+      print_r("ds_datasets\n");
+      print_r($ds_datasets);
+
       $gds_collection = new GalaxyDatasetCollections($galaxy);
       $params = array(
         'collection_type' => 'list',
@@ -392,6 +397,10 @@ function tripal_galaxy_invoke_workflow($sid) {
         'history_id' => $history['id'],
         'element_identifiers' => $ds_datasets[0],
       );
+
+      print_r($params);
+      print_r("\n");
+
       $ds_collection = $gds_collection->create($params);
       if (!$ds_collection) {
         $error = $galaxy->getError();
