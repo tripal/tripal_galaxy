@@ -56,8 +56,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     // Each step is contained in a fieldset. We'll name the field set after
     // it's step and if a tool is present we'll include the tool info.
     $cid = count($webform->components) + 1;
-    $fieldset_key = "Step_" . $step_index . "_fieldset";
-    $fieldset_name = 'Step ' . ($step_index + 1);
+    $fieldset_key = "Step_" . $step_index  . "_fieldset";
+    $fieldset_name = 'Step ' . ($step_index + 2);
 
     // Add the fieldset to the components list.
     $webform->components[] = array(
@@ -196,7 +196,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'pid' => 0,
         // Add 3 to the step_index because the instruction appear on step 1
         // and this pagebreak introduces the next step.
-        'name' => "Step" . ($step_index + 3),
+        'name' => "Step " . ($step_index + 3),
         //'name' => $tool ? $tool['name'] : "Step" . ($step_index + 1),
         'form_key' => "step_" . ($step_index + 3) ."_pagebreak",
         'type' => 'pagebreak',
@@ -291,7 +291,7 @@ function tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $wo
     'cid' => 1,
     'pid' => 0,
     'form_key' => 'galaxy_webform',
-    'name' => 'Instructions',
+    'name' => 'Step 1: Instructions',
     'type' => 'fieldset',
     'value' => '',
     'extra' => array(
@@ -312,7 +312,7 @@ function tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $wo
     'cid' => 2,
     'pid' => 1,
     'form_key' => 'galaxy_webform',
-    'name' => 'instructions',
+    'name' => 'Step 1: Instructions',
     'type' => 'markup',
     'value' => t("<p>Here you can submit an analysis for execution.  This analysis " .
       "makes use of several bioinformatics tools with each tool provided as ".
@@ -397,7 +397,6 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
   // are dealing with.  If it's not one of those nested components then
   // we can add the component. Otherwise we have to deal with each one
   // specially.
-	dpm($tool_input);
 
   switch ($tool_input['type']) {
     case 'repeat':
@@ -734,6 +733,10 @@ function tripal_galaxy_build_webform_add_component($webform,
   // If this is a test param then automatically change the webform type to
   // a fixed value. This is because a test param was set by the person
   // who created the workflow and should not be changed by the user.
+  
+  // XXX: Small bug on the optional settings
+  // Advanced options not showing
+  // Single paired end question not showing
   if ($fixed) {
     $webform_type = 'fixed_value';
   }

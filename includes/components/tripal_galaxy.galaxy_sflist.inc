@@ -125,8 +125,11 @@ function theme_webform_display_galaxy_sflist($variables) {
   $set = explode('|', $value);
   $headers = array('', 'File Name');
 
+  // Dirty fix to the extra row that's spawning
+  $set = array_filter($set);
+
   $num_rows = count($set);
-  for ($i = 0; $i < $num_rows; $i++) {
+   for ($i = 0; $i < $num_rows; $i++) {
     $fid = $set[$i];
     $file = file_load($fid);
     $rows[] = array(
