@@ -143,6 +143,9 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
  * There needs to be a check on the extensions of the files uploaded
  */
 function tripal_galaxy_sflist_validate($element, &$form_state) {
+
+  // BUG: only looking @ the select box and not validating properly
+  // i.e. will not only accept
   $is_required = $element['#required'];
   $fids = $element['#value'];
 

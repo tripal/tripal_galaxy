@@ -397,8 +397,9 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
   // are dealing with.  If it's not one of those nested components then
   // we can add the component. Otherwise we have to deal with each one
   // specially.
-  switch ($tool_input['type']) {
+	dpm($tool_input);
 
+  switch ($tool_input['type']) {
     case 'repeat':
 
       $inputs = $tool_input['inputs'];
@@ -706,6 +707,18 @@ function tripal_galaxy_build_webform_add_component($webform,
 
     case 'hidden_data':
       break;
+	  
+	  // This looks like a field set in the drupal world so make it so, then 
+	  // this part needs to be traversed to get all of the children elements
+	  case 'section':
+	  // Create a field set 
+	  $webform_type  = 'fieldset';
+	  // Make this a parent component that holds the children values and call
+	  // add component again
+	  //tripal_galaxy_build_webform_add_component($webform,$workflow,$step,$)
+
+	  
+		break;
 
     default :
       drupal_set_message('Unhandled tool input type: ' . $input['type'] . ".", 'error');

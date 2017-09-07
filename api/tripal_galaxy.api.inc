@@ -271,6 +271,8 @@ function tripal_galaxy_get_history_name($submission, $node) {
  */
 function tripal_galaxy_invoke_workflow($sid) {
 
+  print_r(debug_backtrace());
+  return;
   // Get the workflows that need execution
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
   $query->fields('tgws');
@@ -323,7 +325,11 @@ function tripal_galaxy_invoke_workflow($sid) {
   // Iterate through our submitted data to look for files that need
   // uploading
   $collections = array();
+  $i = 0;
   foreach ($submitted_data as $data) {
+    print($i . ": ");
+    print_r($data);
+    print("\n");
     // Handle a single file upload.
     if ($data->type == 'galaxy_sfile') {
       if ($data->no == 'existing') {
@@ -378,6 +384,7 @@ function tripal_galaxy_invoke_workflow($sid) {
     else if ($data->type == 'BDSS_file') {
 
     }
+    $i++;
   }
 
   // each ds_dataset is triplet?
