@@ -271,8 +271,6 @@ function tripal_galaxy_get_history_name($submission, $node) {
  */
 function tripal_galaxy_invoke_workflow($sid) {
 
-  print_r(debug_backtrace());
-  return;
   // Get the workflows that need execution
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
   $query->fields('tgws');
@@ -302,8 +300,6 @@ function tripal_galaxy_invoke_workflow($sid) {
   $query->orderBy('wsd.cid');
   $submitted_data = $query->execute()->fetchAll();;
 
-
-
   // Get the history that we'll use for this submission.
   $error = array();
   $history_name = tripal_galaxy_get_history_name($submission, $node);
@@ -317,8 +313,8 @@ function tripal_galaxy_invoke_workflow($sid) {
   // in the event that this invocation occurs more than once.
   $ghistory_contents = new GalaxyHistoryContents($galaxy);
   $history_contents = $ghistory_contents->index(array('history_id' => $history['id']));
-  $error = $galaxy->getError();
   if ($error['message']) {
+    $error = $galaxy->getError();
     throw new Exception($error['message']);
   }
 
@@ -327,31 +323,23 @@ function tripal_galaxy_invoke_workflow($sid) {
   $collections = array();
   $i = 0;
   foreach ($submitted_data as $data) {
-    print($i . ": ");
-    print_r($data);
-    print("\n");
     // Handle a single file upload.
     if ($data->type == 'galaxy_sfile') {
       if ($data->no == 'existing') {
         $fid = $data->data;
-        print "FId: $fid\n";
-        print_r($fid);
         if ($fid) {
           tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
         }
       }
     }
     else if($data->type == 'galaxy_sflist') {
-      print_r($data);
       if ($data->no == 'value' or preg_match('/^submitted_/', $data->no)) {
         $fids = $data->data;
         $set = array();
         if ($fids) {
           $set = explode('|', $fids);
         }
-        print_r($set);
         for ($i = 0; $i < count($set); $i++) {
-          print_r("ID: " . $set[$i] . "\n");
           $dataset = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
           $collections['list'][$data->form_key][$i][] = array(
             'id' => $dataset['id'],
@@ -394,14 +382,9 @@ function tripal_galaxy_invoke_workflow($sid) {
     $i++;
   }
 
-  // each ds_dataset is triplet?
-
-  print_r($collections);
   // Now create a dataset collection
   foreach ($collections as $ds_type => $ds_details) {
     foreach ($ds_details as $ds_name => $ds_datasets) {
-      print_r("ds_datasets\n");
-      print_r($ds_datasets);
 
       $gds_collection = new GalaxyDatasetCollections($galaxy);
       $params = array(
@@ -412,15 +395,11 @@ function tripal_galaxy_invoke_workflow($sid) {
         'element_identifiers' => $ds_datasets[0],
       );
 
-      print_r($params);
-      print_r("\n");
-
       $ds_collection = $gds_collection->create($params);
       if (!$ds_collection) {
         $error = $galaxy->getError();
         throw new Exception($error['message']);
       }
-      print_r($ds_collection);
     }
   }
 
@@ -645,7 +624,6 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
       'history_id' => $history_id,
       'files' => $file_list,
     ));
-    print_r($tool);
     if (!$tool) {
       $error = $galaxy->getError();
       throw new Exception($error['message']);
@@ -681,6 +659,10 @@ function tripal_galaxy_get_history(GalaxyInstance $galaxy, $history_name, &$erro
 
   // Look through existing histories to find what we're looking for.
   $histories = $ghistories->index();
+  if (!$histories) {
+    $error = $galaxy->getError();
+    throw new Exception($error['message']);
+  }
   foreach ($histories as $history) {
     if ($history['name'] == $history_name) {
       return $history;

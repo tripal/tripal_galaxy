@@ -574,8 +574,6 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
     return;
   }
   try {
-    dpm($form);
-    dpm($form_state);
 
     // Get the sub
     $sid = $form_state['storage']['details']['sid'];
