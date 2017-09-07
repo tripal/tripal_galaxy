@@ -84,7 +84,6 @@ function tripal_galaxy_fixed_value_process($element, $form_state, $complete_form
  * upload to see if files came from both components.
  */
 function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
-
   global $user;
   $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
   $quota = tripal_galaxy_get_user_quota($user->uid);
@@ -143,8 +142,10 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
  * There needs to be a check on the extensions of the files uploaded
  */
 function tripal_galaxy_sflist_validate($element, &$form_state) {
+  
   $is_required = $element['#required'];
   $fids = $element['#value'];
+  
 
   $set = explode('|', $fids);
 
@@ -161,13 +162,14 @@ function tripal_galaxy_sflist_validate($element, &$form_state) {
  * Order does not matter for the multi list
  */
 function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
-
   if ($input) {
     if (is_array($input)) {
-
-      // Get any selected existing files.
-      $eset = $input['existing'];
-
+	
+	 $eset = array();
+     // Get any selected existing files
+	 if(array_key_exists('existing', $input)){
+			$eset = $input['existing'];
+	 }
       // Get any uploaded files.
       $name = $element['#name'];
       $name = preg_replace('/[^\w]/', '_', $name);
