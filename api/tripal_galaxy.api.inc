@@ -328,17 +328,24 @@ function tripal_galaxy_invoke_workflow($sid) {
     if ($data->type == 'galaxy_sfile') {
       if ($data->no == 'existing') {
         $fid = $data->data;
-        tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
+        print "FId: $fid\n";
+        print_r($fid);
+        if ($fid) {
+          tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
+        }
       }
     }
     else if($data->type == 'galaxy_sflist') {
+      print_r($data);
       if ($data->no == 'value' or preg_match('/^submitted_/', $data->no)) {
         $fids = $data->data;
         $set = array();
         if ($fids) {
           $set = explode('|', $fids);
         }
+        print_r($set);
         for ($i = 0; $i < count($set); $i++) {
+          print_r("ID: " . $set[$i] . "\n");
           $dataset = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
           $collections['list'][$data->form_key][$i][] = array(
             'id' => $dataset['id'],
