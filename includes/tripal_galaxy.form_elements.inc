@@ -53,7 +53,8 @@ function tripal_galaxy_element_info() {
  * This field has a hidden value, title and markup description.
  */
 function tripal_galaxy_fixed_value_process($element, $form_state, $complete_form) {
-
+	//dpm("In Fixed Value Process ");
+//	dpm($element);
   // If the input type is 'linked' then we want to alter the way
   // the value is presented so it makes sense to the user.
   $value = $element['#markup'];

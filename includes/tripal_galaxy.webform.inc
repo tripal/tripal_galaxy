@@ -185,7 +185,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
         break;
       default:
-        drupal_set_message('Unhandled step type: ' . $step['type'] . ".", 'error');
+        drupal_set_message('Unhandled step type:  ' . $step['type'] . ".", 'error');
         return;
     } // end switch ($step['type']) { ...
 
@@ -331,6 +331,16 @@ function tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $wo
     ),
     'required' => '0',
     'weight' => 0
+  );
+  
+  $webform->components[] = array(
+  'cid' => count($webform->components) + 1,
+  'pid' => 1,
+  'form_key' => 'step_1_additional_instructions_textarea',
+  'name' => 'Additonal Instructions',
+  'type' => 'textarea',
+  'value' => 'No additional instructions provided',
+  'weight' => count($webform->components) + 1
   );
 
   // Add a page break
