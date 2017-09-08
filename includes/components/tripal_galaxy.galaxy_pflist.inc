@@ -54,6 +54,7 @@ function theme_webform_display_galaxy_pflist($variables) {
       $file2->filename,
     );
   }
+  $headers = array('', 'Pair #1', 'Pair #2');
   $table = theme_table(array(
     'header' => $headers,
     'rows' => $rows,
@@ -107,9 +108,8 @@ function _webform_render_galaxy_pflist($component, $value = NULL, $filter = TRUE
 function _webform_display_galaxy_pflist($component, $value, $format = 'html') {
   $filename = '';
 
-
   // Get any selected existing files.
-  $efids = $input['existing'];
+  $efids = $value['existing'];
   $eset1 = array();
   $eset2 = array();
   if ($efids) {
@@ -127,7 +127,7 @@ function _webform_display_galaxy_pflist($component, $value, $format = 'html') {
     }
   }
   $name = preg_replace('/[^\w]/', '_', $name);
-  $ufids = $input[$name];
+  $ufids = $value[$name];
   $uset1 = array();
   $uset2 = array();
   if ($ufids) {
@@ -141,7 +141,7 @@ function _webform_display_galaxy_pflist($component, $value, $format = 'html') {
   $set2 = array_merge($eset2, $uset2);
 
   // Create the new combined value.
-  return trim(implode('|', $set1), '|') . ',' . trim(implode('|', $set2), '|');
+  $fids = trim(implode('|', $set1), '|') . ',' . trim(implode('|', $set2), '|');
 
   return array(
     '#title' => $component['name'],
