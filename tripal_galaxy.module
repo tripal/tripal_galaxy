@@ -651,14 +651,23 @@ function _tripal_galaxy_workflow_invoke_build_values(&$values, $input_full_name,
 
   // As long as we have names in our "name path" then recurse.
   if (count($names) > 0) {
-    if (!array_key_exists($name, $values)) {
-      $values[$name] = array();
-    }
+    $temp = array();
     $next_name = implode("|", $names);
-    return _tripal_galaxy_workflow_invoke_build_values($values[$name], $next_name, $value);
+    $had_value = _tripal_galaxy_workflow_invoke_build_values($temp, $next_name, $value);
+    if ($had_value) {
+      $values[$name] = $temp;
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
   }
   else {
-    $values[$name] = $value;
+    if ($value) {
+      $values[$name] = $value;
+      return TRUE;
+    }
+    return FALSE;
   }
 }
 

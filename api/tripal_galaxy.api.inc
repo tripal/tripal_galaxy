@@ -279,6 +279,10 @@ function tripal_galaxy_invoke_workflow($sid) {
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
 
+  if (!$submission) {
+    throw new Exception('The submission ID does not exist');
+  }
+
   // Get a connection to the remote galaxy instance.
   $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
   if (!$galaxy) {
@@ -297,8 +301,9 @@ function tripal_galaxy_invoke_workflow($sid) {
   $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
   $query->fields('wc', array('form_key', 'type', 'extra'));
   $query->condition('wsd.sid', $submission->sid);
+  $query->condition('wc.nid', $submission->nid);
   $query->orderBy('wsd.cid');
-  $submitted_data = $query->execute()->fetchAll();;
+  $submitted_data = $query->execute()->fetchAll();
 
   // Get the history that we'll use for this submission.
   $error = array();
@@ -318,39 +323,57 @@ function tripal_galaxy_invoke_workflow($sid) {
     throw new Exception($error['message']);
   }
 
-  // Iterate through our submitted data to look for files that need
-  // uploading
+  // Iterate through our submitted data to look for files that need uploading.
+  // For those in a dataset collection, create those collections as well.
   $collections = array();
-  $i = 0;
+  $inputs = array();
   foreach ($submitted_data as $data) {
     // Handle a single file upload.
     if ($data->type == 'galaxy_sfile') {
       if ($data->no == 'existing') {
         $fid = $data->data;
         if ($fid) {
-          tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
+          $file = tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
+          $inputs[$data->form_key] = $file;
         }
       }
     }
     else if($data->type == 'galaxy_sflist') {
       if ($data->no == 'value' or preg_match('/^submitted_/', $data->no)) {
         $fids = $data->data;
-        $set = array();
-        if ($fids) {
-          $set = explode('|', $fids);
+        if (!$fids) {
+          continue;
         }
+        $set = explode('|', $fids);
+
+        // Create the paired dataset.
+        $collections[$data->form_key] = array(
+          'collection_type' => 'list',
+          'instance_type' => 'history',
+          'name' => $data->form_key,
+          'history_id' => $history['id'],
+          'element_identifiers' => array(),
+        );
+
         for ($i = 0; $i < count($set); $i++) {
-          $dataset = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
-          $collections['list'][$data->form_key][$i][] = array(
-            'id' => $dataset['id'],
-            'name' => $dataset['name'],
+          // Upload each file.
+          $dataset1 = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
+
+          // Next add the element.
+          $collections[$data->form_key]['element_identifiers'][] = array(
+            'id' => $dataset1['id'],
+            'name' => $dataset1['name'],
+            'src' => 'hda'
           );
-        }
+        } // end for ($i = 0; $i < count($set1); $i++) {
       }
     }
     else if($data->type == 'galaxy_pflist') {
       if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
         $fids = $data->data;
+        if (!$fids) {
+          continue;
+        }
         $set1 = array();
         $set2 = array();
         if ($fids) {
@@ -358,96 +381,78 @@ function tripal_galaxy_invoke_workflow($sid) {
           $set1 = explode('|', $set1);
           $set2 = explode('|', $set2);
         }
+
+        // Create the paired dataset.
+        $collections[$data->form_key] = array(
+          'collection_type' => 'list:paired',
+          'instance_type' => 'history',
+          'name' => $data->form_key,
+          'history_id' => $history['id'],
+          'element_identifiers' => array(),
+        );
+
         for ($i = 0; $i < count($set1); $i++) {
+          // Upload each file.
           $dataset1 = tripal_galaxy_upload_file($galaxy, $set1[$i], $history['id'], $history_contents);
           $dataset2 = tripal_galaxy_upload_file($galaxy, $set2[$i], $history['id'], $history_contents);
-          $collections['list:paired'][$data->form_key][$i][] = array(
-            'id' => $dataset1['id'],
-            'name' => $dataset1['name'],
+
+          // Next create the paired dataset collection array.
+          $collections[$data->form_key]['element_identifiers'][] = array(
+            'name' => $dataset1['name'] . ' and ' . $dataset2['name'],
+            'collection_type' => 'paired',
+            'src' => 'new_collection',
+            'element_identifiers' => array(
+              array(
+                'id' => $dataset1['id'],
+                'name' => 'forward',
+                'src' => 'hda'
+              ),
+              array(
+                'id' => $dataset2['id'],
+                'name' => 'reverse',
+                'src' => 'hda'
+              ),
+            ),
           );
-          $collections['list:paired'][$data->form_key][$i][] = array(
-            'id' => $dataset2['id'],
-            'name' => $dataset2['name'],
-          );
-        }
+        } // end for ($i = 0; $i < count($set1); $i++) {
+      } // end if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+    } // end else if($data->type == 'galaxy_pflist') {
+  } // foreach ($submitted_data as $data) {
+
+  // Now create a dataset collections
+  foreach ($collections as $form_key => $ds_details) {
+
+    // Check for the dataset in the history before trying to readd it.
+    $found_collection = FALSE;
+    foreach ($history_contents as $hcontent) {
+      if ($hcontent['name'] == $form_key and $hcontent[deleted] == 0){
+        $inputs[$form_key] = $hcontent;
+        $found_collection = TRUE;
       }
     }
-
-    // Deal with the BDSS_file type.  It will have two rows in the
-    // submitted data array. One for file_URL and one for file_upload.
-    // they are mutually exclusive and only one will have a real value
-    else if ($data->type == 'BDSS_file') {
-
+    if ($found_collection) {
+      print "Collection, $form_key, already exists.\n";
+      continue;
     }
-    $i++;
-  }
 
-  // Now create a dataset collection
-  foreach ($collections as $ds_type => $ds_details) {
-    foreach ($ds_details as $ds_name => $ds_datasets) {
-
-      $gds_collection = new GalaxyDatasetCollections($galaxy);
-      $params = array(
-        'collection_type' => 'list',
-        'instance_type' => 'history',
-        'name' => $ds_name,
-        'history_id' => $history['id'],
-        'element_identifiers' => $ds_datasets[0],
-      );
-
-      $ds_collection = $gds_collection->create($params);
-      if (!$ds_collection) {
-        $error = $galaxy->getError();
-        throw new Exception($error['message']);
-      }
+    // Create the collection!
+    print "Creating Collection: $form_key\n";
+    $gds_collection = new GalaxyDatasetCollections($galaxy);
+    $ds_collection = $gds_collection->create($ds_details);
+    if (!$ds_collection) {
+      $error = $galaxy->getError();
+      throw new Exception($error['message']);
     }
-  }
-
-
-  return;
-
-  // Upload any files that need uploading before submitting. These files are
-  // in the file_usage table, managed by the webform module and associated
-  // with this submission id (node ID).
-  $files = db_select('file_usage', 'fu')
-    ->fields('fu', array('fid'))
-    ->condition('module', 'tripal_galaxy')
-    ->condition('id', $submission->nid)
-    ->execute();
-  $managed_files = array();
-  while ($file = $files->fetchObject()) {
-    $fid = $file->fid;
-    $file = file_load($fid);
-    $managed_files[$fid] = $file;
-    // Only upload the file if it isn't already there.
-    if (!in_array($file->filename, $upload_files)) {
-      $file_list = array();
-      $file_list[] = array(
-        'name' => $file->filename,
-        'path' =>  drupal_realpath($file->uri)
-      );
-      // Now upload the files.
-      $gtool = new GalaxyTools($galaxy);
-      $tool = $gtool->create(array(
-        // TODO: Why is is hard coded?
-        'tool_id' => 'upload1',
-        'history_id' => $history['id'],
-        'files' => $file_list,
-      ));
-      if (!$tool) {
-        $error = $galaxy->getError();
-        throw new Exception($error['message']);
-      }
-    }
+    $inputs[$form_key] = $ds_collection;
   }
 
   // Next we need to re-get the history content to get the IDs of the new files.
-  $hcontents = $ghistory_contents->index(array('history_id' => $history['id']));
+  $history_contents = $ghistory_contents->index(array('history_id' => $history['id']));
   $input_datasets = array();
 
   // Iterate through the submitted data values and create an input aray
   // for Galaxy workflow submission.
-  while ($data = $submitted_data->fetchObject()) {
+  foreach ($submitted_data as $data) {
     $value = '';
 
     // The component 'extra' data is serialized so we need to convert it.
@@ -476,25 +481,10 @@ function tripal_galaxy_invoke_workflow($sid) {
         );
       }
     }
-
-    // If this component is a 'file' then we need to set the value to the
-    // dataset ID.
-    // else if ($data->type == 'galaxy_sfile') {
-    //   $file = $managed_files[$data->data];
-    //   foreach ($hcontents as $hcontent) {
-    //     if ($hcontent['name'] == $file->filename) {
-    //       $value = $hcontent['id'];
-    //       $input_datasets[$step_index] = array(
-    //         'id' => $value,
-    //         'src' => 'hda',
-    //       );
-    //     }
-    //   }
-    // }
     else if ($data->type == 'galaxy_sfile') {
-      $file = $managed_files[$data->data];
-      foreach ($hcontents as $hcontent) {
-        if ($hcontent['name'] == $file->filename) {
+      $file = $inputs[$data->form_key];
+      foreach ($history_contents as $hcontent) {
+        if ($hcontent['name'] == $file['name']) {
           $value = $hcontent['id'];
           $input_datasets[$step_index] = array(
             'id' => $value,
@@ -504,30 +494,20 @@ function tripal_galaxy_invoke_workflow($sid) {
       }
     }
     else if($data->type == 'galaxy_sflist') {
-
-
+      $dataset = $inputs[$data->form_key];
+      $value = $dataset['id'];
+      $input_datasets[$step_index] = array(
+        'id' => $value,
+        'src' => 'hdca',
+      );
     }
-
     else if($data->type == 'galaxy_pflist') {
-
-    }
-
-    // Deal with the BDSS_file type.  It will have two rows in the
-    // submitted data array. One for file_URL and one for file_upload.
-    // they are mutually exclusive and only one will have a real value
-    else if ($data->type == 'BDSS_file') {
-      if ($data->no == 'file_URL' and $data->data) {
-          $value = $data->data;
-      }
-      if ($data->no == 'file_upload' and $data->data) {
-        $fid = $data->data;
-        if ($fid) {
-          $file = file_load($fid);
-          if ($file) {
-            $value = file_create_url($file->uri);
-          }
-        }
-      }
+      $dataset = $inputs[$data->form_key];
+      $value = $dataset['id'];
+      $input_datasets[$step_index] = array(
+        'id' => $value,
+        'src' => 'hdca',
+      );
     }
     else {
       $value = $data->data;
@@ -547,15 +527,17 @@ function tripal_galaxy_invoke_workflow($sid) {
     $parameters[$step_index] = $current_values;
   }
 
-
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
-  $invocation = $gworkflows->invoke(array(
+  $params = array(
     'workflow_id' => $submission->workflow_id,
     'parameters' => $parameters,
     'inputs' => $input_datasets,
     'history_id' => $history['id'],
-  ));
+  );
+  $invocation = $gworkflows->invoke($params);
+  print_r($params);
+  print_r($invocation);
 
   if (!$invocation) {
     $error = $galaxy->getError();
@@ -600,8 +582,14 @@ function tripal_galaxy_invoke_workflow($sid) {
  *   An array of the dataset details from Galaxy for the uploaded file.
  */
 function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents) {
+
+  if (!$fid) {
+    throw new Exception('Cannot upload a file with an fid');
+  }
+
   $file = file_load($fid);
   $uploaded_file = NULL;
+
 
   foreach ($history_contents as $hfile) {
     if (!$hfile['deleted'] and $hfile['state'] == 'ok' and $hfile['name'] == $file->filename) {
