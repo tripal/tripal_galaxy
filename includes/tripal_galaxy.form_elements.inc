@@ -126,7 +126,7 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
     '#type' => 'select',
     '#multiple' => TRUE,
     '#title' => t('Select Existing File(s)'),
-    '#description' => t('Please select your file(s) if it already exists on this site.  Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#description' => t('Please select as many files as desired (or upload files below).  Click a file to select it.  Click the file again to unselect it. Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
     '#weight' => -100,
   );
@@ -143,10 +143,10 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
  * There needs to be a check on the extensions of the files uploaded
  */
 function tripal_galaxy_sflist_validate($element, &$form_state) {
-  
+
   $is_required = $element['#required'];
   $fids = $element['#value'];
-  
+
 
   $set = explode('|', $fids);
 
@@ -165,7 +165,7 @@ function tripal_galaxy_sflist_validate($element, &$form_state) {
 function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
   if ($input) {
     if (is_array($input)) {
-	
+
 	 $eset = array();
      // Get any selected existing files
 	 if(array_key_exists('existing', $input)){
