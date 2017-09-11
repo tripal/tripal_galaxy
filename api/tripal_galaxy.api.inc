@@ -265,11 +265,17 @@ function tripal_galaxy_get_history_name($submission, $node) {
 }
 /**
  * Invokes all submitted workflows that are in the 'Waiting' state.
- *  TODO: Allow previous submissions to be reinvoked
- *  XXX: Workflow submissions table is getting wiped
  *
+ * This function can be called by the tripal Job system hence the $job
+ * argument. For Tripal v2 the job_id is passed, for Tripal v3 a job
+ * object is passed so we'll handle both cases.
+ *
+ * @param $sid
+ *   The submission ID
+ * @param $job
+ *   A Tripal v3 Job object or a Tripal v2 job ID.
  */
-function tripal_galaxy_invoke_workflow($sid) {
+function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
 
   // Get the workflows that need execution
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
@@ -431,12 +437,24 @@ function tripal_galaxy_invoke_workflow($sid) {
       }
     }
     if ($found_collection) {
-      print "Collection, $form_key, already exists.\n";
+      $report = "Collection, $form_key, already exists.";
+      if (is_object($job)) {
+        $job->logMessage($report);
+      }
+      else {
+        print $report . "\n";
+      }
       continue;
     }
 
     // Create the collection!
-    print "Creating Collection: $form_key\n";
+    $report = "Creating Collection: $form_key";
+    if (is_object($job)) {
+      $job->logMessage($report);
+    }
+    else {
+      print $report . "\n";
+    }
     $gds_collection = new GalaxyDatasetCollections($galaxy);
     $ds_collection = $gds_collection->create($ds_details);
     if (!$ds_collection) {
@@ -536,8 +554,6 @@ function tripal_galaxy_invoke_workflow($sid) {
     'history_id' => $history['id'],
   );
   $invocation = $gworkflows->invoke($params);
-  print_r($params);
-  print_r($invocation);
 
   if (!$invocation) {
     $error = $galaxy->getError();
@@ -605,7 +621,13 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
       'path' =>  drupal_realpath($file->uri)
     );
     // Now upload the files.
-    print "Uploading $file->filename...\n";
+    $report =  "Uploading $file->filename...";
+    if (is_object($job)) {
+      $job->logMessage($report);
+    }
+    else {
+      print $report . "\n";
+    }
     $gtool = new GalaxyTools($galaxy);
     $tool = $gtool->create(array(
       'tool_id' => 'upload1',
@@ -619,7 +641,13 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
     return $tool['outputs'][0];
   }
   else {
-    print "File already exists in history: $file->filename...\n";
+    $report =  "File already exists in history: $file->filename...";
+    if (is_object($job)) {
+      $job->logMessage($report);
+    }
+    else {
+      print $report . "\n";
+    }
     return $uploaded_file;
   }
 }
