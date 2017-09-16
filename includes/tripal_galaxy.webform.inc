@@ -36,7 +36,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     drupal_set_message('Error retrieving workflow. ' . $error['message'], 'error');
     return FALSE;
   }
-
+dpm($workflow);
   // Create a history which will be used for building tools. We have to build
   // the tools so that we can get all of the inputs and their default values.
   $error = array();
@@ -137,13 +137,13 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           'tool_id' => urlencode($tool_id),
           'history_id' => $history['id'],
         ));
-        if (!$tool){
+        if (!$tool) {
           $error = $galaxy->getError();
           drupal_set_message('Error building tool: ' . $tool_id . '. ' . $error['message'], 'error');
           return FALSE;
         }
         $tool_list[] = $tool['name'] . ' ' . $tool['version'];
-
+dpm($tool);
         // We want to change the name of the fieldset to have the name of
         // the tool.
         $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
@@ -332,17 +332,6 @@ function tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $wo
     'required' => '0',
     'weight' => 0
   );
-
-  $webform->components[] = array(
-  'cid' => count($webform->components) + 1,
-  'pid' => 1,
-  'form_key' => 'step_1_additional_instructions_textarea',
-  'name' => 'Additonal Instructions',
-  'type' => 'textarea',
-  'value' => 'No additional instructions provided',
-  'weight' => count($webform->components) + 1
-  );
-
   // Add a page break
   $webform->components[] = array(
     'cid' => count($webform->components) + 1,
@@ -847,7 +836,7 @@ function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $da
 }
 
 /**
- * Retreives the value set in the workflow for a given input.
+ * Retrieves the value set in the workflow for a given input.
  *
  * The workflow organizes values in a nested array based on the heirarchy of the
  * tool's inputs and their conditionals. Therefore, this funtion is

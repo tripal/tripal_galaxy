@@ -67,7 +67,8 @@ function _webform_render_galaxy_sflist($component, $value = NULL, $filter = TRUE
 function _webform_display_galaxy_sflist($component, $value, $format = 'html') {
 
   // Get any selected existing files.
-  $eset = $value['existing'];
+  $efids = $value['existing'];
+  $eset = explode('|', $efids);
 
   // Get any uploaded files.
   $name = '';

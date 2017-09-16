@@ -89,7 +89,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     'Name on Galaxy Server',
     'Galaxy Server',
     'Status',
-    'Galaxy IDs',
+    //'Galaxy IDs',
     'Actions'
   );
 
@@ -103,7 +103,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
       drupal_render($row["workflow_name_galaxy" . $i]),
       drupal_render($row["servername-" . $i]),
       drupal_render($row["workflow_status-" . $i]),
-      drupal_render($row["workflow_ids-" . $i]),
+     // drupal_render($row["workflow_ids-" . $i]),
       drupal_render($row["actions-" . $i])
     );
   }

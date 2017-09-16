@@ -53,8 +53,8 @@ function tripal_galaxy_element_info() {
  * This field has a hidden value, title and markup description.
  */
 function tripal_galaxy_fixed_value_process($element, $form_state, $complete_form) {
-	//dpm("In Fixed Value Process ");
-//	dpm($element);
+  //dpm("In Fixed Value Process ");
+//  dpm($element);
   // If the input type is 'linked' then we want to alter the way
   // the value is presented so it makes sense to the user.
   $value = $element['#markup'];
@@ -92,19 +92,39 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
 
   $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
 
-  // We want to "inherit" the html5_file widget.
-  $element = tripal_html5_file_process($element, $form_state, $complete_form);
-  unset($element['html5_file_table']['#title']);
-  unset($element['html5_file_table']['#description']);
-
   $element['description'] = array(
     '#type' => 'item',
-    '#title' => $element['#title'] ? $element['#title'] : 'Data File',
-    '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+    '#title' => $element['#title'] ? $element['#title'] : 'Data Files List',
+    '#markup' =>  $element['#description'] . 'Please provide a list of files. You may select from files you have already uploaded and also upload additional files. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
 
+  $element['uploader_fset'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Upload Files',
+    '#group' => 'files_vset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 110,
+  );
+
+  // We want to "inherit" the html5_file widget.
+  $uploader = tripal_html5_file_process($element, $form_state, $complete_form);
+  $uploader['html5_file_table']['#title'] = t('File Upload');
+  $uploader['html5_file_table']['#description'] = t('If your files do not already exist above please upload as many files as desired.');
+  $name = $element['#name'];
+  $name = preg_replace('/[^\w]/', '_', $name);
+
+  $element['uploader_fset']['html5_file_table_key'] = $uploader['html5_file_table_key'];
+  $element['uploader_fset']['html5_file_table'] = $uploader['html5_file_table'];
+  $element['uploader_fset']['html5_file_submit'] = $uploader['html5_file_submit'];
+
+  // The name element must cannot be inside the fieldset or the value won't
+  // be found.
+  $element[$name] = $uploader[$name];
+
   $files_list = array();
+  $files_list[] = '-- Select a File --';
   $query = db_select('file_managed', 'FM');
   $query->fields('FM', array('fid'));
   $query->distinct();
@@ -122,18 +142,69 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
     }
   }
 
-  $element['existing'] = array(
-    '#type' => 'select',
-    '#multiple' => TRUE,
-    '#title' => t('Select Existing File(s)'),
-    '#description' => t('Please select as many files as desired (or upload files below).  Click a file to select it.  Click the file again to unselect it. Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
-    '#options' => $files_list,
-    '#weight' => -100,
+  // Generate the ID that will be used for the table.
+  $existing_table_id = $element['#name'];
+  $existing_table_id = strtolower(preg_replace('/[^\w]/', '-', $existing_table_id)) . '-selected-files-table';
+
+  $existing_value_id =  $element['#name'];
+  $existing_value_id = strtolower(preg_replace('/[^\w]/', '-', $existing_value_id)) . '-existing';
+  $existing_1_select_id = $existing_value_id . '-1';
+
+
+  $element['existing_fset'] = array(
+    '#title' => 'Use Existing Files',
+    '#type' => 'fieldset',
+    '#group' => 'files_vset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 100,
   );
 
-  $element['value'] = array(
+  $element['existing_fset']['existing_1'] = array(
+    '#type' => 'select',
+    '#title' => t('Select File of 1 of 2'),
+    '#description' => t('Please select the first pair file. After the file is selected it will disappear from the dropdown
+        and appear in the table below. You may select as many files as desired.
+        Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#options' => $files_list,
+    '#weight' => -10,
+    '#attributes' => array(
+      'class' => array('tripal-galaxy-existing-sfile'),
+      'table_id' => $existing_table_id,
+      'target_id' => $existing_value_id,
+    )
+  );
+
+  $headers = array('', 'File', '');
+  $rows = array();
+  $element['existing_fset']['selected_files_table'] = array(
+    '#type' => 'item',
+    '#title' => 'Selected Files',
+    '#markup' => theme_table(array(
+      'header' => $headers,
+      'rows' => $rows,
+      'attributes' => array(
+        'id' => array($existing_table_id)
+      ),
+      'caption' => '',
+      'colgroups' => array(),
+      'sticky' => TRUE,
+      'empty' => t('There are no files.')
+    )),
+    '#weight' => -5,
+    '#description' => t('Please click the files in the boxes above to add
+        them to this table.  Only files that appear in this table will
+        be used for the analysis.  Paired files should appear on the same
+        row of the table.')
+  );
+
+  // The existing element cannot be inside the fieldset or value won't be found.
+  $element['existing'] = array(
     '#type' => 'hidden',
     '#default_value' => '',
+    '#attributes' => array(
+      'id' => $existing_value_id,
+    ),
   );
 
   return $element;
@@ -166,11 +237,14 @@ function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
   if ($input) {
     if (is_array($input)) {
 
-	 $eset = array();
-     // Get any selected existing files
-	 if(array_key_exists('existing', $input)){
-			$eset = $input['existing'];
-	 }
+      $eset = array();
+
+      // Get any selected existing files
+      if(array_key_exists('existing', $input)){
+        $efids = $input['existing'];
+        $eset = explode('|', $efids);
+      }
+
       // Get any uploaded files.
       $name = $element['#name'];
       $name = preg_replace('/[^\w]/', '_', $name);
@@ -276,7 +350,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
   $element['description'] = array(
     '#type' => 'item',
     '#title' => $element['#title'] ? $element['#title'] : 'Data File',
-    '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+    '#markup' =>  $element['#description'] . 'Please provide a data files. You may either select an existing file or upload a new file. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
 
@@ -350,20 +424,38 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
   $quota = tripal_galaxy_get_user_quota($user->uid);
   $quota = tripal_galaxy_format_bytes($quota->custom_quota);
 
-
   $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
-
-  // We want to "inherit" the html5_file widget.
-  $element = tripal_html5_file_process($element, $form_state, $complete_form);
-  $element['html5_file_table']['#title'] = t('File Upload');
-  $element['html5_file_table']['#description'] = t('If your files do not already exist above please upload as many pair of files as desired.');
 
   $element['description'] = array(
     '#type' => 'item',
-    '#title' => $element['#title'] ? $element['#title'] : 'Data File',
-    '#markup' =>  $element['#description'] . ' Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+    '#title' => $element['#title'] ? $element['#title'] : 'Paired Data Files',
+    '#markup' =>  $element['#description'] . 'Please provide a list of paired data files. You may select from files you have already uploaded and also upload additional files. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
+
+  $element['uploader_fset'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Upload Files',
+    '#group' => 'files_vset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 110,
+  );
+
+  // We want to "inherit" the html5_file widget.
+  $uploader = tripal_html5_file_process($element, $form_state, $complete_form);
+  $uploader['html5_file_table']['#title'] = t('File Upload');
+  $uploader['html5_file_table']['#description'] = t('If your files do not already exist above please upload as many pair of files as desired.');
+  $name = $element['#name'];
+  $name = preg_replace('/[^\w]/', '_', $name);
+
+  $element['uploader_fset']['html5_file_table_key'] = $uploader['html5_file_table_key'];
+  $element['uploader_fset']['html5_file_table'] = $uploader['html5_file_table'];
+  $element['uploader_fset']['html5_file_submit'] = $uploader['html5_file_submit'];
+
+  // The name element must cannot be inside the fieldset or the value won't
+  // be found.
+  $element[$name] = $uploader[$name];
 
   $files_list = array();
   $files_list[] = '-- Select a File --';
@@ -392,18 +484,19 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
   $existing_1_select_id =$existing_value_id . '-1';
   $existing_2_select_id =$existing_value_id . '-2';
 
-  $element['existing'] = array(
-    '#type' => 'hidden',
-    '#default_value' => '',
-    '#attributes' => array(
-      'id' => $existing_value_id,
-    ),
+  $element['existing_fset'] = array(
+    '#title' => 'Use Existing Files',
+    '#type' => 'fieldset',
+    '#group' => 'files_vset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#weight' => 100,
   );
-  $element['existing_1'] = array(
+
+  $element['existing_fset']['existing_1'] = array(
     '#type' => 'select',
     '#title' => t('Select File of 1 of 2'),
-    '#description' => t('Please select the first pair file, or upload a file
-        below. After the file is selected it will disappear from the dropdown
+    '#description' => t('Please select the first pair file. After the file is selected it will disappear from the dropdown
         and appear in the table below. You may select as many files as desired.
         Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
@@ -415,15 +508,12 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
       'which_pair' => 1
     )
   );
-  $element['existing_2'] = array(
+  $element['existing_fset']['existing_2'] = array(
     '#type' => 'select',
     '#title' => t('Select File of 2 of 2'),
-    '#description' => t('Please select the second pair file, or upload a file
-        below. After the file is selected it will disappear from the dropdown and
-        appear in the table below. You may select as many files as desired.
-        Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
+    '#description' => t('Please select the second pair file.'),
     '#options' => $files_list,
-    '#weight' => -10,
+    '#weight' => -8,
     '#attributes' => array(
       'class' => array('tripal-galaxy-existing-pfile'),
       'table_id' => $existing_table_id,
@@ -434,7 +524,7 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 
   $headers = array('Pair', 'File 1', 'File 2', '');
   $rows = array();
-  $element['selected_files_table'] = array(
+  $element['existing_fset']['selected_files_table'] = array(
     '#type' => 'item',
     '#title' => 'Selected Files',
     '#markup' => theme_table(array(
@@ -454,18 +544,32 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
         be used for the analysis.  Paired files should appear on the same
         row of the table.')
   );
+
+  // The existing element cannot be inside the fieldset or value won't be found.
+  $element['existing'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
+    '#attributes' => array(
+      'id' => $existing_value_id,
+    ),
+  );
   return $element;
 }
 /**
  * Implements the validate hook for the galaxy_multi_upload element.
  */
 function tripal_galaxy_pflist_validate($element, &$form_state) {
+
   $is_required = $element['#required'];
   $fids = $element['#value'];
+  $set1 = array();
+  $set2  = array();
 
-  list($set1, $set2) = explode(',', $fids);
-  $set1 = $set1 ? explode('|', $set1) : array();
-  $set2 = $set2 ? explode('|', $set2) : array();
+  if (preg_match('/,/', $fids)) {
+    list($set1, $set2) = explode(',', $fids);
+    $set1 = $set1 ? explode('|', $set1) : array();
+    $set2 = $set2 ? explode('|', $set2) : array();
+  }
 
   if (count($set1) != count($set2)) {
     form_error($element, t('There are an uneven number of paired files. .'));
@@ -485,7 +589,6 @@ function tripal_galaxy_pflist_validate($element, &$form_state) {
  */
 function tripal_galaxy_pflist_value($element, $input = FALSE, &$form_state) {
   if ($input) {
-
     if (is_array($input)) {
 
       // Get any selected existing files.
