@@ -802,7 +802,11 @@ function tripal_galaxy_workflow_report($sid) {
   $query->fields('tgw', array('nid', 'galaxy_id', 'workflow_id'));
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
-  $submission->errors = unserialize($submission->errors);
+  if (!$submission) {
+    return FALSE;
+  }
+
+  $submission->errors = $submission->errors ? unserialize($submission->errors) : array();
 
   // Get the node that this workflow belongs to
   $node = node_load($submission->nid);

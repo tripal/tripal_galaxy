@@ -641,7 +641,14 @@ function tripal_galaxy_build_webform_add_component($webform,
       // We need to find the upstream data_input component and copy the
       // allowed extensions there as well for the webform component to work
       // properly.
-      tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $data_inputs, $webform);
+      $found_upstream = tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $data_inputs, $webform);
+
+      // If there is an upstream data collection then all is good and we can
+      // use the input from that.  Otherwise, we need to make this a data
+      // input element so the user can supply a file.
+      if (!$found_upstream) {
+        $webform_type = 'galaxy_sfile';
+      }
 
       break;
 
@@ -840,7 +847,11 @@ function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $da
   if (in_array('fastq', $input['extensions'])) {
     $input['extensions'][] = 'fq';
   }
+  if (in_array('fasta', $input['extensions'])) {
+    $input['extensions'][] = 'fa';
+  }
 
+  $found_upstream_input = FALSE;
   foreach ($workflow['steps'] as $step_id => $step_details) {
     if (array_key_exists('input_steps', $step_details) and $step_details['input_steps']) {
       // If this tool is the input for another step
@@ -848,6 +859,7 @@ function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $da
         $source_step = $step_details['input_steps'][$full_name]['source_step'];
         if (array_key_exists($source_step, $data_inputs)) {
           $source_cid = $data_inputs[$source_step];
+          $found_upstream_input = TRUE;
           for ($j = 0; $j < count($webform->components); $j++) {
             if ($webform->components[$j]['cid'] == $source_cid) {
               $webform->components[$j]['extra']['filtering']['types'] = $input['extensions'];
@@ -858,6 +870,7 @@ function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $da
       }
     }
   }
+  return $found_upstream_input;
 }
 
 

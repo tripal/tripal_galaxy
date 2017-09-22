@@ -345,7 +345,8 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
       }
     }
     else if($data->type == 'galaxy_sflist') {
-      if ($data->no == 'value' or preg_match('/^submitted_/', $data->no)) {
+
+      if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
         $fids = $data->data;
         if (!$fids) {
           continue;
