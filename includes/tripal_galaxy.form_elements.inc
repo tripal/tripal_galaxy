@@ -94,7 +94,7 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
 
   $element['description'] = array(
     '#type' => 'item',
-    '#title' => $element['#title'] ? $element['#title'] : 'Data Files List',
+    '#title' => $element['#title'] ? '' : 'Data Files List',
     '#markup' =>  $element['#description'] . 'Please provide a list of files. You may select from files you have already uploaded and also upload additional files. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
@@ -133,7 +133,6 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   $query->orderBy('FM.filename');
   $files = $query->execute();
   while ($fid = $files->fetchField()) {
-
     $file = file_load($fid);
     foreach ($allowed_types as $type) {
       if (preg_match('/\.' . $type . '$/', $file->filename)) {
@@ -162,8 +161,8 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
 
   $element['existing_fset']['existing_1'] = array(
     '#type' => 'select',
-    '#title' => t('Select File of 1 of 2'),
-    '#description' => t('Please select the first pair file. After the file is selected it will disappear from the dropdown
+    '#title' => t('Select File'),
+    '#description' => t('Please select the file. After the file is selected it will disappear from the dropdown
         and appear in the table below. You may select as many files as desired.
         Only files of the following types are listed: ' . implode(', ', $allowed_types)) . '.',
     '#options' => $files_list,
@@ -349,7 +348,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
 
   $element['description'] = array(
     '#type' => 'item',
-    '#title' => $element['#title'] ? $element['#title'] : 'Data File',
+    '#title' => $element['#title'] ? '' : 'Data File',
     '#markup' =>  $element['#description'] . 'Please provide a data files. You may either select an existing file or upload a new file. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
@@ -428,7 +427,7 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 
   $element['description'] = array(
     '#type' => 'item',
-    '#title' => $element['#title'] ? $element['#title'] : 'Paired Data Files',
+    '#title' => $element['#title'] ? '' : 'Paired Data Files',
     '#markup' =>  $element['#description'] . 'Please provide a list of paired data files. You may select from files you have already uploaded and also upload additional files. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );

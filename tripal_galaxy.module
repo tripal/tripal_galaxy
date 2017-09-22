@@ -139,7 +139,6 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 5,
   );
-
   // Add Workflows
   $items['admin/tripal/extension/galaxy/workflows/add'] = array(
     'title' => 'Add Workflows',
@@ -400,31 +399,7 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   );
 
-  // submission queue
 
- // Edit workflow submission
-  // $items['admin/tripal/extension/galaxy/submitted/view/%'] = array (
-  //   'description' => 'Edit a galaxy instance',
-  //   'page callback' => 'tripal_galaxy_submission_view',
-  //   'page arguments' => array (6),
-  //   'access arguments' => array ('administer galaxy'),
-  //   'type' => MENU_CALLBACK,
-  //   'file' => 'includes/tripal_galaxy.admin_queue.inc',
-  //   'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
-  // );
-
-  // Galaxy
-  $items['user/galaxy'] = array (
-    'title' => 'Galaxy',
-    'description' => 'Configure Galaxy Server',
-    // Are we sure about this?
-    'page callback' => 'drupal_get_form',
-    'page arguments' => 'tripal_galaxy_user_configuration_form',
-    'access arguments' => array('use galaxy'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.user.inc',
-    'file path' => drupal_get_path ('module', 'tripal_galaxy' )
-  );
 
   $items['galaxy/proxy/%'] = array(
     'title' => 'Results Viewer',
@@ -773,7 +748,31 @@ function tripal_galaxy_webform_component_info() {
   );
   return $components;
 }
+/**
+ *
+ */
+function tripal_galaxy_webform_submission_presave($node, &$submission) {
 
+  // Itereate through the components being submitted and remove non
+  // needed elements added by our galaxy form elements.
+  foreach ($submission->data as $cid => $data) {
+    $ctype = db_select('webform_component', 'wc')
+      ->fields('wc', array('type'))
+      ->condition('cid', $cid)
+      ->execute()
+      ->fetchField();
+
+    if ($ctype == 'galaxy_pflist') {
+      unset($submission->data[$cid]['uploader_fset']);
+      unset($submission->data[$cid]['existing_fset']);
+    }
+    if ($ctype == 'galaxy_sflist') {
+      unset($submission->data[$cid]['uploader_fset']);
+      unset($submission->data[$cid]['existing_fset']);
+
+    }
+  }
+}
 /**
  * The report page for a galaxy workflow submission.
  *

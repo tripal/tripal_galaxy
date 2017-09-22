@@ -36,7 +36,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     drupal_set_message('Error retrieving workflow. ' . $error['message'], 'error');
     return FALSE;
   }
-dpm($workflow);
+
   // Create a history which will be used for building tools. We have to build
   // the tools so that we can get all of the inputs and their default values.
   $error = array();
@@ -89,12 +89,6 @@ dpm($workflow);
     switch ($step['type']) {
 
       // If this is for a data 'file' input
-      // XXX: For determining acceptable extensions there must be no ambiguity
-      // of which file input goes to which tool
-      // So I need to see the source step that the tool is deriving it's input
-      // So before the entire webform is rendered go back through the input
-      // steps and see what extensions are accepted by the tool that the file
-      // is going to
       case 'data_input' :
         // Make a fake tool and input so we can add the component for a
         // data_input step.
@@ -102,6 +96,14 @@ dpm($workflow);
           'id' => NULL,
           'name' => $step['tool_inputs']['name'],
         );
+        if ($step['tool_inputs']['name']) {
+          $fieldset_name .= ': ' . $step['tool_inputs']['name'];
+        }
+        else {
+          $fieldset_name .=  ': Select Data';
+        }
+        $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
+
         $input = array(
           'name' => $step['tool_inputs']['name'],
           'full_name' => $step['tool_inputs']['name'],
@@ -117,6 +119,20 @@ dpm($workflow);
           'id' => NULL,
           'name' => $step['tool_inputs']['name'],
         );
+
+        // We want to change the name of the fieldset to have the name of
+        // the tool.
+        if ($step['tool_inputs']['name']) {
+          $fieldset_name .= ': ' . $step['tool_inputs']['name'];
+        }
+        elseif ($step['tool_inputs']['collection_type'] == 'list:paired') {
+          $fieldset_name .=  ': Select a Paired Data Set';
+        }
+        elseif ($step['tool_inputs']['collection_type'] == 'list') {
+          $fieldset_name .=  ': Select a Data Set';
+        }
+        $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
+
         $input = array(
           'name' => $step['tool_inputs']['name'],
           'full_name' => $step['tool_inputs']['name'],
@@ -143,11 +159,12 @@ dpm($workflow);
           return FALSE;
         }
         $tool_list[] = $tool['name'] . ' ' . $tool['version'];
-dpm($tool);
+
         // We want to change the name of the fieldset to have the name of
         // the tool.
         $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
+        $webform->components[$fieldset_cid - 1]['extra']['description'] = $tool['description'];
 
         // Add the "Optional settings" fieldset.
         $dcid = count($webform->components) + 1;
@@ -528,7 +545,6 @@ function tripal_galaxy_build_webform_add_component($webform,
     $input_name = $input['title'];
   }
 
-
   // Initiate variables that will be used for building the webform component.
   $is_list = 1;
   $webform_value = "";
@@ -536,7 +552,7 @@ function tripal_galaxy_build_webform_add_component($webform,
   $is_required = 1;
   $extra = array(
     'title_display' => 'before',
-    'description' => $step['annotation'],
+    'description' => '',
     'description_above' => 0,
     'items' => '',
     'aslist' => $is_list,
@@ -755,10 +771,6 @@ function tripal_galaxy_build_webform_add_component($webform,
   // If this is a test param then automatically change the webform type to
   // a fixed value. This is because a test param was set by the person
   // who created the workflow and should not be changed by the user.
-
-  // XXX: Small bug on the optional settings
-  // Advanced options not showing
-  // Single paired end question not showing
   if ($fixed) {
     $webform_type = 'fixed_value';
   }
