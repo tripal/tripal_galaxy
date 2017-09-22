@@ -674,7 +674,6 @@ function tripal_galaxy_build_webform_add_component($webform,
     case 'data_collection':
       // Data collection type refers to an existing data collection in the
       // history.
-
       $webform_type = 'select';
       $extra['filtering']['types'] = array('');
       // The webform 'file' component wants a size.  Let this default to the
@@ -817,6 +816,11 @@ function tripal_galaxy_build_webform_add_component($webform,
 /**
  * Adds the allowed extensions to data_input and data_collection_input tools.
  *
+ * The data_input and data_collection_input "tools" don't have any allowed
+ * file types.  The allowed file types are set in the tool that uses them as
+ * input.  Therefore, we need to traverse the steps, find those that use the
+ * data_input and data_collection_input as an input and set the allowed types.
+ *
  * @param $workflow
  *   The Galaxy workflow array.
  * @param $input
@@ -829,8 +833,17 @@ function tripal_galaxy_build_webform_add_component($webform,
  */
 function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $data_inputs, &$webform) {
   $full_name = $input['full_name'];
+
+  // Add some additional allowances.
+  // TODO: we need to allow site admins to set these via the web form
+  // by implementing the _webform_edit_component.  This is a quick fix.
+  if (in_array('fastq', $input['extensions'])) {
+    $input['extensions'][] = 'fq';
+  }
+
   foreach ($workflow['steps'] as $step_id => $step_details) {
     if (array_key_exists('input_steps', $step_details) and $step_details['input_steps']) {
+      // If this tool is the input for another step
       if (array_key_exists($full_name, $step_details['input_steps'])) {
         $source_step = $step_details['input_steps'][$full_name]['source_step'];
         if (array_key_exists($source_step, $data_inputs)) {
@@ -846,6 +859,7 @@ function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $da
     }
   }
 }
+
 
 /**
  * Retrieves the value set in the workflow for a given input.

@@ -1049,7 +1049,7 @@ function tripal_galaxy_workflow_report($sid) {
                 }
                 $step_content['history_content_' . $step_index . '_' . $index]['peek'] = array(
                   '#type' => 'item',
-                  '#title' => ('Peek'),
+                  '#title' => ('Peek at the results'),
                   '#description' => 'A view of the top of the output file.',
                   '#markup' => $history_content['peek'],
                 );

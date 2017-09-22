@@ -73,7 +73,9 @@ function theme_webform_display_galaxy_pflist($variables) {
  * the edit screen of the component.
  */
 function _webform_edit_galaxy_pflist($component) {
- // TODO: revisit this function.
+  $form = array();
+
+  return $form;
 }
 
 /**
