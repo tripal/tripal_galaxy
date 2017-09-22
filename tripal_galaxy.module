@@ -1244,13 +1244,6 @@ function tripal_galaxy_cron() {
 /**
  * Implementation of callback_queue_worker().
  */
-function tripal_galaxy_queue_check_workflow_status($workflow) {
-  tripal_galaxy_check_workflow_status($workflow->galaxy_workflow_id);
-}
-
-/**
- * Implementation of callback_queue_worker().
- */
 function tripal_galaxy_queue_check_submission_status($submission) {
   tripal_galaxy_check_submission_status($submission->sid);
 }
@@ -1264,10 +1257,6 @@ function tripal_galaxy_cron_queue_info() {
        'worker callback' => 'tripal_galaxy_queue_check_submission_status',
        'skip_on_cron' => FALSE,
      ),
-     'check_workflow_status' => array(
-       'worker callback' => 'tripal_galaxy_queue_check_workflow_status',
-       'skip_on_cron' => FALSE,
-     )
    );
    return $info;
 }

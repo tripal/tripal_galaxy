@@ -84,45 +84,6 @@ function tripal_galaxy_split_url($url) {
 /**
  * Checks and updates the status of a Galaxy workflow.
  *
- * Each Galaxy workflow has a unique UUID.  Each time the workflow is changed
- * that UUID changes as well.
- */
-function tripal_galaxy_check_workflow_status($galaxy_workflow_id) {
-
-  if (!$galaxy_workflow_id) {
-    return FALSE;
-  }
-  if (!is_numeric($galaxy_workflow_id)) {
-    return FALSE;
-  }
-  $workflow = db_select('tripal_galaxy_workflow', 'tgw')
-    ->fields('tgw')
-    ->condition('tgw.galaxy_workflow_id', $galaxy_workflow_id)
-    ->execute()
-    ->fetchObject();
-
-  // Connect to the Galaxy instance and get the list of workflows
-  $galaxy = tripal_galaxy_get_connection($workflow->galaxy_id);
-  $workflows = new GalaxyWorkflows($galaxy);
-  $gworkflow = $workflows->show(array('workflow_id' => $workflow->workflow_id));
-
-  // If the UUIDs don't match then someone changed the workflow and it
-  // is no longer guaranteed to be the same. So, we'll mark it as 'Altered'.
-  if ($gworkflow['latest_workflow_uuid'] != $workflow->workflow_uuid) {
-    db_update('tripal_galaxy_workflow')
-      ->fields(array(
-        'status' => 'Altered'
-      ))
-      ->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)
-      ->execute();
-  }
-
-  return TRUE;
-}
-
-/**
- * Checks and updates the status of a Galaxy workflow.
- *
  * XXX: This is being called twice?
  *      Stash and see what I messed up so I can get back to work
  *      Didn't work .... if this is called from the 'Run Cron' button on the
