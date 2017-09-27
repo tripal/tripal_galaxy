@@ -386,7 +386,6 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
       } // end if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
     } // end else if($data->type == 'galaxy_pflist') {
   } // foreach ($submitted_data as $data) {
-  print_r($collections);
 
   // Now create a dataset collections
   foreach ($collections as $form_key => $ds_details) {
