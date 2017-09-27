@@ -290,7 +290,6 @@ function tripal_galaxy_add_site_wide_files_table(&$schema) {
 function tripal_galaxy_requirements($phase) {
   $requirements = array();
   if ($phase == 'install') {
-    // make sure chado is installed
     if (!module_exists('tripal_core') and !module_exists('tripal')) {
       $requirements ['tripal_galaxy'] = array(
         'title' => "tripal_galaxy",

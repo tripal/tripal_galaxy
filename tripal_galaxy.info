@@ -13,3 +13,4 @@ scripts[]          = theme/js/tripal_galaxy.js
 
 dependencies[] = libraries
 dependencies[] = webform
+

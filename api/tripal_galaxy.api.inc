@@ -419,6 +419,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     }
     $gds_collection = new GalaxyDatasetCollections($galaxy);
     $ds_collection = $gds_collection->create($ds_details);
+    print_r($ds_details);
     if (!$ds_collection) {
       $error = $galaxy->getError();
       throw new Exception($error['message']);
