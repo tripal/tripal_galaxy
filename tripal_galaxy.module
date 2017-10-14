@@ -1641,8 +1641,7 @@ function tripal_galaxy_results_viewer_page($proxy_id) {
     );
     $content['name'] = array(
       '#type' => 'markup',
-      '#markup' => l('Return to full results page', 'user/' . $uid . '/galaxy-jobs/' . $sid) . ' | ' .
-                   l('View full screen', 'galaxy/viewer-full/' . $proxy_id),
+      '#markup' => l('View full screen', 'galaxy/viewer-full/' . $proxy_id),
     );
     $content['viewer'] = array(
       '#type' => 'item',
