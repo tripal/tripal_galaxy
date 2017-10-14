@@ -993,7 +993,6 @@ function tripal_galaxy_workflow_report($sid) {
     ),
     '#children' => '',
   );
-  dpm($submission->errors);
 
   if (is_array($submission->errors)){
     ksort($submission->errors);
