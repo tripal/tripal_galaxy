@@ -1060,6 +1060,7 @@ function tripal_galaxy_workflow_report($sid) {
                     '#type' => 'item',
                     '#title' => t('View Results'),
                     '#markup' => l($history_content['name'], 'galaxy/viewer/'. $proxy_id),
+                    '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>'
                   );
                 }
                 else {
