@@ -378,7 +378,7 @@ function tripal_galaxy_submission_user_report($sid) {
   $breadcrumb = array();
   $breadcrumb[] = l('Home', '<front>');
   $breadcrumb[] = l($user->name, 'user/' . $user->uid);
-  $breadcrumb[] = l('My Jobs', 'user/' . $user->uid . '/galaxy-jobs');
+  $breadcrumb[] = l('Analysis Results', 'user/' . $user->uid . '/galaxy-jobs');
   drupal_set_breadcrumb($breadcrumb);
 
   module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.admin');

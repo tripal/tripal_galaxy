@@ -434,6 +434,12 @@ function tripal_galaxy_menu() {
 }
 
 /**
+ * Implements hook_admin_paths_alter().
+ */
+function tripal_galaxy_admin_paths_alter(&$paths) {
+  $paths['galaxy/viewer*'] = TRUE;
+}
+/**
  * Checks if the current user has permissions to perform an action on a file.
  * @param $op
  *   The operation to perform.  These include 'download', 'renew' and 'delete'
@@ -782,9 +788,6 @@ function tripal_galaxy_webform_submission_presave($node, &$submission) {
  */
 function tripal_galaxy_workflow_report($sid) {
 
-  drupal_add_js('misc/collapse.js');
-  drupal_add_library('system', 'drupal.collapse');
-
   if (!$sid) {
     return FALSE;
   }
@@ -899,9 +902,27 @@ function tripal_galaxy_workflow_report($sid) {
     $galaxy->servername . '<br>' . $galaxy_logo,
   );
 
-  $content['submission_details'] = array(
+  $content['analysis_name'] = array(
     '#type' => 'item',
+    '#title' => 'Analysis Name',
+    '#markup' => $node->title
+  );
+
+  $content['submission_details'] = array(
+    '#type' => 'fieldset',
     '#title' => t('Submission Details'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array(
+      'class' => array('collapsible', 'collapsed'),
+    ),
+    '#attached' => array(
+      'js' => array('misc/collapse.js', 'misc/form.js')
+    ),
+  );
+
+  $content['submission_details']['table'] = array(
+    '#type' => 'markup',
     '#markup' => theme_table(array(
       'header' => $headers,
       'rows' => $rows,
@@ -925,7 +946,7 @@ function tripal_galaxy_workflow_report($sid) {
   $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
 
   // Find the History for this submission.
-  $history_name = tripal_galaxy_get_history_name($submission, $node);
+/*   $history_name = tripal_galaxy_get_history_name($submission, $node);
   $ghistories = new GalaxyHistories($galaxy);
   $histories = $ghistories->index();
   $history = '';
@@ -950,7 +971,7 @@ function tripal_galaxy_workflow_report($sid) {
       'id' => $history_content['id'],
       'history_id' => $history['id'],
     ));
-  }
+  } */
 
   $content['results'] = array(
     '#type' => 'item',
@@ -972,20 +993,26 @@ function tripal_galaxy_workflow_report($sid) {
     ),
     '#children' => '',
   );
+  dpm($submission->errors);
 
-  unset($_SESSION['tripal_galaxy_proxy_urls']);
   if (is_array($submission->errors)){
     ksort($submission->errors);
-    foreach ($submission->errors as $step_index => $error) {
+    foreach ($submission->errors as $step_index => $logs) {
+      $history = $submission->errors[$step_index]['history'];
+      $history_contents = $submission->errors[$step_index]['history_contents'];
 
       $step_content = array();
 
+      if (!$logs['job_id']) {
+        continue;
+      }
 
       // Find the files from this step.
       $results_list = array();
-      if ($error['job_id']) {
+      if ($logs['job_id']) {
         foreach ($history_contents as $index => $history_content) {
-          if ($history_content['creating_job'] == $error['job_id']) {
+
+          if ($history_content['creating_job'] == $logs['job_id']) {
             $step_content['history_content_' . $step_index . '_' . $index] = array(
               '#type' => 'fieldset',
               '#title' => $history_content['name'],
@@ -1001,16 +1028,7 @@ function tripal_galaxy_workflow_report($sid) {
 
             switch ($history_content['type']) {
               case 'file':
-                $params = array();
-                $params['history_id'] = $history['id'];
-                $params['url_only'] = TRUE;
-                $params['history_content_id'] = $history_content['id'];
-
-                // TODO: this download link has the API key in the URL.  Perhaps
-                // we should find a way to proxy the file so that if the user
-                // decides to share the link they won't accidentally give out
-                // their key.
-                $link = $ghistory_contents->download_history_content($params);
+                $link = $history_content['content_link'];
                 $proxy_id = tripal_galaxy_set_proxy_url($link, $galaxy, $history_content, $submission, $node);
                 $file_size = tripal_galaxy_format_bytes($history_content['file_size']);
                 $step_content['history_content_' . $step_index . '_' . $index]['download_link'] = array(
@@ -1030,7 +1048,7 @@ function tripal_galaxy_workflow_report($sid) {
                 $step_content['history_content_' . $step_index . '_' . $index]['html_view'] = array(
                   '#type' => 'item',
                   '#title' => t('View Results'),
-                  '#markup' => l($history_content['name'], 'galaxy/viewer/'. $proxy_id, array('attributes' => array('target' => '_blank'))),
+                  '#markup' => l($history_content['name'], 'galaxy/viewer/'. $proxy_id),
                 );
                 break;
               default:
@@ -1041,7 +1059,7 @@ function tripal_galaxy_workflow_report($sid) {
                   $step_content['history_content_' . $step_index . '_' . $index]['html_view'] = array(
                     '#type' => 'item',
                     '#title' => t('View Results'),
-                    '#markup' => l($history_content['name'], 'galaxy/viewer/'. $proxy_id, array('attributes' => array('target' => '_blank'))),
+                    '#markup' => l($history_content['name'], 'galaxy/viewer/'. $proxy_id),
                   );
                 }
                 else {
@@ -1063,57 +1081,56 @@ function tripal_galaxy_workflow_report($sid) {
         }
       }
 
-      $step_content['run_summary'] = array(
-        '#type' => 'fieldset',
-        '#title' => 'Run Details',
-        '#collapsed' => TRUE,
-        '#collapsible' => TRUE,
-        '#attributes' => array(
-          'class' => array('collapsible', 'collapsed'),
-        ),
-        '#attached' => array(
-          'js' => array('misc/collapse.js', 'misc/form.js')
-        ),
-      );
-
       if (user_access('Administer Galaxy')) {
+        $step_content['run_summary'] = array(
+          '#type' => 'fieldset',
+          '#title' => 'Run Details',
+          '#collapsed' => TRUE,
+          '#collapsible' => TRUE,
+          '#attributes' => array(
+            'class' => array('collapsible', 'collapsed'),
+          ),
+          '#attached' => array(
+            'js' => array('misc/collapse.js', 'misc/form.js')
+          ),
+        );
+
         $step_content['run_summary']['step_id'] = array(
           '#type' => 'item',
           '#title' => t('Step ID'),
-          '#markup' => $error['step_id'],
+          '#markup' => $logs['step_id'],
         );
         $step_content['run_summary']['job_id'] = array(
           '#type' => 'item',
           '#title' => t('Job ID'),
-          '#markup' => $error['job_id'] ? $error['job_id'] : 'N/A',
+          '#markup' => $logs['job_id'] ? $logs['job_id'] : 'N/A',
         );
-      }
-      $step_content['run_summary']['state'] = array(
-        '#type' => 'item',
-        '#title' => t('Job State'),
-        '#markup' => $error['state'] == 'error' ? '<font color="red"><b>' . $error['state'] . '</b></font>' : $error['state'],
-      );
-      $step_content['run_summary']['misc_info'] = array(
-        '#type' => 'item',
-        '#title' => t('Misc Info'),
-        '#markup' => $error['misc_info'],
-      );
-      $step_content['run_summary']['output_log'] = array(
-        '#type' => 'item',
-        '#title' => t('Output Log'),
-        '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $error['stdout'] . '</pre>',
-      );
-      $step_content['run_summary']['error_log'] = array(
-        '#type' => 'item',
-        '#title' => t('Error Log'),
-        '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $error['stderr'] . '</pre>',
-      );
-      $step_name = $error['step_name'];
-      if (array_key_exists('job_id', $error) and !$error['job_id']) {
-        $step_name = rtrim($step_name, 'v');
-        $step_name .= 'Input Dataset';
-      }
 
+        $step_content['run_summary']['state'] = array(
+          '#type' => 'item',
+          '#title' => t('Job State'),
+          '#markup' => $logs['state'] == 'error' ? '<font color="red"><b>' . $logs['state'] . '</b></font>' : $logs['state'],
+        );
+        $step_content['run_summary']['misc_info'] = array(
+          '#type' => 'item',
+          '#title' => t('Misc Info'),
+          '#markup' => $logs['misc_info'],
+        );
+
+        if ($logs['job_id']) {
+          $step_content['run_summary']['output_log'] = array(
+            '#type' => 'item',
+            '#title' => t('Output Log'),
+            '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stdout'] . '</pre>',
+          );
+          $step_content['run_summary']['error_log'] = array(
+            '#type' => 'item',
+            '#title' => t('Error Log'),
+            '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stderr'] . '</pre>',
+          );
+        }
+      }
+      $step_name = $logs['step_name'];
       $fieldset = array(
         '#type' => 'fieldset',
         '#title' =>  $step_name,
@@ -1122,7 +1139,6 @@ function tripal_galaxy_workflow_report($sid) {
         '#value' => render($step_content),
         '#group' => 'result_tabs',
         '#attributes' => array(
-          'class' => array('collapsible', 'collapsed'),
           'id' => 'tripal-galaxy-results-fieldset',
         ),
         '#attached' => array(
@@ -1547,15 +1563,13 @@ function tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submissio
   if (!array_key_exists('tripal_galaxy_proxy_urls', $_SESSION)) {
     $_SESSION['tripal_galaxy_proxy_urls'] = array();
   }
-
-  $filename = preg_replace('/^.*\/(.+)$/', '$1', $history_content['file_name']);
+;
   $id = uniqid('TGPX', TRUE);
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['url'] = $url;
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['sid'] = $submission->sid;
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['key'] = $galaxy->getAPIKey();
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['uid'] = $node->uid;
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['name'] = $history_content['name'];
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['file_name'] = $filename;
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['file_size'] = $history_content['file_size'];
   return $id;
 }
@@ -1596,7 +1610,6 @@ function tripal_galaxy_results_viewer_full_page($proxy_id) {
   if (array_key_exists($proxy_id, $_SESSION['tripal_galaxy_proxy_urls'])) {
     $content = tripal_galaxy_stream_url_proxy($proxy_id);
     return $content;
-
   }
   else {
     $content['name'] = array(

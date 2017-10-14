@@ -84,14 +84,6 @@ function tripal_galaxy_split_url($url) {
 /**
  * Checks and updates the status of a Galaxy workflow.
  *
- * XXX: This is being called twice?
- *      Stash and see what I messed up so I can get back to work
- *      Didn't work .... if this is called from the 'Run Cron' button on the
- *      Configuration tab then this get's called twice, however using the
- *      drush php-eval call on the invoke and check submission works fine ...
- * TODO: Ask Stephen why this is so
- *
- *
  * Each Galaxy workflow has a unique UUID.  Each time the workflow is changed
  * that UUID changes as well.
  */
@@ -105,7 +97,7 @@ function tripal_galaxy_check_submission_status($sid) {
   }
 
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', array('invocation_id', 'galaxy_workflow_id'));
+  $query->fields('tgws', array('invocation_id', 'galaxy_workflow_id', 'sid', 'submit_date'));
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
   $query->fields('tgw', array('galaxy_id', 'workflow_id', 'nid'));
   $query->condition('tgws.sid', $sid);
@@ -135,38 +127,96 @@ function tripal_galaxy_check_submission_status($sid) {
   $has_error = FALSE;
   $all_ok = FALSE;
 
-  // XXX: There needs to be an error check here
   // If there's an altered workflow this will throw an error
   // Need to go further up to find out why this is being called and not
   // getting an invocation
   foreach ($invocation['steps'] as $step) {
     $step_index = $step['order_index'];
 
-    // Get the STDERR and STDOUT for the job.
-    $gjobs = new GalaxyJobs($galaxy);
-    $job = $gjobs->show(array(
-      'job_id' => $step['job_id'],
-      'full' => TRUE,
-    ));
-    $stderr = $job['stderr'];
-    $stdout = $job['stdout'];
+    $stderr = '';
+    $stdout = '';
     $misc_info = '';
+    $step_name = '';
+    if ($step['job_id']) {
 
-    // Get the tool
-    $gtools = new GalaxyTools($galaxy);
-    $tool = $gtools->show(array('tool_id' => $job['tool_id']));
-    $step_name = 'Step ' . ($step_index + 1). ': ' . $tool['name'] . ' v' . $tool['version'];
+      // Get the STDERR and STDOUT for the job.
+      $gjobs = new GalaxyJobs($galaxy);
+      $job = $gjobs->show(array(
+        'job_id' => $step['job_id'],
+        'full' => TRUE,
+      ));
+      if (!$job) {
+        throw new ErrorException($galaxy->getErrorMessage());
+      }
+      $stderr = $job['stderr'];
+      $stdout = $job['stdout'];
+
+      // Get the tool
+      $gtools = new GalaxyTools($galaxy);
+      $tool = $gtools->show(array('tool_id' => $job['tool_id']));
+      if (!$tool) {
+        throw new ErrorException($galaxy->getErrorMessage());
+      }
+      //$step_name = 'Step ' . ($step_index + 1). ': ' . $tool['name'] . ' v' . $tool['version'];
+      $step_name = $tool['name'];
+
+    }
+    else {
+      $step_name = $step['workflow_step_label'];
+    }
 
     if ($step['state'] == 'error') {
       // Sometimes the error message is in a dataset. So, get the 'misc_info'
       // from that.
       $gdataset = new GalaxyDatasets($galaxy);
       $dataset = $gdataset->show(array('dataset_id' => $job['outputs']['output']['id']));
-      $misc_info = $dataset['misc_info'];;
+      if (!$dataset) {
+        throw new ErrorException($galaxy->getErrorMessage());
+      }$misc_info = $dataset['misc_info'];;
       $has_error = TRUE;
     }
     if ($state['step'] != 'null' or $state['step'] != 'ok') {
       $istate = 'ok';
+    }
+
+    // Find the History for this submission.
+    $history_name = tripal_galaxy_get_history_name($submission, $node);
+    $ghistories = new GalaxyHistories($galaxy);
+    $histories = $ghistories->index();
+    $history = '';
+    if ($histories) {
+      foreach ($histories as $index => $temp) {
+        if ($temp['name'] == $history_name) {
+          $history = $temp;
+        }
+      }
+    }
+
+    // Get the history contents;
+    $history_contents = array();
+    if ($history) {
+      $ghistory_contents = new GalaxyHistoryContents($galaxy);
+      $history_contents = $ghistory_contents->index(array('history_id' => $history['id']));
+    }
+
+    // Get more details about each history content item.
+    foreach ($history_contents as $index => $history_content) {
+      $history_contents[$index] = $ghistory_contents->show(array(
+        'id' => $history_content['id'],
+        'history_id' => $history['id'],
+      ));
+      switch ($history_content['type']) {
+        case 'file':
+          $params = array();
+          $params['history_id'] = $history['id'];
+          $params['url_only'] = TRUE;
+          $params['history_content_id'] = $history_content['id'];
+          $link = $ghistory_contents->download_history_content($params);
+          $history_contents[$index]['content_link'] = $link;
+          break;
+        default:
+          break;
+      }
     }
     $state[$step_index] = array(
       'step_name' => $step_name,
@@ -176,6 +226,8 @@ function tripal_galaxy_check_submission_status($sid) {
       'stderr' => $stderr,
       'stdout' => $stdout,
       'misc_info' => $misc_info,
+      'history' => $history,
+      'history_contents' => $history_contents,
     );
   }
 
