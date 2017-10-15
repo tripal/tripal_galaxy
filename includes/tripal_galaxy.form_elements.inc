@@ -217,7 +217,6 @@ function tripal_galaxy_sflist_validate($element, &$form_state) {
   $is_required = $element['#required'];
   $fids = $element['#value'];
 
-
   $set = explode('|', $fids);
 
   if (count(array_unique($set)) != count($set)){
@@ -233,13 +232,14 @@ function tripal_galaxy_sflist_validate($element, &$form_state) {
  * Order does not matter for the multi list
  */
 function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
+
   if ($input) {
     if (is_array($input)) {
 
       $eset = array();
 
       // Get any selected existing files
-      if(array_key_exists('existing', $input)){
+      if(array_key_exists('existing', $input) and $input['existing']){
         $efids = $input['existing'];
         $eset = explode('|', $efids);
       }
@@ -251,18 +251,24 @@ function tripal_galaxy_sflist_value($element, $input = FALSE, &$form_state) {
       $uset = explode('|', $ufids);
 
       // Merge the selected and uploaded files into a single value.
-      $set = array_merge($eset, $uset);
+      $set = array();
+      foreach ($eset as $val) {
+        $set[] = $val;
+      }
+      foreach ($uset as $val) {
+        $set[] = $val;
+      }
 
       // Create the new combined value.
-      $value = trim(implode('|', $set), '|');
+      $fids = implode('|', $set);
 
       $name = $element['#name'];
       $name = preg_replace('/submitted/', "[submitted]", $name);
       $name = preg_replace('/\[/', "['", $name);
       $name = preg_replace('/\]/', "']", $name);
-      $exp = '$form_state[\'input\']' . $name . '[\'value\'] = $value;';
+      $exp = '$form_state[\'input\']' . $name . '[\'value\'] = "$fids";';
       eval($exp);
-      return $value;
+      return $fids;
     }
     else {
       return $input;

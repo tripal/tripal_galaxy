@@ -103,20 +103,26 @@ function tripal_galaxy_check_submission_status($sid) {
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
 
+  // If the job hasn't yet been invoked then skip it.
+  if (!$submission->invocation_id) {
+    return;
+  }
+
   // Get the node for this submission.
   $node = node_load($submission->nid);
 
   // Connect to the Galaxy instance and get the list of workflows
   $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
   $gworkflows = new GalaxyWorkflows($galaxy);
-  $error = $galaxy->getError();
 
   // Get the invocation specified.
   $invocation = $gworkflows->showInvocations(array(
     'workflow_id' => $submission->workflow_id,
     'invocation_id' => $submission->invocation_id
   ));
-  $error = $galaxy->getError();
+  if (!$invocation) {
+    throw new Exception($galaxy->getErrorMessage());
+  }
 
   // Get the overall invocation state.
   $istate = $invocation['state'];
@@ -895,15 +901,11 @@ function tripal_galaxy_get_user_usage($uid) {
  }
 
 /**
- * Iterate through the fid's in the tripal_galaxy_file_expiration table for
- * files that match the current day of the Expiration
- * if it matches delete the file (Time to visit crontab!)
- * https://www.drupal.org/project/examples <== One of the things to teach new
- * coders with
+ * Checks if a file needs to be expired.
  *
 **/
 function tripal_galaxy_check_file_expiration() {
-  $results = db_select('tripal_galaxy_file_expiration', 'tgfe')
+  $results = db_select('tripal_galaxy_expiration_files', 'tgfe')
     ->fields('tgfe')
     ->execute();
   while($result = $results->fetchObject()) {

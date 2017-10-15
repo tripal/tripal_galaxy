@@ -67,8 +67,11 @@ function _webform_render_galaxy_sflist($component, $value = NULL, $filter = TRUE
 function _webform_display_galaxy_sflist($component, $value, $format = 'html') {
 
   // Get any selected existing files.
-  $efids = $value['existing'];
-  $eset = explode('|', $efids);
+  $eset = array();
+  if  ($value['existing']) {
+    $efids = $value['existing'];
+    $eset = explode('|', $efids);
+  }
 
   // Get any uploaded files.
   $name = '';
@@ -83,7 +86,13 @@ function _webform_display_galaxy_sflist($component, $value, $format = 'html') {
   $uset = explode('|', $ufids);
 
   // Merge the selected and uploaded files into a single value.
-  $set = array_merge($eset, $uset);
+  $set = array();
+  foreach ($eset as $val) {
+    $set[] = $val;
+  }
+  foreach ($uset as $val) {
+    $set[] = $val;
+  }
 
   // Find the field ccontaining the fid.
   $fids = implode('|', $set);

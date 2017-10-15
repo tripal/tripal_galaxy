@@ -1233,22 +1233,34 @@ function tripal_galaxy_submission_admin_report($sid) {
  */
 function tripal_galaxy_cron() {
 
+  $args = array();
+  tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy', 'tripal_galaxy_check_status', $args, 1);
+}
+
+/**
+ * Checks the status of non completed workflows.
+ *
+ * This function is meant to be added by cron and run by the TripalJob's
+ * system.
+ *
+ * @param TripalJob $job
+ */
+function tripal_galaxy_check_status(TripalJob $job) {
   // Update the status of running workflows
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
   $query->fields('tgws', array('sid'));
   $query->condition('tgws.status', array('Error', 'Completed'), 'NOT IN');
   $submissions = $query->execute();
-  $queue = DrupalQueue::get('check_submission_status');
   foreach ($submissions as $submission) {
-    $queue->createItem($submission);
+    tripal_galaxy_check_submission_status($submission->sid);
   }
 
   // Update the status of the workflows to see if any of them were
   // changed on the galaxy server. If os then that means the workflow we
   // currently have may not work.
   $workflows = db_select('tripal_galaxy_workflow', 'tgw')
-  ->fields('tgw')
-  ->execute();
+    ->fields('tgw')
+    ->execute();
   $queue = DrupalQueue::get('check_workflow_status');
   while ($workflow = $workflows->fetchObject()) {
     $queue->createItem($workflow);
@@ -1256,26 +1268,6 @@ function tripal_galaxy_cron() {
 
   // Add the call to iterate through the expired files on the api
   tripal_galaxy_check_file_expiration();
-}
-
-/**
- * Implementation of callback_queue_worker().
- */
-function tripal_galaxy_queue_check_submission_status($submission) {
-  tripal_galaxy_check_submission_status($submission->sid);
-}
-
-/**
- * Implements hook_cron_queue_info().
- */
-function tripal_galaxy_cron_queue_info() {
-   $info = array(
-     'check_submission_status' => array(
-       'worker callback' => 'tripal_galaxy_queue_check_submission_status',
-       'skip_on_cron' => FALSE,
-     ),
-   );
-   return $info;
 }
 
 /**

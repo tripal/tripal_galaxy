@@ -111,7 +111,7 @@
  * User action to renew the expiration of a file.
  *
  * Adds the current time and the expiration date (either from default or if
- * the user has a custom expiration date) to tripal_galaxy_file_expiration
+ * the user has a custom expiration date) to tripal_galaxy_expiration_files
  * table.
  *
  **/
