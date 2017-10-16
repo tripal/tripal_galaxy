@@ -65,7 +65,6 @@ function _webform_render_galaxy_sfile($component, $value = NULL, $filter = TRUE)
 function _webform_display_galaxy_sfile($component, $value, $format = 'html') {
   $filename = '';
 
-dpm($value);
   // Find the field ccontaining the fid.
   $fid = NULL;
   $filename = 'No file selected';

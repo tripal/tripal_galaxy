@@ -48,7 +48,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
   // Add in the instruction page to the webform first.
   tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $workflow_id);
-
+//dpm($workflow);
   // Iterate through each step of the workflow.
   $tool_list = array();
   $steps = $workflow['steps'];
@@ -142,7 +142,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         $input_id = tripal_galaxy_build_webform_add_component($webform, $workflow,
             $step, $tool, $input, $cid, $data_inputs);
         $data_inputs[$step_index] = $input_id;
-      break;
+        break;
 
       // If this is a tool step then handle it.
       case 'tool':
@@ -159,7 +159,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           return FALSE;
         }
         $tool_list[] = $tool['name'] . ' ' . $tool['version'];
-
+//dpm($tool);
         // We want to change the name of the fieldset to have the name of
         // the tool.
         $fieldset_name .=  ': ' . $tool['name'] . ' v' .  $tool['version'];
