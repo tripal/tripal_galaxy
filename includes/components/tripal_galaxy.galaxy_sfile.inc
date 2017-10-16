@@ -65,24 +65,26 @@ function _webform_render_galaxy_sfile($component, $value = NULL, $filter = TRUE)
 function _webform_display_galaxy_sfile($component, $value, $format = 'html') {
   $filename = '';
 
-
+dpm($value);
   // Find the field ccontaining the fid.
   $fid = NULL;
+  $filename = 'No file selected';
+
   foreach ($value as $key => $val) {
     if (preg_match('/submitted.*' . $component['form_key'] . '_/', $key)) {
       $fid = $val;
     }
   }
   if (!$fid) {
-    $fid = $value['existing'];
-    $filename = 'No file selected';
+    $fid = $value['existing_fset']['existing'];
   }
-
+  if (!$fid) {
+    $fid = $value['site_wide_fset']['site_wide'];
+  }
   if ($fid) {
     $file = file_load($fid);
     $filename = $file->filename;
   }
-
 
   return array(
     '#title' => $component['name'],

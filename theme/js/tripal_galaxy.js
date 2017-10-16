@@ -3,6 +3,17 @@
   // Store our function as a property of Drupal.behaviors.
   Drupal.behaviors.tripal_galaxy = {
     attach: function (context, settings) {
+      
+      $(".tripal-galaxy-existing-sfile").change(function() {
+        var value = $(this).val();
+        var target_id = $(this).attr('target_id');
+        $('#' + target_id).val(value);
+      });
+      $(".tripal-galaxy-site-wide-sfile").change(function() {
+        var value = $(this).val();
+        var target_id = $(this).attr('target_id');
+        $('#' + target_id).val(value);
+      });
 
       /**
        * We use a global variable to keep track of which files have been
@@ -10,7 +21,7 @@
        * we need to iniitalize the variable.
        */
       var tripal_galaxy_pfile_values = {};
-      $(".tripal-galaxy-existing-pfile").each(function() {
+      $(".tripal-galaxy-existing-pflist").each(function() {
         var value = $(this).val();
         var id =  $(this).attr('id');
         var table_id = $(this).attr('table_id');
@@ -39,7 +50,7 @@
        * we need to iniitalize the variable.
        */
       var tripal_galaxy_sfile_values = {};
-      $(".tripal-galaxy-existing-sfile").each(function() {
+      $(".tripal-galaxy-existing-sflist").each(function() {
         var value = $(this).val();
         var id =  $(this).attr('id');
         var table_id = $(this).attr('table_id');
@@ -103,7 +114,7 @@
           table_rows +=   '<td>' + name1 + '</td>';
           table_rows +=   '<td>' + name2 + '</td>';
           if (i == num_pairs - 1 && num_pairs > 0) {
-            table_rows +=   '<td><span id="tripal-galaxy-existing-pfile-remove"></span></td>';
+            table_rows +=   '<td><span id="tripal-galaxy-existing-pflist-remove"></span></td>';
           }
           else {
             table_rows +=   '<td></td>';
@@ -124,13 +135,13 @@
         // Now add the remove link. The remove link needs a click function
         // that will take the last row out of the array and clean up the table.
         link = $("<a>", {
-          'class': 'tripal-galaxy-existing-pfile-remove',
+          'class': 'tripal-galaxy-existing-pflist-remove',
           'href': 'javascript:void(0);',
           'text': ' Remove',
         });
         link.attr('target_id', target_id);
         link.attr('table_id', table_id);
-        link.appendTo('#tripal-galaxy-existing-pfile-remove');
+        link.appendTo('#tripal-galaxy-existing-pflist-remove');
         
         // Add the click function to the link.
         link.click(function(){
@@ -263,7 +274,7 @@
        * When the user selects a file in the select box it needs to add
        * the selected value to the tripal_galaxy_pfile_values array.
        */
-      $(".tripal-galaxy-existing-pfile").change(function() {
+      $(".tripal-galaxy-existing-pflist").change(function() {
         var value = $(this).val();
         var id =  $(this).attr('id');
         var table_id = $(this).attr('table_id');

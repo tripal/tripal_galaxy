@@ -353,11 +353,32 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
   $collections = array();
   $inputs = array();
   foreach ($submitted_data as $data) {
+
     // Handle a single file upload.
     if ($data->type == 'galaxy_sfile') {
-      if ($data->no == 'existing') {
+      if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
         $fid = $data->data;
         if ($fid) {
+          $file = tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
+          $inputs[$data->form_key] = $file;
+        }
+      }
+      else if ($data->no == 'site_wide'){
+        $fid = $data->data;
+        $swfile = db_select('tripal_galaxy_site_files', 'tgsf')
+          ->fields('tgsf')
+          ->condition('fid', $fid)
+          ->execute()
+          ->fetchObject();
+        if (!$swfile) {
+          throw new Exception('Cannot find site-wide file with fid: ' . $fid);
+        }
+        // If this is a remote file....
+        if ($swfile->url) {
+
+        }
+        // not a remote file.
+        else {
           $file = tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
           $inputs[$data->form_key] = $file;
         }

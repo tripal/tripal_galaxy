@@ -39,7 +39,8 @@ function tripal_galaxy_admin_manage_files() {
         $swfile->filetype,
         $swfile->enabled ? 'Yes' : 'No',
         l('Edit', 'admin/tripal/extension/galaxy/files/edit/' . $swfile->swfid) . '&nbsp;|&nbsp;' .
-        $status_link,
+        $status_link . '&nbsp;|&nbsp;' .
+        l('Delete', 'admin/tripal/extension/galaxy/files/delete/' . $swfile->swfid),
       ),
       'class' => array($class),
     );
@@ -173,6 +174,8 @@ function tripal_galaxy_admin_add_file_form_validate($form, &$form_state) {
  * Implements the submit for the tripal_galaxy_admin_add_file_form form().
  */
 function tripal_galaxy_admin_add_file_form_submit($form, &$form_state) {
+  global $user;
+
   $short_desc = trim($form_state['values']['short_desc']);
   $file_type = strtolower(trim($form_state['values']['file_type']));
   $file_remote = trim($form_state['values']['file_remote']);
@@ -183,16 +186,74 @@ function tripal_galaxy_admin_add_file_form_submit($form, &$form_state) {
     'filetype' => $file_type,
   );
   if ($file_remote) {
+    $filename = basename($file_remote);
+    $file = new stdClass();
+    $file->uri = $file_remote;
+    $file->filename = $filename;
+    $file->filesize = 0;
+    $file->filemime = file_get_mimetype($file_remote);
+    $file->uid = $user->uid;
+    $file->status = FILE_STATUS_PERMANENT;
+
+    // The code below is copied from the file_save() function of Drupal
+    // We don't call that function directly because it tries to use the
+    // filesize() function which doesn't work for remote URLs.
+    $file->timestamp = REQUEST_TIME;
+
+    // Load the stored entity, if any.
+    if (!empty($file->fid) && !isset($file->original)) {
+      $file->original = entity_load_unchanged('file', $file->fid);
+    }
+
+    module_invoke_all('file_presave', $file);
+    module_invoke_all('entity_presave', $file, 'file');
+
+    if (empty($file->fid)) {
+      drupal_write_record('file_managed', $file);
+      // Inform modules about the newly added file.
+      module_invoke_all('file_insert', $file);
+      module_invoke_all('entity_insert', $file, 'file');
+    }
+    else {
+      drupal_write_record('file_managed', $file, 'fid');
+      // Inform modules that the file has been updated.
+      module_invoke_all('file_update', $file);
+      module_invoke_all('entity_update', $file, 'file');
+    }
+
+    // Clear internal properties.
+    unset($file->original);
+    // Clear the static loading cache.
+    entity_get_controller('file')->resetCache(array($file->fid));
+
     $fields['url'] = $file_remote;
-    $filename = preg_replace('/.*\/(.*)$/', '$1', $file_remote);
     $fields['filename'] = $filename;
+    $fields['fid'] = $file->fid;
+    file_usage_add($file, 'tripal_galaxy', 'site-wide', 0);
   }
   if ($file_upload) {
-    $fileds['fid'] = $file_upload;
+    $fields['fid'] = $file_upload;
     $file = file_load($file_upload);
-    $filename = $file->name;
+    $filename = $file->filename;
     $fields['filename'] = $filename;
+    // Move the file out of the user upload directory that the Tripal
+    // upload tool uses and into a new directory that is site-specific
+    // rather than user-specific.
+    $site_dir = 'public://tripal/files/galaxy';
+    if (!file_prepare_directory($site_dir, FILE_CREATE_DIRECTORY)) {
+      $message = 'Could not access the directory on the server for storing this file.';
+      watchdog('tripal', $message, array(), WATCHDOG_ERROR);
+      drupal_json_output(array(
+        'status'  => 'failed',
+        'message' => $message,
+        'file_id' => '',
+      ));
+      return;
+    }
+    file_move($file, $site_dir . '/' . $filename);
   }
+
+  // Add the file.
   $sfwid = db_insert('tripal_galaxy_site_files')
     ->fields($fields)
     ->execute();
@@ -230,7 +291,7 @@ function tripal_galaxy_admin_edit_file_form($form, &$form_state, $swfid) {
     $form['file_upload'] = array(
       '#type' => 'item',
       '#title' => 'Uloaded File',
-      '#markup' => $file->name,
+      '#markup' => $file->filename,
     );
   }
   else {
@@ -302,9 +363,69 @@ function tripal_galaxy_admin_edit_file_form_submit($form, &$form_state) {
 }
 
 /**
+ * Deletes a site-wide file.
+ *
+ * @param $swfid
+ *   The file ID
+ */
+function tripal_galaxy_admin_delete_file_form($form, &$form_state, $swfid) {
+  $form = array();
+
+  // Get the file.
+  $fid = db_select('tripal_galaxy_site_files', 'tgsf')
+    ->fields('tgsf', array('fid'))
+    ->condition('swfid', $swfid)
+    ->execute()
+    ->fetchField();
+
+  $form['swfid'] = array(
+    '#type' => 'value',
+    '#value' => $swfid,
+  );
+  $form['fid'] = array(
+    '#type' => 'value',
+    '#value' => $fid,
+  );
+
+  $file = file_load($fid);
+
+  return confirm_form($form,
+    t('Confirm removal of the file named "' . $file->filename . '"? '),
+    'admin/tripal/extension/galaxy/quota',
+    t('Note if this file is used in a Galaxy workflow it will no longer show when a user views their submission.')
+  );
+}
+
+/**
+ * Implements submit hook for the tripal_galaxy_admin_remove_quota_form form.
+ */
+function tripal_galaxy_admin_delete_file_form_submit($form, &$form_state) {
+  $fid = $form_state['values']['fid'];
+  $swfid = $form_state['values']['swfid'];
+
+  $success = db_delete('tripal_galaxy_site_files')
+    ->condition('swfid', $swfid)
+    ->execute();
+  if (!$success) {
+    drupal_set_message('The file could not be removed.', 'error');
+    drupal_goto('admin/tripal/extension/galaxy/files');
+    return;
+  }
+  $file = file_load($fid);
+  file_usage_delete($file, 'tripal_galaxy');
+  if (file_delete($file, TRUE)) {
+    drupal_set_message('The file, "' . $file->filename . '", has been removed.');
+  }
+  else {
+    drupal_set_message('The file could not be removed.', 'error');
+  }
+  drupal_goto('admin/tripal/extension/galaxy/files');
+}
+/**
  * Disables a file from being available for Galaxy workflow inputs.
  *
  * @param $swfid
+ *   The file ID
  */
 function tripal_galaxy_admin_disable_file($swfid) {
   $num_updated = db_update('tripal_galaxy_site_files')
