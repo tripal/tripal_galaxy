@@ -201,6 +201,7 @@ function tripal_galaxy_add_custom_quota_table(&$schema) {
       ),
       'custom_quota' => array(
         'type' => 'int',
+        'size' => 'big',
         'not NULL' => TRUE,
       ),
       'custom_expiration' => array(
@@ -345,5 +346,24 @@ function tripal_galaxy_update_7101() {
   catch (\PDOException $e) {
     $error = $e->getMessage();
     throw new DrupalUpdateException('Could not perform update: '. $error);
+  }
+}
+
+/**
+ * Changes the custom_quota field to a big int.
+ */
+function tripal_galaxy_update_7102() {
+  try {
+    db_change_field('tripal_galaxy_custom_quota', 'custom_quota', 'custom_quota',
+      array(
+        'type' => 'int',
+        'size' => 'big',
+        'not NULL' => TRUE,
+      )
+    );
+  }
+  catch (\PDOException $e) {
+    $error = $e->getMessage();
+    throw new DrupalUpdateException('Could not update the tripal_galaxy_custom_quota table: '. $error);
   }
 }
