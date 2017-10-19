@@ -14,6 +14,11 @@
         var target_id = $(this).attr('target_id');
         $('#' + target_id).val(value);
       });
+      $(".tripal-galaxy-data-collection-sfile").change(function() {
+        var value = $(this).val();
+        var target_id = $(this).attr('target_id');
+        $('#' + target_id).val(value);
+      });
 
       /**
        * We use a global variable to keep track of which files have been

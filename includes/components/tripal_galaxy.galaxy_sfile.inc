@@ -74,11 +74,14 @@ function _webform_display_galaxy_sfile($component, $value, $format = 'html') {
       $fid = $val;
     }
   }
-  if (!$fid) {
+  if (!$fid and array_key_exists('existing_fset', $value) ) {
     $fid = $value['existing_fset']['existing'];
   }
-  if (!$fid) {
+  if (!$fid and array_key_exists('site_wide_fset', $value) ) {
     $fid = $value['site_wide_fset']['site_wide'];
+  }
+  if (!$fid and array_key_exists('data_collection_fset', $value) ) {
+    $fid = $value['data_collection_fset']['data_collection'];
   }
   if ($fid) {
     $file = file_load($fid);

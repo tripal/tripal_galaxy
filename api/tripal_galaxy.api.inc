@@ -356,7 +356,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
 
     // Handle a single file upload.
     if ($data->type == 'galaxy_sfile') {
-      if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+      if ($data->no == 'data_collection' or $data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
         $fid = $data->data;
         if ($fid) {
           $file = tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
@@ -939,4 +939,28 @@ function tripal_galaxy_check_file_expiration() {
       file_delete(file_load($result->fid), TRUE);
     }
   }
+}
+
+/**
+ * Returns the IRI where the Tripal Galaxy module stores files.
+ *
+ * This function also ensures that the path exists by creating it.
+ *
+ * @return
+ *   A Drupal IRI indicating the location where Galaxy files are housed.
+ *   Returns FALSE if the location does not exist or cannot be created.
+ */
+function tripal_galaxy_get_files_dir() {
+  global $user;
+
+  $user_uuid = md5($user->uuid);
+
+  $site_dir = 'public://tripal/files/galaxy/' . $user_uuid;
+  if (!file_prepare_directory($site_dir, FILE_CREATE_DIRECTORY)) {
+    $message = 'Could not access the directory on the server for storing this file.';
+    watchdog('tripal', $message, array(), WATCHDOG_ERROR);
+    return FALSE;
+  }
+
+  return $site_dir;
 }

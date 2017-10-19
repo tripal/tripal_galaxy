@@ -772,27 +772,50 @@ function tripal_galaxy_webform_submission_presave($node, &$submission) {
   // Itereate through the components being submitted and remove non
   // needed elements added by our galaxy form elements.
   foreach ($submission->data as $cid => $data) {
-    $ctype = db_select('webform_component', 'wc')
-      ->fields('wc', array('type'))
+    $component = db_select('webform_component', 'wc')
+      ->fields('wc', array('type', 'form_key'))
       ->condition('cid', $cid)
       ->execute()
-      ->fetchField();
+      ->fetchObject();
 
-    if ($ctype == 'galaxy_sfile') {
+    if ($component->type == 'galaxy_sfile') {
+      unset($submission->data[$cid]['uploader_fset']);
+      unset($submission->data[$cid]['existing_fset']);
+      unset($submission->data[$cid]['site_wide_fset']);
+
+      // If we have a data collection then we need to copy the files out
+      // of the data collection and into the Galaxy files.
+      if (array_key_exists('data_collection_fset', $submission->data[$cid]) and
+          $submission->data[$cid]['data_collection_fset']['data_collection']) {
+        $fid = $submission->data[$cid]['data_collection_fset']['data_collection'];
+        $file = file_load($fid);
+        $site_dir = tripal_galaxy_get_files_dir();
+        if (!$site_dir) {
+          drupal_set_message('Could not access the data collection to the directory on the server for storing this file.  This analysis may not execute correctly.', 'error');
+        }
+        else {
+          $file = file_copy($file, $site_dir . '/' . $file->filename);
+          if (!$file) {
+            drupal_set_message('Could not copy the data collection to the directory on the server for storing this file.  This analysis may not execute correctly.', 'error');
+          }
+          else {
+            $submission->data[$cid]['data_collection'] = $file->fid;
+            file_usage_add($file, 'tripal_galaxy', $component->form_key, 0);
+          }
+        }
+      }
+    }
+    unset($submission->data[$cid]['data_collection_fset']);
+    if ($component->type == 'galaxy_pfile') {
       unset($submission->data[$cid]['uploader_fset']);
       unset($submission->data[$cid]['existing_fset']);
       unset($submission->data[$cid]['site_wide_fset']);
     }
-    if ($ctype == 'galaxy_pfile') {
-      unset($submission->data[$cid]['uploader_fset']);
-      unset($submission->data[$cid]['existing_fset']);
-      unset($submission->data[$cid]['site_wide_fset']);
-    }
-    if ($ctype == 'galaxy_pflist') {
+    if ($component->type == 'galaxy_pflist') {
       unset($submission->data[$cid]['uploader_fset']);
       unset($submission->data[$cid]['existing_fset']);
     }
-    if ($ctype == 'galaxy_sflist') {
+    if ($component->type == 'galaxy_sflist') {
       unset($submission->data[$cid]['uploader_fset']);
       unset($submission->data[$cid]['existing_fset']);
 
@@ -1594,7 +1617,6 @@ function tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submissio
  */
 function tripal_galaxy_stream_url_proxy($proxy_id) {
 
-
   $url = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['url'];
   //$url = $url . '?key=' . $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['key'];
 
@@ -1605,11 +1627,15 @@ function tripal_galaxy_stream_url_proxy($proxy_id) {
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
   $output = curl_exec($ch);
   if ($output === FALSE) {
-    $this->error->setError('HTTP', curl_error($ch));
-    return FALSE;
+    $error_msg = curl_error($ch);
+    $this->error->setError('HTTP', $error_msg);
+    return $error_msg;
   }
   curl_close($ch);
 
+  if (!$output) {
+    $output = 'The remote Galaxy server returns no display.';
+  }
   return $output;
 }
 

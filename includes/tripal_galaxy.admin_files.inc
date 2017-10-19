@@ -239,10 +239,9 @@ function tripal_galaxy_admin_add_file_form_submit($form, &$form_state) {
     // Move the file out of the user upload directory that the Tripal
     // upload tool uses and into a new directory that is site-specific
     // rather than user-specific.
-    $site_dir = 'public://tripal/files/galaxy';
-    if (!file_prepare_directory($site_dir, FILE_CREATE_DIRECTORY)) {
+    $site_dir = tripal_galaxy_get_files_dir();
+    if (!$site_dir) {
       $message = 'Could not access the directory on the server for storing this file.';
-      watchdog('tripal', $message, array(), WATCHDOG_ERROR);
       drupal_json_output(array(
         'status'  => 'failed',
         'message' => $message,

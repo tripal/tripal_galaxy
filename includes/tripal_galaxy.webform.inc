@@ -849,6 +849,8 @@ function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $da
   }
   if (in_array('fasta', $input['extensions'])) {
     $input['extensions'][] = 'fa';
+    $input['extensions'][] = 'fna';
+    $input['extensions'][] = 'faa';
   }
 
   $found_upstream_input = FALSE;
