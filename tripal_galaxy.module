@@ -1070,6 +1070,9 @@ function tripal_galaxy_workflow_report($sid) {
 
             switch ($history_content['type']) {
               case 'file':
+                if (!isset($history_content['content_link'])) {
+                  break;
+                }
                 $link = $history_content['content_link'];
                 $proxy_id = tripal_galaxy_set_proxy_url($link, $galaxy, $history_content, $submission, $node);
                 $file_size = tripal_galaxy_format_bytes($history_content['file_size']);
