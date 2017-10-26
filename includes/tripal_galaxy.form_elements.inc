@@ -463,7 +463,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
   }
 
   //
-  // Data Collection Files
+  // Data Collection Files.  This will only work with Tv3 or later.
   $data_collection_value_id = $element['#name'];
   $data_collection_value_id = strtolower(preg_replace('/[^\w]/', '-', $data_collection_value_id)) . '-data-collection';
 

@@ -406,14 +406,16 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
 
         for ($i = 0; $i < count($set); $i++) {
           // Upload each file.
-          $dataset1 = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
+          if ($set[$i]) {
+            $dataset1 = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
 
-          // Next add the element.
-          $collections[$data->form_key]['element_identifiers'][] = array(
-            'id' => $dataset1['id'],
-            'name' => $dataset1['name'],
-            'src' => 'hda'
-          );
+            // Next add the element.
+            $collections[$data->form_key]['element_identifiers'][] = array(
+              'id' => $dataset1['id'],
+              'name' => $dataset1['name'],
+              'src' => 'hda'
+            );
+          }
         } // end for ($i = 0; $i < count($set1); $i++) {
       }
     }
@@ -442,27 +444,29 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
 
         for ($i = 0; $i < count($set1); $i++) {
           // Upload each file.
-          $dataset1 = tripal_galaxy_upload_file($galaxy, $set1[$i], $history['id'], $history_contents);
-          $dataset2 = tripal_galaxy_upload_file($galaxy, $set2[$i], $history['id'], $history_contents);
+          if ($set1[$i] and $set2[$i]) {
+            $dataset1 = tripal_galaxy_upload_file($galaxy, $set1[$i], $history['id'], $history_contents);
+            $dataset2 = tripal_galaxy_upload_file($galaxy, $set2[$i], $history['id'], $history_contents);
 
-          // Next create the paired dataset collection array.
-          $collections[$data->form_key]['element_identifiers'][] = array(
-            'name' => $dataset1['name'] . ' and ' . $dataset2['name'],
-            'collection_type' => 'paired',
-            'src' => 'new_collection',
-            'element_identifiers' => array(
-              array(
-                'id' => $dataset1['id'],
-                'name' => 'forward',
-                'src' => 'hda'
+            // Next create the paired dataset collection array.
+            $collections[$data->form_key]['element_identifiers'][] = array(
+              'name' => $dataset1['name'] . ' and ' . $dataset2['name'],
+              'collection_type' => 'paired',
+              'src' => 'new_collection',
+              'element_identifiers' => array(
+                array(
+                  'id' => $dataset1['id'],
+                  'name' => 'forward',
+                  'src' => 'hda'
+                ),
+                array(
+                  'id' => $dataset2['id'],
+                  'name' => 'reverse',
+                  'src' => 'hda'
+                ),
               ),
-              array(
-                'id' => $dataset2['id'],
-                'name' => 'reverse',
-                'src' => 'hda'
-              ),
-            ),
-          );
+            );
+          }
         } // end for ($i = 0; $i < count($set1); $i++) {
       } // end if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
     } // end else if($data->type == 'galaxy_pflist') {
@@ -643,7 +647,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
 function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents) {
 
   if (!$fid) {
-    throw new Exception('Cannot upload a file with an fid');
+    throw new Exception('Cannot upload a file without an fid');
   }
 
   $file = file_load($fid);
