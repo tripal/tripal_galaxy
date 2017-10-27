@@ -102,6 +102,7 @@ function tripal_galaxy_check_submission_status($sid) {
   $query->fields('tgw', array('galaxy_id', 'workflow_id', 'nid'));
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
+  print_r($submission);
 
   // If the job hasn't yet been invoked then skip it.
   if (!$submission->invocation_id) {
@@ -133,6 +134,7 @@ function tripal_galaxy_check_submission_status($sid) {
   $has_error = FALSE;
   $all_ok = FALSE;
 
+  print_r($invocation);
   // If there's an altered workflow this will throw an error
   // Need to go further up to find out why this is being called and not
   // getting an invocation
@@ -185,43 +187,45 @@ function tripal_galaxy_check_submission_status($sid) {
       $istate = 'ok';
     }
 
-    // Find the History for this submission.
-    $history_name = tripal_galaxy_get_history_name($submission, $node);
-    $ghistories = new GalaxyHistories($galaxy);
-    $histories = $ghistories->index();
-    $history = '';
-    if ($histories) {
-      foreach ($histories as $index => $temp) {
-        if ($temp['name'] == $history_name) {
-          $history = $temp;
+    // Get the history contents if the job step status is 'ok'.
+    $history_contents = array();
+    if ($step['state'] == 'ok') {
+      // Find the History for this submission.
+      $history_name = tripal_galaxy_get_history_name($submission, $node);
+      $ghistories = new GalaxyHistories($galaxy);
+      $histories = $ghistories->index();
+      $history = '';
+      if ($histories) {
+        foreach ($histories as $index => $temp) {
+          if ($temp['name'] == $history_name) {
+            $history = $temp;
+          }
         }
       }
-    }
 
-    // Get the history contents;
-    $history_contents = array();
-    if ($history) {
-      $ghistory_contents = new GalaxyHistoryContents($galaxy);
-      $history_contents = $ghistory_contents->index(array('history_id' => $history['id']));
-    }
+      if ($history) {
+        $ghistory_contents = new GalaxyHistoryContents($galaxy);
+        $history_contents = $ghistory_contents->index(array('history_id' => $history['id']));
+      }
 
-    // Get more details about each history content item.
-    foreach ($history_contents as $index => $history_content) {
-      $history_contents[$index] = $ghistory_contents->show(array(
-        'id' => $history_content['id'],
-        'history_id' => $history['id'],
-      ));
-      switch ($history_content['type']) {
-        case 'file':
-          $params = array();
-          $params['history_id'] = $history['id'];
-          $params['url_only'] = TRUE;
-          $params['history_content_id'] = $history_content['id'];
-          $link = $ghistory_contents->download_history_content($params);
-          $history_contents[$index]['content_link'] = $link;
-          break;
-        default:
-          break;
+      // Get more details about each history content item.
+      foreach ($history_contents as $index => $history_content) {
+        $history_contents[$index] = $ghistory_contents->show(array(
+          'id' => $history_content['id'],
+          'history_id' => $history['id'],
+        ));
+        switch ($history_content['type']) {
+          case 'file':
+            $params = array();
+            $params['history_id'] = $history['id'];
+            $params['url_only'] = TRUE;
+            $params['history_content_id'] = $history_content['id'];
+            $link = $ghistory_contents->download_history_content($params);
+            $history_contents[$index]['content_link'] = $link;
+            break;
+          default:
+            break;
+        }
       }
     }
     $state[$step_index] = array(
