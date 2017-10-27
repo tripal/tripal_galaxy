@@ -53,6 +53,7 @@ function tripal_galaxy_drush_command() {
     'arguments' => array(),
     'options' => array(
       'submission' => dt('The submission ID of the workflow to run.'),
+      'force' => dt('Forces update of status for jobs that are already have a satus of Completed or Error.')
     ),
   );
   return $items;
@@ -70,12 +71,20 @@ function drush_tripal_galaxy_trp_galaxy_invoke() {
 
 function drush_tripal_galaxy_trp_galaxy_status() {
   $sid  = drush_get_option('submission');
+  $force  = drush_get_option('force');
+
+  if (!$force) {
+    $force = FALSE;
+  }
+  else {
+    $force - TRUE;
+  }
 
   if (!$sid) {
     drush_error('Please provide a submission id (ie.g. --submission=512).');
   }
   drush_print('Updating status of workflow...');
-  tripal_galaxy_check_submission_status($sid);
+  tripal_galaxy_check_submission_status($sid, $force);
   drush_print('Done.');
 
 }

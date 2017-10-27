@@ -84,39 +84,52 @@ function tripal_galaxy_split_url($url) {
 /**
  * Checks and updates the status of a Galaxy workflow.
  *
- * Each Galaxy workflow has a unique UUID.  Each time the workflow is changed
- * that UUID changes as well.
+ * @param $sid
+ *   The submission ID of the workflow.
+ * @param $force.
+ *   If a workflow submission is already completed this function will
+ *   quickly return and not check the status again.  Setting the $force
+ *   argument to TRUE will force the function to check the status.
  */
-function tripal_galaxy_check_submission_status($sid) {
+function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
 
   if (!$sid) {
-    return FALSE;
+    throw new Exception('tripal_galaxy_check_submission_status(): Please provide an $sid argument');
+
   }
   if (!is_numeric($sid)) {
-    return FALSE;
+    throw new Exception('tripal_galaxy_check_submission_status(): The $sid argument is not numeric');
   }
 
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', array('invocation_id', 'galaxy_workflow_id', 'sid', 'submit_date'));
+  $query->fields('tgws', array('invocation_id', 'galaxy_workflow_id', 'sid', 'submit_date',  'status'));
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
   $query->fields('tgw', array('galaxy_id', 'workflow_id', 'nid'));
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
-  print_r($submission);
 
   // If the job hasn't yet been invoked then skip it.
   if (!$submission->invocation_id) {
     return;
   }
 
+  // If the status is already completed or error then we've already handled this
+  // workflow fully and we don't need to check the full status again unless
+  // the $force argument is set to TRUE.
+  if (($submission->status == 'Completed' or $submission->status == 'Error') and !$force) {
+    print "Workflow already handled. Status is: $submission->status\n";
+    print "Skipping\n";
+    return;
+  }
+
   // Get the node for this submission.
   $node = node_load($submission->nid);
 
-  // Connect to the Galaxy instance and get the list of workflows
+  // Connect to the Galaxy instance.
   $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
-  $gworkflows = new GalaxyWorkflows($galaxy);
 
   // Get the invocation specified.
+  $gworkflows = new GalaxyWorkflows($galaxy);
   $invocation = $gworkflows->showInvocations(array(
     'workflow_id' => $submission->workflow_id,
     'invocation_id' => $submission->invocation_id
@@ -125,27 +138,31 @@ function tripal_galaxy_check_submission_status($sid) {
     throw new Exception($galaxy->getErrorMessage());
   }
 
-  // Get the overall invocation state.
-  $istate = $invocation['state'];
-
   // Iterate through the invocation steps and look for any steps that
   // are in the error state.
   $state = array();
   $has_error = FALSE;
   $all_ok = FALSE;
 
-  print_r($invocation);
   // If there's an altered workflow this will throw an error
   // Need to go further up to find out why this is being called and not
   // getting an invocation
+  $num_steps_ok = 0;
+  $num_tool_steps = 0;
   foreach ($invocation['steps'] as $step) {
     $step_index = $step['order_index'];
-
+    $step_state = '';
     $stderr = '';
     $stdout = '';
     $misc_info = '';
-    $step_name = '';
+    $step_name = $step['workflow_step_label'];
+
+
+    // If this job has a step then get some additional information and
+    // add it to our step details.
+    $job = NULL;
     if ($step['job_id']) {
+      $num_tool_steps++;
 
       // Get the STDERR and STDOUT for the job.
       $gjobs = new GalaxyJobs($galaxy);
@@ -165,18 +182,14 @@ function tripal_galaxy_check_submission_status($sid) {
       if (!$tool) {
         throw new ErrorException($galaxy->getErrorMessage());
       }
-      //$step_name = 'Step ' . ($step_index + 1). ': ' . $tool['name'] . ' v' . $tool['version'];
       $step_name = $tool['name'];
-
-    }
-    else {
-      $step_name = $step['workflow_step_label'];
+      $step_state = $job['state'];
     }
 
     if ($step['state'] == 'error') {
       // Sometimes the error message is in a dataset. So, get the 'misc_info'
       // from that.
-      if ($job['outputs']['output']['id']) {
+      if ($job and $job['outputs']['output']['id']) {
         $gdataset = new GalaxyDatasets($galaxy);
         $dataset = $gdataset->show(array('dataset_id' => $job['outputs']['output']['id']));
         if (!$dataset) {
@@ -186,13 +199,12 @@ function tripal_galaxy_check_submission_status($sid) {
       }
       $has_error = TRUE;
     }
-    if ($state['step'] != 'null' or $state['step'] != 'ok') {
-      $istate = 'ok';
-    }
 
     // Get the history contents if the job step status is 'ok'.
     $history_contents = array();
     if ($step['state'] == 'ok') {
+      $num_steps_ok++;
+
       // Find the History for this submission.
       $history_name = tripal_galaxy_get_history_name($submission, $node);
       $ghistories = new GalaxyHistories($galaxy);
@@ -229,38 +241,43 @@ function tripal_galaxy_check_submission_status($sid) {
           default:
             break;
         }
-      }
-    }
-    $state[$step_index] = array(
+      } // end foreach ($history_contents as $index => $history_content) { ...
+    } // end  if ($step['state'] == 'ok') { ...
+
+    $job_id = $step['job_id'] ? $step['job_id'] : 'NULL';
+    $state[$step_index][$job_id] = array(
       'step_name' => $step_name,
       'step_id' => $step['id'],
-      'job_id' => $step['job_id'],
-      'state' => $job['state'],
+      'job_id' => $job_id,
+      'state' => $step_state,
       'stderr' => $stderr,
       'stdout' => $stdout,
       'misc_info' => $misc_info,
       'history' => $history,
       'history_contents' => $history_contents,
     );
-  }
 
-  if ($has_error) {
-    $istate = 'error';
-  }
+  } // end foreach ($invocation['steps'] as $step) { ...
 
-  $status = $submission->status;
-  if (!$status) {
+  $status = $invocation->state;
+  if($status == 'scheduled') {
     $status = 'Running';
   }
-  switch ($istate) {
-    case 'error':
-      $status = 'Error';
+  if ($has_error) {
+    print "Job Failed.\n";
+    $status = 'Error';
+    if (!$force) {
       tripal_galaxy_send_submission_failed_mail($sid, $node->nid);
-      break;
-    case 'ok':
+    }
+  }
+  else {
+    if ($num_steps_ok == $num_tool_steps) {
+      print "Job Completed Successfully.\n";
       $status = 'Completed';
-      tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
-      break;
+      if (!$force) {
+        tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
+      }
+    }
   }
 
   db_update('tripal_galaxy_workflow_submission')
