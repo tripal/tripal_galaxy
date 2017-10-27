@@ -176,11 +176,14 @@ function tripal_galaxy_check_submission_status($sid) {
     if ($step['state'] == 'error') {
       // Sometimes the error message is in a dataset. So, get the 'misc_info'
       // from that.
-      $gdataset = new GalaxyDatasets($galaxy);
-      $dataset = $gdataset->show(array('dataset_id' => $job['outputs']['output']['id']));
-      if (!$dataset) {
-        throw new ErrorException($galaxy->getErrorMessage());
-      }$misc_info = $dataset['misc_info'];;
+      if ($job['outputs']['output']['id']) {
+        $gdataset = new GalaxyDatasets($galaxy);
+        $dataset = $gdataset->show(array('dataset_id' => $job['outputs']['output']['id']));
+        if (!$dataset) {
+          throw new ErrorException($galaxy->getErrorMessage());
+        }
+        $misc_info = $dataset['misc_info'];
+      }
       $has_error = TRUE;
     }
     if ($state['step'] != 'null' or $state['step'] != 'ok') {
