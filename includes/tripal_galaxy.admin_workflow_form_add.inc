@@ -258,7 +258,8 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
         drupal_set_message(t('The workflow was succesfully added! <p>Sometimes
           these workflows need a bit of tweaking to make them more intuitive
           for users. Click the title of the workflow below to customize how it
-          will appear to users. Consider improving: !list</p><p>Also,
+          will appear to users. Consider improving: !list</p>', array('!list' => $list)));
+          /*<p>Also,
           consider adding a version number to each of your workflow names below.
           If a change is made to a workflow on the Galaxy server then the
           workflow below will be marked as "Altered" and no user submission will
@@ -266,7 +267,7 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
           be out of sync with the workflow on the Galaxy server. If this
           happens you will need to re-add the workflow and therefore the
           version numbers will help users distinguish between multiple versions
-          of the same workflow.', array('!list' => $list)));
+          of the same workflow.', array('!list' => $list))); */
       }
       catch (Exception $e) {
         $transaction->rollback();
