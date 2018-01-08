@@ -311,7 +311,7 @@
        * When the user selects a file in the select box it needs to add
        * the selected value to the tripal_galaxy_sfile_values array.
        */
-      $(".tripal-galaxy-existing-sfile").change(function() {
+      $(".tripal-galaxy-existing-sflist").change(function() {
         var value = $(this).val();
         var id =  $(this).attr('id');
         var table_id = $(this).attr('table_id');
