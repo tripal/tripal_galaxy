@@ -450,7 +450,7 @@ function tripal_galaxy_menu_alter(&$items) {
     'title' => 'Export',
     'page callback' => 'export_tripal_galaxy_workflow',
     'page arguments' => [1],
-    'access arguments' => ['administer galaxy'],
+    'access arguments' => ['access content'],
     'weight' => 9,
     'type' => MENU_LOCAL_TASK,
   ];
@@ -458,7 +458,7 @@ function tripal_galaxy_menu_alter(&$items) {
     'title' => 'Import',
     'page callback' => 'import_tripal_galaxy_workflow',
     'page arguments' => [1],
-    'access arguments' => ['administer galaxy'],
+    'access arguments' => ['access content'],
     'weight' => 10,
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.import_webform.form.inc',
