@@ -10,17 +10,6 @@
  * form builder
  */
 function galaxy_webform_import_form($form, &$form_state, $workflow_and_node_ids) {
-//  // check if it is a galaxy webform. only allows importing to a galaxy webform.
-//  $nid = $workflow_and_node_ids['nid'];
-//  $node = node_load($nid);
-//  if ($node->webform['components'][1]['form_key'] != 'galaxy_webform') {
-//    $form = [
-//      '#markup' => 'This is not a Galaxy webform. You can only import webform from'.
-//        'json file to a Galaxy webform.',
-//    ];
-//    return $form;
-//  };
-
   $form['workflow_and_node_ids'] = [
     '#type' => 'value',
     '#value' => $workflow_and_node_ids,
@@ -49,6 +38,7 @@ function galaxy_webform_import_form($form, &$form_state, $workflow_and_node_ids)
 function galaxy_webform_import_form_submit($form, &$form_state) {
   //  $workflow_id = $form_state['values']['workflow_and_node_ids']['workflow_id'];
   $nid = $form_state['values']['workflow_and_node_ids']['nid'];
+  $workflow_id = $form_state['values']['workflow_and_node_ids']['workflow_id'];
 
   // decode webform josn file to webform components.
   $fid = $form_state['values']['upload'];
@@ -65,6 +55,10 @@ function galaxy_webform_import_form_submit($form, &$form_state) {
   foreach ($webform['components'] as $component) {
     // keep original nid
     $component['nid'] = $nid;
+    // keep original workflow_id. otherwise the workflow may not be found on the galaxy server.
+    if (isset($component['extra']['workflow_id'])) {
+      $component['extra']['workflow_id'] = $workflow_id;
+    }
     $component['extra'] = serialize($component['extra']);
     unset($component['page_num']);
     db_insert('webform_component')
