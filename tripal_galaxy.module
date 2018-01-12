@@ -1852,8 +1852,22 @@ function export_tripal_galaxy_workflow($node) {
  * a page callback to import galaxy webform from a json file.
  */
 function import_tripal_galaxy_workflow($node) {
+  if (count($node->webform['components']) < 1) {
+    drupal_set_message('This is not a valid Galaxy webform.', 'warning');
+    return '';
+  }
+
+  if (isset($node->webform['components'][1])) {
+    if ($node->webform['components'][1]['form_key'] != 'galaxy_webform') {
+      drupal_set_message('This is not a valid Galaxy webform.', 'warning');
+      return '';
+    };
+  }
+
+  // store nid and workflow id.
   $workflow_and_node_ids = [
     'nid' => $node->nid,
+    'workflow_id' => $node->webform['components'][1],
   ];
   $build_page = [
     'json_markup' => [
