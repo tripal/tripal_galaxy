@@ -443,6 +443,32 @@ function tripal_galaxy_menu() {
   return $items;
 }
 
+
+/**
+ * Implements hook_menu_alter().
+ */
+function tripal_galaxy_menu_alter(&$items) {
+  $items['node/%webform_menu/webform/export-workflow'] = [
+    'title' => 'Export',
+    'page callback' => 'export_tripal_galaxy_workflow',
+    'page arguments' => [1],
+    'access arguments' => ['administer galaxy'],
+    'weight' => 9,
+    'type' => MENU_LOCAL_TASK,
+  ];
+  $items['node/%webform_menu/webform/import-workflow'] = [
+    'title' => 'Import',
+    'page callback' => 'import_tripal_galaxy_workflow',
+    'page arguments' => [1],
+    'access arguments' => ['administer galaxy'],
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/tripal_galaxy.import_webform.form.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
+}
+
+
 /**
  * Implements hook_admin_paths_alter().
  */
@@ -1768,4 +1794,46 @@ function tripal_galaxy_results_download($proxy_id) {
   print tripal_galaxy_stream_url_proxy($proxy_id);
 
   exit();
+}
+
+
+/**
+ * @param $node
+ *
+ * a page callback to export galaxy webform as a json file.
+ */
+function export_tripal_galaxy_workflow($node) {
+
+  $webform = json_encode($node->webform);
+
+  drupal_add_http_header('Content-Type', 'application/json');
+  drupal_add_http_header('Content-Disposition', 'attachment; filename="webform-' . $node->type . '-' . $node->nid . '.json";');
+  drupal_add_http_header('Content-Length', sprintf('%u', strlen($webform)));
+
+  print($webform);
+
+  exit();
+
+}
+
+
+/**
+ * @param $node
+ *
+ * @return array
+ *
+ * a page callback to import galaxy webform from a json file.
+ */
+function import_tripal_galaxy_workflow($node) {
+  $workflow_and_node_ids = [
+    'nid' => $node->nid,
+  ];
+  $build_page = [
+    'json_markup' => [
+      '#markup' => t('Upload an exported Tripal Galaxy webform file. The file should be in JSON format.')
+    ],
+    'form' => drupal_get_form('galaxy_webform_import_form', $workflow_and_node_ids),
+  ];
+
+  return $build_page;
 }
