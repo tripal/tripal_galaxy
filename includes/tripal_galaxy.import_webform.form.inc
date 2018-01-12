@@ -71,4 +71,5 @@ function galaxy_webform_import_form_submit($form, &$form_state) {
       ->fields($component)
       ->execute();
   }
+  drupal_set_message('The Galaxy webform has been successfully replaced!');
 }
