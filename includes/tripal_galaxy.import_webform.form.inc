@@ -10,7 +10,6 @@
  * form builder
  */
 function galaxy_webform_import_form($form, &$form_state, $workflow_and_node_ids) {
-  dpm($workflow_and_node_ids);
   $form['workflow_and_node_ids'] = [
     '#type' => 'value',
     '#value' => $workflow_and_node_ids,
