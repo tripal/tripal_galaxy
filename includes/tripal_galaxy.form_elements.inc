@@ -349,7 +349,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
   $element['description'] = array(
     '#type' => 'item',
     '#title' => $element['#title'] ? '' : 'Data File',
-    '#markup' =>  $element['#description'] . 'Please provide a data files. You may either select an existing file or upload a new file. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+    '#markup' =>  $element['#description'] . 'Please provide a data file. You may either select an existing file or upload a new file. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
 

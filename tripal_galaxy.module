@@ -536,7 +536,7 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
     ->condition('nid', $node->nid)
     ->execute()
     ->fetchObject();
-  if ($workflow->status == 'Altered') {
+  if ($workflow and $workflow->status == 'Altered') {
     drupal_set_message('Unfortunately, this wokflow is deprecated and no longer
         avaliable for submissions.', 'error');
     tripal_set_message('Dear site administrator. This form is disabled because the workflow was
