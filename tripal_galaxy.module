@@ -4,9 +4,9 @@
  *
  */
 
-require ('theme/tripal_galaxy.theme.inc');
-require ('api/tripal_galaxy.api.inc');
-require ('includes/tripal_galaxy.form_elements.inc');
+require('theme/tripal_galaxy.theme.inc');
+require('api/tripal_galaxy.api.inc');
+require('includes/tripal_galaxy.form_elements.inc');
 
 /**
  * Implementation of hook_init()
@@ -23,7 +23,6 @@ function tripal_galaxy_init() {
 }
 
 
-
 /**
  * Implements hook_libraries_info().
  *
@@ -33,19 +32,19 @@ function tripal_galaxy_libraries_info() {
 
   // A very simple library. No changing APIs (hence, no versions), no variants.
   // Expected to be extracted into 'sites/all/libraries/simple'.
-  $libraries['blend4php'] = array(
+  $libraries['blend4php'] = [
     'name' => 'blend4php',
     'vendor url' => 'https://github.com/galaxyproject/blend4php',
     'download url' => 'https://github.com/galaxyproject/blend4php',
-    'version arguments' => array(
+    'version arguments' => [
       'file' => 'version.txt',
       'pattern' => '/^(.*)$/',
       'lines' => 1,
-    ),
-    'files' => array(
-      'php' => array('galaxy.inc'),
-    ),
-  );
+    ],
+    'files' => [
+      'php' => ['galaxy.inc'],
+    ],
+  ];
 
   return $libraries;
 }
@@ -59,16 +58,16 @@ function tripal_galaxy_libraries_info() {
  * @ingroup tripal_file
  */
 function tripal_galaxy_permission() {
-  return array (
-    'use galaxy' => array (
-      'title' => t ( 'Execute Published Galaxy Workflows' ),
-      'description' => t ( 'Allows a user to submit a published workflow for execution on a remote Galaxy Instance' )
-    ),
-    'administer galaxy' => array (
-      'title' => t ( 'Administer Galaxy' ),
-      'description' => t ( 'Allows a user to configure site-wide default Galaxy instances.' )
-    ),
-  );
+  return [
+    'use galaxy' => [
+      'title' => t('Execute Published Galaxy Workflows'),
+      'description' => t('Allows a user to submit a published workflow for execution on a remote Galaxy Instance'),
+    ],
+    'administer galaxy' => [
+      'title' => t('Administer Galaxy'),
+      'description' => t('Allows a user to configure site-wide default Galaxy instances.'),
+    ],
+  ];
 }
 
 /**
@@ -79,369 +78,394 @@ function tripal_galaxy_permission() {
  * @ingroup tripal_galaxy
  */
 function tripal_galaxy_menu() {
-  $items = array ();
+  $items = [];
 
   // EXPLANATION: all extension modules should have an administrative menu item
   // with the path set to 'admin/tripal/extension/[module name]'.
-  $items['admin/tripal/extension/galaxy'] = array (
+  $items['admin/tripal/extension/galaxy'] = [
     'title' => 'Galaxy',
     'description' => 'Integrate workflows from a remote Galaxy instance with this Tripal site',
     'page callback' => 'tripal_galaxy_admin_home',
-    'access arguments' => array('administer galaxy'),
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_NORMAL_ITEM,
     'file' => 'includes/tripal_galaxy.admin.inc',
-    'file path' => drupal_get_path ('module', 'tripal_galaxy')
-  );
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
 
   // Edit Galaxy
-  $items['admin/tripal/extension/galaxy/edit/%'] = array (
+  $items['admin/tripal/extension/galaxy/edit/%'] = [
     'description' => 'Edit a galaxy instance',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array ('tripal_galaxy_admin_configuration_form', 5),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_configuration_form', 5],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin_configuration_form.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy')
-  );
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
 
   // Test Galaxy
-  $items['admin/tripal/extension/galaxy/test/%'] = array (
+  $items['admin/tripal/extension/galaxy/test/%'] = [
     'description' => 'Test a galaxy instance',
     'page callback' => 'tripal_galaxy_admin_test_server',
-    'page arguments' => array (5),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => [5],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy')
-  );
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
 
   // Add Galaxy
-  $items['admin/tripal/extension/galaxy/add'] = array (
+  $items['admin/tripal/extension/galaxy/add'] = [
     'description' => 'Add a galaxy server instance',
     'title' => 'Add Galaxy Instance',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_admin_configuration_form'),
-    'access arguments' => array('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_configuration_form'],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_LOCAL_ACTION,
     'file' => 'includes/tripal_galaxy.admin_configuration_form.inc',
-    'file path' => drupal_get_path ( 'module', 'tripal_galaxy' )
-  );
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
 
   // Available Workflows
-  $items['admin/tripal/extension/galaxy/workflows'] = array(
+  $items['admin/tripal/extension/galaxy/workflows'] = [
     'title' => 'Workflows',
     'description' => 'Lists the available Workflows of the user',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_admin_workflows_form'),
-    'access arguments' => array('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_workflows_form'],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.admin_workflow_form.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 5,
-  );
+  ];
   // Add Workflows
-  $items['admin/tripal/extension/galaxy/workflows/add'] = array(
+  $items['admin/tripal/extension/galaxy/workflows/add'] = [
     'title' => 'Add Workflows',
     'description' => 'Add workflows to the site given the remote galaxy instance',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_admin_add_workflow_form'),
-    'access arguments' => array('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_add_workflow_form'],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_LOCAL_ACTION,
     'file' => 'includes/tripal_galaxy.admin_workflow_form_add.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy' ),
-  );
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
 
   // Remove Workflows
-  $items['admin/tripal/extension/galaxy/workflows/remove/%'] = array (
+  $items['admin/tripal/extension/galaxy/workflows/remove/%'] = [
     'description' => 'Remove a workflow from site',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_admin_confirm_remove_workflow_form', 6),
-    'access arguments' => array('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_confirm_remove_workflow_form', 6],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 10,
-  );
+  ];
 
   // Admin submission report.
-  $items['admin/tripal/extension/galaxy/workflows/report/%'] = array (
+  $items['admin/tripal/extension/galaxy/workflows/report/%'] = [
     'title' => 'Workflow Submission Details',
     'description' => 'The report for a submitted workflow.',
     'page callback' => 'tripal_galaxy_submission_admin_report',
-    'page arguments' => array(6),
-    'access arguments' => array('administer galaxy'),
+    'page arguments' => [6],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 10,
-  );
+  ];
 
   //
   // USER SUBMITTED WORKFLOW JOBS
   //
   // User submission report.
-  $items['user/%/galaxy-jobs/%'] = array (
+  $items['user/%/galaxy-jobs/%'] = [
     'title' => 'Analysis Results',
     'description' => 'The results for a submitted analysis.',
     'page callback' => 'tripal_galaxy_submission_user_report',
-    'page arguments' => array(3),
-    'access arguments' => array('view content'),
+    'page arguments' => [3],
+    'access arguments' => ['view content'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 10,
-  );
+  ];
 
   // User report page
-  $items['user/%/galaxy-jobs/%/results'] = array (
+  $items['user/%/galaxy-jobs/%/results'] = [
     'title' => 'Workflow Submission Files',
     'description' => 'The files from a submitted workflow.',
     'page callback' => '',
-    'page arguments' => array(3),
-    'access arguments' => array('view content'),
+    'page arguments' => [3],
+    'access arguments' => ['view content'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 10,
-  );
+  ];
 
   // Usage
-  $items['admin/tripal/extension/galaxy/usage'] = array (
+  $items['admin/tripal/extension/galaxy/usage'] = [
     'title' => 'Usage',
     'description' => 'View Usage of Galaxy Workflows',
     'page callback' => 'tripal_galaxy_admin_usage_page',
-    'access arguments' => array('administer galaxy'),
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.admin_usage.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 20,
-  );
+  ];
 
   //
   // SITE-WIDE FILES
   //
-  $items['admin/tripal/extension/galaxy/files'] = array (
+  $items['admin/tripal/extension/galaxy/files'] = [
     'title' => 'Files',
     'description' => t('Files available site-wide for workflows.'),
     'page callback' => 'tripal_galaxy_admin_manage_files',
-    'access arguments' => array('administer galaxy'),
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.admin_files.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 40,
-  );
-  $items['admin/tripal/extension/galaxy/files/add'] = array (
+  ];
+  $items['admin/tripal/extension/galaxy/files/add'] = [
     'title' => 'Add a New File',
     'description' => t('Files available site-wide for workflows.'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_admin_add_file_form'),
-    'access arguments' => array('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_add_file_form'],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_LOCAL_ACTION,
     'file' => 'includes/tripal_galaxy.admin_files.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
-  $items['admin/tripal/extension/galaxy/files/disable/%'] = array (
+  ];
+  $items['admin/tripal/extension/galaxy/files/disable/%'] = [
     'description' => "Disable a file.",
     'page callback' => 'tripal_galaxy_admin_disable_file',
-    'page arguments' => array (6),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => [6],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin_files.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
-  $items['admin/tripal/extension/galaxy/files/enable/%'] = array (
+  ];
+  $items['admin/tripal/extension/galaxy/files/enable/%'] = [
     'description' => "Enable a file.",
     'page callback' => 'tripal_galaxy_admin_enable_file',
-    'page arguments' => array (6),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => [6],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin_files.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
-  $items['admin/tripal/extension/galaxy/files/edit/%'] = array (
+  ];
+  $items['admin/tripal/extension/galaxy/files/edit/%'] = [
     'title' => t('Edit File Details'),
     'description' => "Edit a site-wide file.",
     'page callback' => 'drupal_get_form',
-    'page arguments' => array ('tripal_galaxy_admin_edit_file_form', 6),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_edit_file_form', 6],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin_files.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
-  $items['admin/tripal/extension/galaxy/files/delete/%'] = array (
+  ];
+  $items['admin/tripal/extension/galaxy/files/delete/%'] = [
     'title' => t('Delete File'),
     'description' => "Deletes a site-wide file.",
     'page callback' => 'drupal_get_form',
-    'page arguments' => array ('tripal_galaxy_admin_delete_file_form', 6),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_delete_file_form', 6],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin_files.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
+  ];
   //
   // FILE QUOTAS
   //
 
   // Admin view quota
-  $items['admin/tripal/extension/galaxy/quota'] = array (
+  $items['admin/tripal/extension/galaxy/quota'] = [
     'title' => 'Quota',
     'description' => 'Table of the default quota, expiration date, and custom quotas',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_admin_manage_quota_form'),
-    'access arguments' => array('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_manage_quota_form'],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 30,
-  );
+  ];
 
   // Admin remove user quota
-  $items['admin/tripal/extension/galaxy/quota/remove/%'] = array (
+  $items['admin/tripal/extension/galaxy/quota/remove/%'] = [
     'title' => 'Remove custom user quota',
     'description' => "Revert's a user's quota and expiration of files to the site wide defaults.",
     'page callback' => 'drupal_get_form',
-    'page arguments' => array ('tripal_galaxy_admin_remove_quota_form', 6),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_remove_quota_form', 6],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
+  ];
 
   // Add user quota
-  $items['admin/tripal/extension/galaxy/quota/add'] = array (
+  $items['admin/tripal/extension/galaxy/quota/add'] = [
     'title' => 'Add Custom Quota',
     'description' => 'Gives the user a new quota and expiration date',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_admin_add_custom_form'),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_add_custom_form'],
+    'access arguments' => ['administer galaxy'],
     // TODO: Ask Stephen is this is fine as a link at the top of the form
     // as well as a link in the table
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
+  ];
 
   // Autocomplete path for the users on the site
-  $items['admin/tripal/extension/galaxy/quota/user/autocomplete'] = array (
+  $items['admin/tripal/extension/galaxy/quota/user/autocomplete'] = [
     'title' => 'Autocomplete for existing users',
     'description' => 'Provide a list of existing users on the site.',
     'page callback' => 'tripal_galaxy_users_autocomplete',
-    'access arguments' => array ('administer galaxy'),
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
+  ];
 
   // Edit user quota
-  $items['admin/tripal/extension/galaxy/quota/edit/%'] = array (
+  $items['admin/tripal/extension/galaxy/quota/edit/%'] = [
     'title' => 'Edit Custom Quota',
     'description' => 'Edit an existing user\'s quota and/or expiration date.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array ('tripal_galaxy_admin_edit_quota_form', 6),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => ['tripal_galaxy_admin_edit_quota_form', 6],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
+  ];
 
   //
   // USER FILES
   //
 
   // User view quota (Tab)
-  $items['user/%/galaxy-files'] = array (
+  $items['user/%/galaxy-files'] = [
     'title' => 'Uploads',
     'description' => 'Monitors what files that have been uploaded by user through the tripal_galaxy module',
     'page callback' => 'tripal_galaxy_user_files_page',
-    'page arguments' => array(1),
-    'access arguments' => array ('administer galaxy'),
+    'page arguments' => [1],
+    'access arguments' => ['administer galaxy'],
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 10,
-  );
+  ];
 
-  $items['user/%/galaxy-files/%'] = array (
+  $items['user/%/galaxy-files/%'] = [
     'title' => 'File Details',
     'description' => "View details about the file",
     'page callback' => 'tripal_galaxy_view_file',
-    'page arguments' => array(1, 3),
+    'page arguments' => [1, 3],
     'access callback' => 'tripal_galaxy_file_action_access',
-    'access arguments' => array('renew', 3),
+    'access arguments' => ['renew', 3],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
+  ];
   // User file renew.
-  $items['user/%/galaxy-files/%/renew'] = array (
+  $items['user/%/galaxy-files/%/renew'] = [
     'title' => 'Renew File',
     'description' => "Renew a user's file",
     'page callback' => 'tripal_galaxy_renew_file',
-    'page arguments' => array(3),
+    'page arguments' => [3],
     'access callback' => 'tripal_galaxy_file_action_access',
-    'access arguments' => array('renew', 3),
+    'access arguments' => ['renew', 3],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
+  ];
   // User file download.
-  $items['user/%/galaxy-files/%/download'] = array (
+  $items['user/%/galaxy-files/%/download'] = [
     'title' => 'Download File',
     'description' => "Download a user's file based off of the link clicked in the table",
     'page callback' => 'tripal_galaxy_download_file',
-    'page arguments' => array(3),
-    'access arguments' => array('download', 3),
+    'page arguments' => [3],
+    'access arguments' => ['download', 3],
     'access callback' => 'tripal_galaxy_file_action_access',
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
+  ];
   // User file delete.
-  $items['user/%/galaxy-files/%/delete'] = array (
+  $items['user/%/galaxy-files/%/delete'] = [
     'title' => 'Delete File',
     'description' => "Delete a user's file based on either user action or expired file",
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tripal_galaxy_delete_file_form', 1, 3),
+    'page arguments' => ['tripal_galaxy_delete_file_form', 1, 3],
     'access callback' => 'tripal_galaxy_file_action_access',
-    'access arguments' => array ('delete', 3),
+    'access arguments' => ['delete', 3],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  );
+  ];
 
 
-
-  $items['galaxy/proxy/%'] = array(
+  $items['galaxy/proxy/%'] = [
     'title' => 'Results Viewer',
     'page callback' => 'tripal_galaxy_stream_url_proxy',
-    'page arguments' => array(2),
-    'access arguments' => array('use galaxy'),
+    'page arguments' => [2],
+    'access arguments' => ['use galaxy'],
     'type' => MENU_CALLBACK,
-  );
-  $items['galaxy/viewer/%'] = array(
+  ];
+  $items['galaxy/viewer/%'] = [
     'title' => 'Results Viewer',
     'page callback' => 'tripal_galaxy_results_viewer_page',
-    'page arguments' => array(2),
-    'access arguments' => array('use galaxy'),
+    'page arguments' => [2],
+    'access arguments' => ['use galaxy'],
     'type' => MENU_CALLBACK,
-  );
-  $items['galaxy/viewer-full/%'] = array(
+  ];
+  $items['galaxy/viewer-full/%'] = [
     'title' => 'Results Viewer',
     'page callback' => 'tripal_galaxy_results_viewer_full_page',
-    'page arguments' => array(2),
-    'access arguments' => array('use galaxy'),
+    'page arguments' => [2],
+    'access arguments' => ['use galaxy'],
     'type' => MENU_CALLBACK,
-  );
-  $items['galaxy/download/%'] = array(
+  ];
+  $items['galaxy/download/%'] = [
     'title' => 'Download',
     'page callback' => 'tripal_galaxy_results_download',
-    'page arguments' => array(2),
-    'access arguments' => array('use galaxy'),
+    'page arguments' => [2],
+    'access arguments' => ['use galaxy'],
     'type' => MENU_CALLBACK,
-  );
+  ];
 
   return $items;
 }
+
+
+/**
+ * Implements hook_menu_alter().
+ */
+function tripal_galaxy_menu_alter(&$items) {
+  $items['node/%webform_menu/webform/export-workflow'] = [
+    'title' => 'Export',
+    'page callback' => 'export_tripal_galaxy_workflow',
+    'page arguments' => [1],
+    'access arguments' => ['access content'],
+    'weight' => 9,
+    'type' => MENU_LOCAL_TASK,
+  ];
+  $items['node/%webform_menu/webform/import-workflow'] = [
+    'title' => 'Import',
+    'page callback' => 'import_tripal_galaxy_workflow',
+    'page arguments' => [1],
+    'access arguments' => ['access content'],
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/tripal_galaxy.import_webform.form.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
+}
+
 
 /**
  * Implements hook_admin_paths_alter().
@@ -449,8 +473,10 @@ function tripal_galaxy_menu() {
 function tripal_galaxy_admin_paths_alter(&$paths) {
   $paths['galaxy/viewer*'] = TRUE;
 }
+
 /**
  * Checks if the current user has permissions to perform an action on a file.
+ *
  * @param $op
  *   The operation to perform.  These include 'download', 'renew' and 'delete'
  * @param $fid
@@ -487,9 +513,9 @@ function tripal_galaxy_file_action_access($op, $fid) {
  * @ingroup tripal_galaxy
  */
 function tripal_galaxy_views_api() {
-  return array (
-    'api' => 3.0
-  );
+  return [
+    'api' => 3.0,
+  ];
 }
 
 /**
@@ -500,26 +526,26 @@ function tripal_galaxy_views_api() {
  * @ingroup tripal_galaxy
  */
 function tripal_galaxy_theme($existing, $type, $theme, $path) {
-  $items = array (
-    'html__galaxy__viewer_full' => array(
+  $items = [
+    'html__galaxy__viewer_full' => [
       'template' => 'html--galaxy--viewer-full',
       'render element' => 'html',
       'base hook' => 'html',
       'path' => drupal_get_path('module', 'tripal_galaxy') . "/theme/templates",
-    ),
-    'page__galaxy__viewer_full' => array(
+    ],
+    'page__galaxy__viewer_full' => [
       'template' => 'page--galaxy--viewer-full',
       'render element' => 'page',
       'base hook' => 'page',
       'path' => drupal_get_path('module', 'tripal_galaxy') . "/theme/templates",
-    ),
-    'tripal_galaxy_admin_add_workflow_form_rows' => array (
-      'render element' => 'form'
-    ),
-    'tripal_galaxy_admin_workflows_form_rows' => array(
-      'render element' => 'form'
-    ),
-  );
+    ],
+    'tripal_galaxy_admin_add_workflow_form_rows' => [
+      'render element' => 'form',
+    ],
+    'tripal_galaxy_admin_workflows_form_rows' => [
+      'render element' => 'form',
+    ],
+  ];
   return $items;
 }
 
@@ -528,7 +554,7 @@ function tripal_galaxy_theme($existing, $type, $theme, $path) {
  *
  * Add a submit handler to the client webform form.
  */
-function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $form_id ) {
+function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $form_id) {
 
   $node = $form['#node'];
   $workflow = db_select('tripal_galaxy_workflow', 'tgw')
@@ -543,13 +569,13 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
         altered on the remote Galaxy Instance and may be out of sync
         with this web form.  If you want to continue to offer this workflow
         to your site visitors, you will need to ' . l('add the workflow', 'admin/tripal/extension/galaxy/workflows') . ' again as a new web form on this site.',
-        TRIPAL_ERROR);
+      TRIPAL_ERROR);
     $form['actions']['next']['#disabled'] = TRUE;
   }
 
   // Check if this particular webform really is a galaxy webform
   // At each 'turn of the page' of the particular webform this is being called
-  if($form['#node']->webform['components'][1]['form_key'] == 'galaxy_webform'){
+  if ($form['#node']->webform['components'][1]['form_key'] == 'galaxy_webform') {
     $form['#submit'][] = 'tripal_galaxy_webform_client_form_submit';
   }
 }
@@ -579,13 +605,13 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
       ->fetchObject();
 
     // To be implemented more properly once inputs are generated
-    $data = array(
+    $data = [
       'sid' => $sid,
       'galaxy_workflow_id' => $workflow->galaxy_workflow_id,
       'errors' => '',
       'submit_date' => REQUEST_TIME,
       'status' => 'Waiting',
-    );
+    ];
 
     // Now insert the submission into the database
     drupal_write_record('tripal_galaxy_workflow_submission', $data);
@@ -594,25 +620,24 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
     // so that they are mapped to the correct submission.
     foreach ($form_state['values']['submitted'] as $cid => $component) {
       if (is_array($component) and array_key_exists('html5_file_fid', $component)
-          and $component['html5_file_fid']) {
+        and $component['html5_file_fid']) {
         $file = file_load($component['html5_file_fid']);
         $form_key = $component['html5_file_table_key'];
         file_usage_add($file, 'tripal_galaxy', $form_key, $sid);
       }
     }
 
-    $args = array($sid);
-    $includes = array();
+    $args = [$sid];
+    $includes = [];
     $job_id = tripal_add_job("Galaxy Workflow #" . $sid, 'tripal_galaxy',
-        'tripal_galaxy_invoke_workflow', $args, $user->uid, 10, $includes);
+      'tripal_galaxy_invoke_workflow', $args, $user->uid, 10, $includes);
     if ($job_id) {
       drupal_set_message(t('Your job is successfully submitted to the job queue! You will be notified by email when your job begins and completes.'));
     }
     else {
       drupal_set_message(t('Your analysis workflow was successfully submitted, but the job could not be added. Please contact the site administrator to report this issue.', 'warning'));
     }
-  }
-  catch (Exception $e) {
+  } catch (Exception $e) {
     drupal_set_message(t('Could not complete workflow submission.  Please contact the web site administrator to report this issue.'), 'error');
     watchdog_exception('tripal_galaxy', $e);
   }
@@ -639,7 +664,7 @@ function _tripal_galaxy_workflow_invoke_build_values(&$values, $input_full_name,
 
   // As long as we have names in our "name path" then recurse.
   if (count($names) > 0) {
-    $temp = array();
+    $temp = [];
     $next_name = implode("|", $names);
     $had_value = _tripal_galaxy_workflow_invoke_build_values($temp, $next_name, $value);
     if ($had_value) {
@@ -666,11 +691,11 @@ function _tripal_galaxy_workflow_invoke_build_values(&$values, $input_full_name,
  * Describes new components for webforms that Galaxy workflows will use.
  */
 function tripal_galaxy_webform_component_info() {
-  $components = array();
-  $components['BDSS_file'] = array(
+  $components = [];
+  $components['BDSS_file'] = [
     'label' => t('BDSS File'),
     'description' => t('Allows multiple paths (URL, upload, Tripal web services) that a file may be attached.'),
-    'features' =>  array(
+    'features' => [
       'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
@@ -683,13 +708,13 @@ function tripal_galaxy_webform_component_info() {
       'spam_analysis' => FALSE,
       'attachment' => FALSE,
       'conditional_action_set' => TRUE,
-    ),
+    ],
     'file' => 'includes/components/tripal_galaxy.BDSS_file.inc',
-  );
-  $components['galaxy_sfile'] = array(
+  ];
+  $components['galaxy_sfile'] = [
     'label' => t('File'),
     'description' => t('Provides a single file for a Galaxy input.'),
-    'features' =>  array(
+    'features' => [
       'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
@@ -702,13 +727,13 @@ function tripal_galaxy_webform_component_info() {
       'spam_analysis' => FALSE,
       'attachment' => FALSE,
       'conditional_action_set' => TRUE,
-    ),
+    ],
     'file' => 'includes/components/tripal_galaxy.galaxy_sfile.inc',
-  );
-  $components['galaxy_sflist'] = array(
+  ];
+  $components['galaxy_sflist'] = [
     'label' => t('List Files'),
     'description' => t('Provides a list of files for a Galaxy input.'),
-    'features' =>  array(
+    'features' => [
       'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
@@ -721,13 +746,13 @@ function tripal_galaxy_webform_component_info() {
       'spam_analysis' => FALSE,
       'attachment' => FALSE,
       'conditional_action_set' => TRUE,
-    ),
+    ],
     'file' => 'includes/components/tripal_galaxy.galaxy_sflist.inc',
-  );
-  $components['galaxy_pflist'] = array(
+  ];
+  $components['galaxy_pflist'] = [
     'label' => t('List of Paired Files'),
     'description' => t('Provides a list of paired files for a Galaxy input.'),
-    'features' =>  array(
+    'features' => [
       'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
@@ -740,13 +765,13 @@ function tripal_galaxy_webform_component_info() {
       'spam_analysis' => FALSE,
       'attachment' => FALSE,
       'conditional_action_set' => TRUE,
-    ),
+    ],
     'file' => 'includes/components/tripal_galaxy.galaxy_pflist.inc',
-  );
-  $components['fixed_value'] = array(
+  ];
+  $components['fixed_value'] = [
     'label' => t('Fixed Value'),
     'description' => t('A fixed value set by the workflow programmer.'),
-    'features' =>  array(
+    'features' => [
       'csv' => TRUE,
       'email' => FALSE,
       'email_address' => FALSE,
@@ -759,11 +784,12 @@ function tripal_galaxy_webform_component_info() {
       'spam_analysis' => FALSE,
       'attachment' => FALSE,
       'conditional_action_set' => TRUE,
-    ),
+    ],
     'file' => 'includes/components/tripal_galaxy.fixed_value.inc',
-  );
+  ];
   return $components;
 }
+
 /**
  *
  */
@@ -773,7 +799,7 @@ function tripal_galaxy_webform_submission_presave($node, &$submission) {
   // needed elements added by our galaxy form elements.
   foreach ($submission->data as $cid => $data) {
     $component = db_select('webform_component', 'wc')
-      ->fields('wc', array('type', 'form_key'))
+      ->fields('wc', ['type', 'form_key'])
       ->condition('cid', $cid)
       ->execute()
       ->fetchObject();
@@ -786,7 +812,7 @@ function tripal_galaxy_webform_submission_presave($node, &$submission) {
       // If we have a data collection then we need to copy the files out
       // of the data collection and into the Galaxy files.
       if (array_key_exists('data_collection_fset', $submission->data[$cid]) and
-          $submission->data[$cid]['data_collection_fset']['data_collection']) {
+        $submission->data[$cid]['data_collection_fset']['data_collection']) {
         $fid = $submission->data[$cid]['data_collection_fset']['data_collection'];
         $file = file_load($fid);
         $site_dir = tripal_galaxy_get_files_dir();
@@ -822,6 +848,7 @@ function tripal_galaxy_webform_submission_presave($node, &$submission) {
     }
   }
 }
+
 /**
  * The report page for a galaxy workflow submission.
  *
@@ -839,26 +866,38 @@ function tripal_galaxy_workflow_report($sid) {
   }
 
   // Create a galaxy logo clickable image.
-  $galaxy_logo = l('<img src="' . url(drupal_get_path('module', 'tripal_galaxy') . '/theme/images/PoweredByGalaxy120.png') . '" border="0"></img>', "https://galaxyproject.org/", array('html' => TRUE, 'attributes' => array('target' => '_blank')));
+  $galaxy_logo = l('<img src="' . url(drupal_get_path('module', 'tripal_galaxy') . '/theme/images/PoweredByGalaxy120.png') . '" border="0"></img>', "https://galaxyproject.org/", [
+    'html' => TRUE,
+    'attributes' => ['target' => '_blank'],
+  ]);
 
   // Get the submission details.
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', array('sid', 'galaxy_workflow_id', 'status', 'errors', 'submit_date', 'start_time', 'end_time', 'invocation_id'));
+  $query->fields('tgws', [
+    'sid',
+    'galaxy_workflow_id',
+    'status',
+    'errors',
+    'submit_date',
+    'start_time',
+    'end_time',
+    'invocation_id',
+  ]);
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', array('nid', 'galaxy_id', 'workflow_id'));
+  $query->fields('tgw', ['nid', 'galaxy_id', 'workflow_id']);
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
   if (!$submission) {
     return FALSE;
   }
 
-  $submission->errors = $submission->errors ? unserialize($submission->errors) : array();
+  $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
 
   // Get the node that this workflow belongs to
   $node = node_load($submission->nid);
 
   // Does this user have access to this node?
-  if(!node_access('view', $node)) {
+  if (!node_access('view', $node)) {
     drupal_access_denied();
     module_invoke_all('exit');
     drupal_exit();
@@ -871,122 +910,122 @@ function tripal_galaxy_workflow_report($sid) {
     ->execute()
     ->fetchObject();
 
-  $headers = array();
-  $rows = array();
+  $headers = [];
+  $rows = [];
 
-  $rows[] = array(
-    array(
+  $rows[] = [
+    [
       'data' => 'Workflow Name',
       'header' => TRUE,
-      'width' => '25%'
-    ),
+      'width' => '25%',
+    ],
     $node->title,
-  );
+  ];
   if (user_access('Administer Galaxy')) {
-    $rows[] = array(
-      array(
+    $rows[] = [
+      [
         'data' => 'Submission ID',
         'header' => TRUE,
-        'width' => '25%'
-      ),
+        'width' => '25%',
+      ],
       $submission->sid,
-    );
-    $rows[] = array(
-      array(
+    ];
+    $rows[] = [
+      [
         'data' => 'Workflow ID',
         'header' => TRUE,
-        'width' => '25%'
-      ),
+        'width' => '25%',
+      ],
       $submission->workflow_id,
-    );
-    $rows[] = array(
-      array(
+    ];
+    $rows[] = [
+      [
         'data' => 'Invocation ID',
         'header' => TRUE,
-        'width' => '25%'
-      ),
+        'width' => '25%',
+      ],
       $submission->invocation_id,
-    );
+    ];
   }
-  $rows[] = array(
-    array(
+  $rows[] = [
+    [
       'data' => 'Status',
       'header' => TRUE,
-    ),
+    ],
     $submission->status,
-  );
-  $rows[] = array(
-    array(
+  ];
+  $rows[] = [
+    [
       'data' => 'Submission Date',
       'header' => TRUE,
-    ),
+    ],
     format_date($submission->submit_date),
-  );
-  $rows[] = array(
-    array(
+  ];
+  $rows[] = [
+    [
       'data' => 'Start Time',
       'header' => TRUE,
-    ),
+    ],
     $submission->start_time ? format_date($submission->start_time) : '',
-  );
-  $rows[] = array(
-    array(
+  ];
+  $rows[] = [
+    [
       'data' => 'End Time',
       'header' => TRUE,
-    ),
+    ],
     $submission->end_time ? format_date($submission->end_time) : '',
-  );
+  ];
 
-  $rows[] = array(
-    array(
+  $rows[] = [
+    [
       'data' => 'Galaxy Server',
       'header' => TRUE,
-    ),
+    ],
     $galaxy->servername . '<br>' . $galaxy_logo,
-  );
+  ];
 
   if ($submission->status == 'Error') {
-    $content['status_message'] = array(
+    $content['status_message'] = [
       '#type' => 'markup',
       '#markup' => '<div class="messages error">' .
         t('This analysis failed to complete succesfully. See the report below for error and output logs.') .
         '</div>',
-    );
+    ];
   }
 
-  $content['analysis_name'] = array(
+  $content['analysis_name'] = [
     '#type' => 'item',
     '#title' => 'Analysis Name',
-    '#markup' => $node->title
-  );
+    '#markup' => $node->title,
+  ];
 
-  $content['submission_details'] = array(
+  $content['submission_details'] = [
     '#type' => 'fieldset',
     '#title' => t('Submission Details'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#attributes' => array(
-      'class' => array('collapsible', 'collapsed'),
-    ),
-    '#attached' => array(
-      'js' => array('misc/collapse.js', 'misc/form.js')
-    ),
-  );
+    '#attributes' => [
+      'class' => ['collapsible', 'collapsed'],
+    ],
+    '#attached' => [
+      'js' => ['misc/collapse.js', 'misc/form.js'],
+    ],
+  ];
 
-  $content['submission_details']['table'] = array(
+  $content['submission_details']['table'] = [
     '#type' => 'markup',
-    '#markup' => theme_table(array(
+    '#markup' => theme_table([
       'header' => $headers,
       'rows' => $rows,
-      'attributes' => array(),
+      'attributes' => [],
       'sticky' => FALSE,
       'caption' => '',
-      'colgroups' => array(),
+      'colgroups' => [],
       'empty' => '',
-    )),
-  );
+    ]),
+  ];
 
-  $rows = array();
+  $rows = [];
 
   $galaxy_server = db_select('tripal_galaxy', 'tg')
     ->fields('tg')
@@ -996,29 +1035,29 @@ function tripal_galaxy_workflow_report($sid) {
 
   $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
 
-  $content['results'] = array(
+  $content['results'] = [
     '#type' => 'item',
     '#title' => t('Results'),
-    '#description' => t('Each step in the workflow may have results of its own.  Click the step name below to view its results.')
-  );
-  $content['result_tabs'] = array(
+    '#description' => t('Each step in the workflow may have results of its own.  Click the step name below to view its results.'),
+  ];
+  $content['result_tabs'] = [
     '#type' => 'vertical_tabs',
-    '#theme_wrappers' => array('vertical_tabs'),
-    '#attached' => array(
-      'js' => array(
+    '#theme_wrappers' => ['vertical_tabs'],
+    '#attached' => [
+      'js' => [
         'misc/form.js',
         'misc/collapse.js',
         'misc/vertical-tabs.js',
-      ),
-      'css' => array(
+      ],
+      'css' => [
         'misc/vertical-tabs.css',
-      ),
-    ),
+      ],
+    ],
     '#children' => '',
-  );
+  ];
 
   $has_any_results = FALSE;
-  if (is_array($submission->errors)){
+  if (is_array($submission->errors)) {
     ksort($submission->errors);
     foreach ($submission->errors as $step_index => $jobs) {
       $has_step_results = FALSE;
@@ -1033,50 +1072,50 @@ function tripal_galaxy_workflow_report($sid) {
       // job status.
       if (array_key_exists('history', $jobs)) {
         if (user_access('Administer Galaxy')) {
-          $content['status_message'] = array(
+          $content['status_message'] = [
             '#type' => 'markup',
             '#markup' => '<div class="messages error">' .
-            t('The job report saved for this analysis is out-of-date. Please update using the following Drush command: ' .
-              '<br><br>drush trp-galaxy-status --submission=%sid --force=1 --root=%base_path',
-                array('%sid' => $submission->sid, '%base_path' => DRUPAL_ROOT))
-          );
+              t('The job report saved for this analysis is out-of-date. Please update using the following Drush command: ' .
+                '<br><br>drush trp-galaxy-status --submission=%sid --force=1 --root=%base_path',
+                ['%sid' => $submission->sid, '%base_path' => DRUPAL_ROOT]),
+          ];
         }
         continue;
       }
 
-      $step_content = array();
+      $step_content = [];
       $job_index = 0;
       foreach ($jobs as $job_id => $logs) {
         $job_index++;
 
         if ($logs['state'] == 'error') {
-          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error'] = array(
+          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error'] = [
             '#type' => 'fieldset',
             '#title' => $logs['step_name'] . ' on job ' . $job_index . ' (Error)',
             '#collapsed' => TRUE,
             '#collapsible' => TRUE,
-            '#attributes' => array(
-              'class' => array('collapsible', 'collapsed'),
-            ),
-            '#attached' => array(
-              'js' => array('misc/collapse.js', 'misc/form.js')
-            ),
-          );
-          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error']['status'] = array(
+            '#attributes' => [
+              'class' => ['collapsible', 'collapsed'],
+            ],
+            '#attached' => [
+              'js' => ['misc/collapse.js', 'misc/form.js'],
+            ],
+          ];
+          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error']['status'] = [
             '#type' => 'item',
             '#title' => t('Status'),
             '#markup' => $logs['state'],
-          );
-          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error']['output_log'] = array(
+          ];
+          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error']['output_log'] = [
             '#type' => 'item',
             '#title' => t('Output Log'),
             '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stdout'] . '</pre>',
-          );
-          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error']['error_log'] = array(
+          ];
+          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error']['error_log'] = [
             '#type' => 'item',
             '#title' => t('Error Log'),
             '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stderr'] . '</pre>',
-          );
+          ];
         }
 
         // Find the files from this step.
@@ -1091,18 +1130,18 @@ function tripal_galaxy_workflow_report($sid) {
 
           $has_step_results = TRUE;
           $has_any_results = TRUE;
-          $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index] = array(
+          $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index] = [
             '#type' => 'fieldset',
             '#title' => $history_content['name'],
             '#collapsed' => TRUE,
             '#collapsible' => TRUE,
-            '#attributes' => array(
-              'class' => array('collapsible', 'collapsed'),
-            ),
-            '#attached' => array(
-              'js' => array('misc/collapse.js', 'misc/form.js')
-            ),
-          );
+            '#attributes' => [
+              'class' => ['collapsible', 'collapsed'],
+            ],
+            '#attached' => [
+              'js' => ['misc/collapse.js', 'misc/form.js'],
+            ],
+          ];
 
           switch ($history_content['type']) {
             case 'file':
@@ -1112,11 +1151,11 @@ function tripal_galaxy_workflow_report($sid) {
               $link = $history_content['content_link'];
               $proxy_id = tripal_galaxy_set_proxy_url($link, $galaxy, $history_content, $submission, $node);
               $file_size = tripal_galaxy_format_bytes($history_content['file_size']);
-              $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['download_link'] = array(
+              $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['download_link'] = [
                 '#type' => 'item',
                 '#title' => t('Download Results'),
                 '#markup' => l($history_content['name'], 'galaxy/download/' . $proxy_id) . ' (' . $file_size . ')',
-              );
+              ];
               break;
             default:
               break;
@@ -1126,130 +1165,130 @@ function tripal_galaxy_workflow_report($sid) {
             case 'html':
               $url = $galaxy_server->url . $history_content['download_url'];
               $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
-              $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = array(
+              $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
                 '#type' => 'item',
                 '#title' => t('View Results'),
-                '#markup' => l($history_content['name'], 'galaxy/viewer/'. $proxy_id),
-                '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>'
-              );
+                '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
+                '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
+              ];
               break;
             default:
               // Any files that are smaller than 1MB can be shown in a browser.
-              if ($history_content['file_size'] < pow(10,6)) {
+              if ($history_content['file_size'] < pow(10, 6)) {
                 $url = $galaxy_server->url . $history_content['download_url'];
                 $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
-                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = array(
+                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
                   '#type' => 'item',
                   '#title' => t('View Results'),
-                  '#markup' => l($history_content['name'], 'galaxy/viewer/'. $proxy_id),
-                  '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>'
-                );
+                  '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
+                  '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
+                ];
               }
               else {
-                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = array(
+                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
                   '#type' => 'item',
                   '#title' => t('View Results'),
                   '#markup' => 'Result file is too large to view. Please download.',
-                );
+                ];
               }
-              $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['peek'] = array(
+              $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['peek'] = [
                 '#type' => 'item',
                 '#title' => ('Peek at the results'),
                 '#description' => 'A view of the top of the output file.',
                 '#markup' => $history_content['peek'],
-              );
+              ];
               break;
           } // end switch ($history_content['extension']) { ...
         } // end foreach ($history_contents as $index => $history_content) { ...
       } // foreach ($jobs as $job_id => $logs) { ...
 
       if (!$has_step_results) {
-        $step_content['no_results'] = array(
+        $step_content['no_results'] = [
           '#type' => 'markup',
-          '#markup' => t('There are currently no results for this step. The current state of this task is: %status', array('%status' => $logs['state'])),
-        );
+          '#markup' => t('There are currently no results for this step. The current state of this task is: %status', ['%status' => $logs['state']]),
+        ];
       }
 
       if (user_access('Administer Galaxy')) {
-        $step_content['run_summary'] = array(
+        $step_content['run_summary'] = [
           '#type' => 'fieldset',
           '#title' => 'Run Details',
           '#collapsed' => TRUE,
           '#collapsible' => TRUE,
-          '#attributes' => array(
-            'class' => array('collapsible', 'collapsed'),
-          ),
-          '#attached' => array(
-            'js' => array('misc/collapse.js', 'misc/form.js')
-          ),
-        );
+          '#attributes' => [
+            'class' => ['collapsible', 'collapsed'],
+          ],
+          '#attached' => [
+            'js' => ['misc/collapse.js', 'misc/form.js'],
+          ],
+        ];
 
-        $step_content['run_summary']['step_id'] = array(
+        $step_content['run_summary']['step_id'] = [
           '#type' => 'item',
           '#title' => t('Step ID'),
           '#markup' => $logs['step_id'],
-        );
-        $step_content['run_summary']['job_id'] = array(
+        ];
+        $step_content['run_summary']['job_id'] = [
           '#type' => 'item',
           '#title' => t('Job ID'),
           '#markup' => $logs['job_id'] ? $logs['job_id'] : 'N/A',
-        );
-        $step_content['run_summary']['state'] = array(
+        ];
+        $step_content['run_summary']['state'] = [
           '#type' => 'item',
           '#title' => t('Job State'),
           '#markup' => $logs['state'] == 'error' ? '<font color="red"><b>' . $logs['state'] . '</b></font>' : $logs['state'],
-        );
-        $step_content['run_summary']['misc_info'] = array(
+        ];
+        $step_content['run_summary']['misc_info'] = [
           '#type' => 'item',
           '#title' => t('Misc Info'),
           '#markup' => $logs['misc_info'],
-        );
+        ];
 
         if ($logs['job_id']) {
-          $step_content['run_summary']['output_log'] = array(
+          $step_content['run_summary']['output_log'] = [
             '#type' => 'item',
             '#title' => t('Output Log'),
             '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stdout'] . '</pre>',
-          );
-          $step_content['run_summary']['error_log'] = array(
+          ];
+          $step_content['run_summary']['error_log'] = [
             '#type' => 'item',
             '#title' => t('Error Log'),
             '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stderr'] . '</pre>',
-          );
+          ];
         }
       }
       $step_name = $logs['step_name'];
-      $fieldset = array(
+      $fieldset = [
         '#type' => 'fieldset',
-        '#title' =>  $step_name,
+        '#title' => $step_name,
         '#collapsed' => FALSE,
         '#collapsible' => TRUE,
         '#value' => render($step_content),
         '#group' => 'result_tabs',
-        '#attributes' => array(
+        '#attributes' => [
           'id' => 'tripal-galaxy-results-fieldset',
-        ),
-        '#attached' => array(
-          'js' => array('misc/collapse.js', 'misc/form.js')
-        ),
-      );
+        ],
+        '#attached' => [
+          'js' => ['misc/collapse.js', 'misc/form.js'],
+        ],
+      ];
       $content['result_tabs']['#children'] .= render($fieldset);
     }
   }
 
   if ($has_any_results) {
-    $content['results'] = array(
+    $content['results'] = [
       '#type' => 'item',
       '#title' => t('Results'),
       '#markup' => t('Expand the fields below to view the status and results of each step in the analysis.'),
-    );
+    ];
   }
   else {
-    $content['results'] = array(
+    $content['results'] = [
       '#type' => 'item',
       '#title' => t('Results'),
-      '#markup' => t('Currently, no results exist for this job. The current state of the job is:  %state.', array('%state' => $submission->status)),
-    );
+      '#markup' => t('Currently, no results exist for this job. The current state of the job is:  %state.', ['%state' => $submission->status]),
+    ];
   }
 
   return $content;
@@ -1268,13 +1307,13 @@ function tripal_galaxy_user_view_files($form, &$form_state) {
   global $user;
 
   // set the breadcrumb
-  $breadcrumb = array();
+  $breadcrumb = [];
   $breadcrumb[] = l('Home', '<front>');
   $breadcrumb[] = l($user->name, 'user/' . $user->uid);
   $breadcrumb[] = l('Files', 'user/' . $user->uid . '/files');
   drupal_set_breadcrumb($breadcrumb);
 
-  $rows = array ();
+  $rows = [];
   $rows = tripal_galaxy_gather_user_files($user->uid, 'tripal_galaxy');
 
   // Check to see if there is a custom quota/exp date to place at the
@@ -1283,7 +1322,7 @@ function tripal_galaxy_user_view_files($form, &$form_state) {
 
   // Display on the table, include the original time of upload, size, actions
   // (delete, renew), and file usage (what workflows are using the file)
-  $header = array(
+  $header = [
     'fid' => t('FID'),
     'filename' => t('File'), // TODO: File name needs to be a download link
     'timestamp' => t('Uploaded'),
@@ -1291,18 +1330,19 @@ function tripal_galaxy_user_view_files($form, &$form_state) {
     'filesize' => t('File Size'),
     'file_usage' => t('File Usage'),
     'actions' => t('Actions'), // Delete, Renew, others?
-  );
+  ];
 
   // $module in this case is tripal_galaxy
-  $form['table'] = array (
+  $form['table'] = [
     '#theme' => 'table',
     '#header' => $header,
     '#rows' => $rows,
-  );
+  ];
 
   //drupal_set_message("y hello there");
   return $form;
 }
+
 /**
  * Retrieves the workflow submission report for an admin user.
  *
@@ -1311,7 +1351,7 @@ function tripal_galaxy_user_view_files($form, &$form_state) {
 function tripal_galaxy_submission_admin_report($sid) {
 
   // Set the breadcrumb.
-  $breadcrumb = array();
+  $breadcrumb = [];
   $breadcrumb[] = l('Home', '<front>');
   $breadcrumb[] = l('Administration', 'admin');
   $breadcrumb[] = l('Tripal', 'admin/tripal');
@@ -1328,7 +1368,7 @@ function tripal_galaxy_submission_admin_report($sid) {
  */
 function tripal_galaxy_cron() {
 
-  $args = array();
+  $args = [];
   tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy', 'tripal_galaxy_check_status', $args, 1);
 }
 
@@ -1343,8 +1383,8 @@ function tripal_galaxy_cron() {
 function tripal_galaxy_check_status(TripalJob $job) {
   // Update the status of running workflows
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', array('sid'));
-  $query->condition('tgws.status', array('Error', 'Completed'), 'NOT IN');
+  $query->fields('tgws', ['sid']);
+  $query->condition('tgws.status', ['Error', 'Completed'], 'NOT IN');
   $submissions = $query->execute();
   foreach ($submissions as $submission) {
     tripal_galaxy_check_submission_status($submission->sid);
@@ -1383,12 +1423,14 @@ function tripal_galaxy_download_from_links($link_clicked, $links) {
 
   // Check if the user clicked the whole history or a history content link.
   // Two different calls for now
-  if($link_clicked == 'whole_history') {
+  if ($link_clicked == 'whole_history') {
 
   }
 
-  else if(array_key_exists($link_clicked, $links)) {
+  else {
+    if (array_key_exists($link_clicked, $links)) {
 
+    }
   }
 }
 
@@ -1397,13 +1439,20 @@ function tripal_galaxy_download_from_links($link_clicked, $links) {
  */
 function tripal_galaxy_mail($key, &$message, $params) {
 
-  $site_name =  variable_get('site_name', 'Drupal');
+  $site_name = variable_get('site_name', 'Drupal');
 
   // Get the submission details.
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', array('galaxy_workflow_id', 'status', 'errors', 'submit_date', 'start_time', 'end_time'));
+  $query->fields('tgws', [
+    'galaxy_workflow_id',
+    'status',
+    'errors',
+    'submit_date',
+    'start_time',
+    'end_time',
+  ]);
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', array('nid', 'galaxy_id'));
+  $query->fields('tgw', ['nid', 'galaxy_id']);
   $query->condition('tgws.sid', $params['sid']);
   $submission = $query->execute()->fetchObject();
 
@@ -1412,7 +1461,7 @@ function tripal_galaxy_mail($key, &$message, $params) {
 
   switch ($key) {
     case 'submission-started':
-      $message['subject'] = t("Your job at %site_name has started", array('%site_name' => $site_name));
+      $message['subject'] = t("Your job at %site_name has started", ['%site_name' => $site_name]);
       $message['body'][] = "You recently submitted a job titled  \"" . $node->title . "\". ";
       $message['body'][] = "This job has started.";
       $message['body'][] = "You may check the status of all submitted jobs in the " .
@@ -1420,7 +1469,7 @@ function tripal_galaxy_mail($key, &$message, $params) {
       $message['body'][] = "Thank you.";
       break;
     case 'submission-ended':
-      $message['subject'] = t("Your job at %site_name has completed", array('%site_name' => $site_name));
+      $message['subject'] = t("Your job at %site_name has completed", ['%site_name' => $site_name]);
       $message['body'][] = "You recently submitted a job titled  \"" . $node->title . "\". ";
       $message['body'][] = "This job has completed.";
       $message['body'][] = "You may obtain results of this job in the " .
@@ -1428,11 +1477,11 @@ function tripal_galaxy_mail($key, &$message, $params) {
       $message['body'][] = "Thank you.";
       break;
     case 'submission-failed':
-            $message['subject'] = t("Your job at %site_name has failed", array('%site_name' => $site_name));
+      $message['subject'] = t("Your job at %site_name has failed", ['%site_name' => $site_name]);
       $message['body'][] = "You recently submitted a job titled  \"" . $node->title . "\". ";
       $message['body'][] = "This job has failed.";
       $message['body'][] = "You may check the error logs of this job in the " .
-              l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
+        l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
       $message['body'][] = "Thank you.";
       break;
   }
@@ -1441,6 +1490,7 @@ function tripal_galaxy_mail($key, &$message, $params) {
 
 /**
  * Sends an email to the user when a Galaxy job starts.
+ *
  * @param $sid
  *   The Submission ID of the job.
  * @param $uid
@@ -1459,9 +1509,9 @@ function tripal_galaxy_send_submission_start_mail($sid, $uid) {
   // "params" loads in additional context for email content completion in
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
-  $params = array(
-    'sid' => $sid
-  );
+  $params = [
+    'sid' => $sid,
+  ];
 
   // The language of the e-mail.
   $language = language_default();
@@ -1474,12 +1524,13 @@ function tripal_galaxy_send_submission_start_mail($sid, $uid) {
   // while sending.
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
   if ($result['result'] != TRUE) {
-    watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), array(), WATCHDOG_ERROR);
+    watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), [], WATCHDOG_ERROR);
   }
 }
 
 /**
  * Sends an email to the user when a Galaxy job ends.
+ *
  * @param $sid
  *   The Submission ID of the job.
  * @param $uid
@@ -1498,9 +1549,9 @@ function tripal_galaxy_send_submission_ended_mail($sid, $uid) {
   // "params" loads in additional context for email content completion in
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
-  $params = array(
-    'sid' => $sid
-  );
+  $params = [
+    'sid' => $sid,
+  ];
 
   // The language of the e-mail.
   $language = language_default();
@@ -1513,12 +1564,13 @@ function tripal_galaxy_send_submission_ended_mail($sid, $uid) {
   // while sending.
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
   if ($result['result'] != TRUE) {
-    watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), array(), WATCHDOG_ERROR);
+    watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), [], WATCHDOG_ERROR);
   }
 }
 
 /**
  * Sends an email to the user when a Galaxy job failes.
+ *
  * @param $sid
  *   The Submission ID of the job.
  * @param $uid
@@ -1537,9 +1589,9 @@ function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
   // "params" loads in additional context for email content completion in
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
-  $params = array(
-    'sid' => $sid
-  );
+  $params = [
+    'sid' => $sid,
+  ];
 
   // The language of the e-mail.
   $language = language_default();
@@ -1552,7 +1604,7 @@ function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
   // while sending.
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
   if ($result['result'] != TRUE) {
-    watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), array(), WATCHDOG_ERROR);
+    watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), [], WATCHDOG_ERROR);
   }
 }
 
@@ -1571,7 +1623,7 @@ function tripal_galaxy_handle_uploaded_file($filename, $filepath, $type) {
   // See if this file is already managed then add another entry in the
   // usage table.
   $fid = db_select('file_managed', 'fm')
-    ->fields('fm', array('fid'))
+    ->fields('fm', ['fid'])
     ->condition('uri', $filepath)
     ->execute()
     ->fetchField();
@@ -1599,9 +1651,9 @@ function tripal_galaxy_handle_uploaded_file($filename, $filepath, $type) {
  * @return json array of users that match the query in the textfield
  **/
 function tripal_galaxy_users_autocomplete($string) {
-  $matches = array();
+  $matches = [];
   $result = db_select('users', 'u')
-    ->fields('u', array('name'))
+    ->fields('u', ['name'])
     ->condition('name', '%' . db_like($string) . '%', 'LIKE')
     ->execute();
 
@@ -1649,9 +1701,8 @@ function tripal_galaxy_file_upload_check($action, $details, &$message) {
  */
 function tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node) {
   if (!array_key_exists('tripal_galaxy_proxy_urls', $_SESSION)) {
-    $_SESSION['tripal_galaxy_proxy_urls'] = array();
-  }
-;
+    $_SESSION['tripal_galaxy_proxy_urls'] = [];
+  };
   $id = uniqid('TGPX', TRUE);
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['url'] = $url;
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['sid'] = $submission->sid;
@@ -1661,6 +1712,7 @@ function tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submissio
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['file_size'] = $history_content['file_size'];
   return $id;
 }
+
 /**
  * Retrieves content from a Galaxy URL and stream it back.
  *
@@ -1703,10 +1755,10 @@ function tripal_galaxy_results_viewer_full_page($proxy_id) {
     return $content;
   }
   else {
-    $content['name'] = array(
+    $content['name'] = [
       '#type' => 'markup',
       '#markup' => t('This link has expired. Please reload the job results page for uploaded links.'),
-    );
+    ];
     return $content;
   }
 }
@@ -1725,29 +1777,30 @@ function tripal_galaxy_results_viewer_page($proxy_id) {
     $sid = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['sid'];
     $name = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['name'];
 
-    $content['sub_title'] = array(
+    $content['sub_title'] = [
       '#type' => 'markup',
       '#markup' => '<h2>Viewing results for ' . $name . '</h2>',
-    );
-    $content['name'] = array(
+    ];
+    $content['name'] = [
       '#type' => 'markup',
       '#markup' => l('View full screen', 'galaxy/viewer-full/' . $proxy_id),
-    );
-    $content['viewer'] = array(
+    ];
+    $content['viewer'] = [
       '#type' => 'item',
-      '#markup' => '<iframe src="' . url('galaxy/viewer-full/'. $proxy_id) . '" id="tripal-galaxy-results-viewer-iframe"></iframe>',
-    );
+      '#markup' => '<iframe src="' . url('galaxy/viewer-full/' . $proxy_id) . '" id="tripal-galaxy-results-viewer-iframe"></iframe>',
+    ];
 
     return $content;
   }
   else {
-    $content['name'] = array(
+    $content['name'] = [
       '#type' => 'markup',
       '#markup' => t('This link has expired. Please reload the job results page for uploaded links.'),
-    );
+    ];
     return $content;
   }
 }
+
 /**
  * A generic callback for downloading content from Galaxy.
  *
@@ -1768,4 +1821,62 @@ function tripal_galaxy_results_download($proxy_id) {
   print tripal_galaxy_stream_url_proxy($proxy_id);
 
   exit();
+}
+
+
+/**
+ * @param $node
+ *
+ * a page callback to export galaxy webform as a json file.
+ */
+function export_tripal_galaxy_workflow($node) {
+
+  $webform = json_encode($node->webform);
+
+  drupal_add_http_header('Content-Type', 'application/json');
+  drupal_add_http_header('Content-Disposition', 'attachment; filename="webform-' . $node->type . '-' . $node->nid . '.json";');
+  drupal_add_http_header('Content-Length', sprintf('%u', strlen($webform)));
+
+  print($webform);
+
+  exit();
+
+}
+
+
+/**
+ * @param $node
+ *
+ * @return array
+ *
+ * a page callback to import galaxy webform from a json file.
+ */
+function import_tripal_galaxy_workflow($node) {
+  if (count($node->webform['components']) < 1) {
+    drupal_set_message('This is not a valid Galaxy webform. This action only works for Galaxy webform.', 'warning');
+    return '';
+  }
+
+  if (isset($node->webform['components'][1])) {
+    if ($node->webform['components'][1]['form_key'] != 'galaxy_webform') {
+      drupal_set_message('This is not a valid Galaxy webform. This action only works for Galaxy webform.', 'warning');
+      return '';
+    };
+  }
+
+  // store nid and workflow id.
+  $workflow_and_node_ids = [
+    'nid' => $node->nid,
+    'workflow_id' => $node->webform['components'][1]['extra']['workflow_id'],
+  ];
+  $build_page = [
+    'json_markup' => [
+      '#markup' => t('<h1>Replace Galaxy Webform</h1>' .
+        '<p>Import a well-annotated Galaxy webform in JSON format 
+        to replace this original Galaxy webform.</p>'),
+    ],
+    'form' => drupal_get_form('galaxy_webform_import_form', $workflow_and_node_ids),
+  ];
+
+  return $build_page;
 }

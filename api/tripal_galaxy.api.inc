@@ -970,20 +970,20 @@ function tripal_galaxy_check_file_expiration() {
 }
 
 /**
- * Returns the IRI where the Tripal Galaxy module stores files.
+ * Returns the URI where the Tripal Galaxy module stores files.
  *
  * This function also ensures that the path exists by creating it.
  *
  * @return
- *   A Drupal IRI indicating the location where Galaxy files are housed.
+ *   A Drupal URI indicating the location where Galaxy files are housed.
  *   Returns FALSE if the location does not exist or cannot be created.
  */
 function tripal_galaxy_get_files_dir() {
   global $user;
 
-  $user_uuid = md5($user->uuid);
+  $user_uid = md5($user->uid);
 
-  $site_dir = 'public://tripal/files/galaxy/' . $user_uuid;
+  $site_dir = 'public://tripal/files/galaxy/' . $user_uid;
   if (!file_prepare_directory($site_dir, FILE_CREATE_DIRECTORY)) {
     $message = 'Could not access the directory on the server for storing this file.';
     watchdog('tripal', $message, array(), WATCHDOG_ERROR);
