@@ -1369,7 +1369,8 @@ function tripal_galaxy_submission_admin_report($sid) {
 function tripal_galaxy_cron() {
 
   $args = [];
-  tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy', 'tripal_galaxy_check_status', $args, 1);
+  tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy',
+    'tripal_galaxy_check_status', $args, 1, array(), TRUE);
 }
 
 /**
@@ -1872,7 +1873,7 @@ function import_tripal_galaxy_workflow($node) {
   $build_page = [
     'json_markup' => [
       '#markup' => t('<h1>Replace Galaxy Webform</h1>' .
-        '<p>Import a well-annotated Galaxy webform in JSON format 
+        '<p>Import a well-annotated Galaxy webform in JSON format
         to replace this original Galaxy webform.</p>'),
     ],
     'form' => drupal_get_form('galaxy_webform_import_form', $workflow_and_node_ids),
