@@ -158,7 +158,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           drupal_set_message('Error building tool: ' . $tool_id . '. ' . $error['message'], 'error');
           return FALSE;
         }
-        $tool_list[] = $tool['name'] . ' ' . $tool['version'];
+        $tool_list[] = '<b>' . $tool['name'] . ' (version ' . $tool['version'] . ')</b>: ' . $tool['description'];
         // We want to change the name of the fieldset to have the name of
         // the tool.
         // we also want to add tool description to the end, like what we see in Galaxy.
