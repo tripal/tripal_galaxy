@@ -81,7 +81,7 @@ function drush_tripal_galaxy_trp_galaxy_status() {
   }
 
   if (!$sid) {
-    drush_error('Please provide a submission id (ie.g. --submission=512).');
+    drush_set_error('Please provide a submission id (ie.g. --submission=512).');
   }
   drush_print('Updating status of workflow...');
   tripal_galaxy_check_submission_status($sid, $force);

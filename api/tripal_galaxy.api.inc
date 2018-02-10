@@ -143,6 +143,8 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
   $state = array();
   $has_error = FALSE;
   $all_ok = FALSE;
+  $end_time = NULL;
+  $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
 
   // If there's an altered workflow this will throw an error
   // Need to go further up to find out why this is being called and not
@@ -274,17 +276,22 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     if ($num_steps_ok == $num_tool_steps) {
       print "Job Completed Successfully.\n";
       $status = 'Completed';
+      $end_time = $update_time->getTimestamp();
       if (!$force) {
         tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
       }
     }
   }
 
+  $fields = array(
+    'status' => $status,
+    'errors' => serialize($state),
+  );
+  if ($end_time != NULL) {
+    $fields['end_time'] = $end_time;
+  }
   db_update('tripal_galaxy_workflow_submission')
-    ->fields(array(
-      'status' => $status,
-      'errors' => serialize($state)
-    ))
+    ->fields($fields)
     ->condition('sid', $sid)
     ->execute();
   return TRUE;
@@ -625,6 +632,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     'history_id' => $history['id'],
   );
   $invocation = $gworkflows->invoke($params);
+  print_r($invocation);
 
   if (!$invocation) {
     $error = $galaxy->getError();
@@ -643,6 +651,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
       ->fields(array(
         'status' => 'Submitted',
         'start_time' => REQUEST_TIME,
+        'end_time' => NULL,
         'invocation_id' => $invocation['id'],
       ))
       ->condition('sid', $submission->sid)
