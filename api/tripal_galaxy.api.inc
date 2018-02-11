@@ -143,7 +143,6 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
   $job_states = array();
   $end_time = NULL;
   $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
-  print_r($invocation);
 
   // Get the status of each step.
   $invocation_info = array();
@@ -210,7 +209,6 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     );
   } // end foreach ($invocation['steps'] as $step) { ...
 
-  print_r($job_states);
   $status = 'Waiting';
   if (in_array('new', array_values($job_states))) {
     $status = 'Waiting';
@@ -279,7 +277,6 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
       }
     }
 
-    print_r($history_contents);
     $invocation_info['history'] = $history;
     $invocation_info['history_contents'] = $history_contents;
 
@@ -638,9 +635,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     'inputs' => $input_datasets,
     'history_id' => $history['id'],
   );
-  //print_r($params);
   $invocation = $gworkflows->invoke($params);
-  //print_r($invocation);
 
   if (!$invocation) {
     $error = $galaxy->getError();
