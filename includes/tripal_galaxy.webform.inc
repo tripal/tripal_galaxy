@@ -48,12 +48,12 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
   // Add in the instruction page to the webform first.
   tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $workflow_id);
-  //dpm($workflow);
+
   // Iterate through each step of the workflow.
   $tool_list = [];
   $steps = $workflow['steps'];
   foreach ($steps as $step_index => $step) {
-    //dpm($step);
+
     // Each step is contained in a fieldset. We'll name the field set after
     // it's step and if a tool is present we'll include the tool info.
     $cid = count($webform->components) + 1;
@@ -84,21 +84,22 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
     $fieldset_cid = count($webform->components);
 
-
     // Handle the step type. So far we only know about 'data_input' and 'tool'.
     // The succeeding tool to the
     switch ($step['type']) {
 
       // If this is for a data 'file' input
       case 'data_input' :
+        $tool_input_name = array_key_exists('name', $step['tool_inputs']) ? $step['tool_inputs']['name'] : 'Data File';
+
         // Make a fake tool and input so we can add the component for a
         // data_input step.
         $tool = [
           'id' => NULL,
-          'name' => $step['tool_inputs']['name'],
+          'name' => $tool_input_name,
         ];
-        if ($step['tool_inputs']['name']) {
-          $fieldset_name .= ': ' . $step['tool_inputs']['name'];
+        if ($tool_input_name) {
+          $fieldset_name .= ': ' . $tool_input_name;
         }
         else {
           $fieldset_name .= ': Select Data';
@@ -106,8 +107,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
 
         $input = [
-          'name' => $step['tool_inputs']['name'],
-          'full_name' => $step['tool_inputs']['name'],
+          'name' => $tool_input_name,
+          'full_name' => $tool_input_name,
           'type' => 'data_input',
         ];
         $input_id = tripal_galaxy_build_webform_add_component($webform, $workflow,
@@ -116,15 +117,17 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         break;
 
       case 'data_collection_input':
+        $tool_input_name = array_key_exists('name', $step['tool_inputs']) ? $step['tool_inputs']['name'] : 'Data Collection';
+
         $tool = [
           'id' => NULL,
-          'name' => $step['tool_inputs']['name'],
+          'name' => $tool_input_name,
         ];
 
         // We want to change the name of the fieldset to have the name of
         // the tool.
-        if ($step['tool_inputs']['name']) {
-          $fieldset_name .= ': ' . $step['tool_inputs']['name'];
+        if ($tool_input_name) {
+          $fieldset_name .= ': ' . $tool_input_name;
         }
         elseif ($step['tool_inputs']['collection_type'] == 'list:paired') {
           $fieldset_name .= ': Select a Paired Data Set';
@@ -135,8 +138,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
 
         $input = [
-          'name' => $step['tool_inputs']['name'],
-          'full_name' => $step['tool_inputs']['name'],
+          'name' => $tool_input_name,
+          'full_name' => $tool_input_name,
           'type' => 'data_collection_input',
           'collection_type' => $step['tool_inputs']['collection_type'],
         ];
@@ -159,7 +162,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           drupal_set_message('Error building tool: ' . $tool_id . '. ' . $error['message'], 'error');
           return FALSE;
         }
-        //dpm($tool);
         $tool_list[] = '<b>' . $tool['name'] . ' (version ' . $tool['version'] . ')</b>: ' . $tool['description'];
         // We want to change the name of the fieldset to have the name of
         // the tool.
@@ -288,7 +290,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
     'components' => $webform->components,
     'conditionals' => $webform->conditionals,
   ];
-  //dpm($webform);
 
   // Save the node.
   node_save($node);
