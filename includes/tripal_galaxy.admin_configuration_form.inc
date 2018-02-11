@@ -108,9 +108,8 @@ function tripal_galaxy_admin_configuration_form($form, $form_state, $galaxy_id =
   // Delete
   if ($galaxy_id) {
     $form['delete'] = array(
-      '#type' => 'submit',
-      '#name' => 'delete',
-      '#value' => t('Delete')
+      '#type' => 'markup',
+      '#markup' => l('Delete', 'admin/tripal/extension/galaxy/delete/' . $galaxy_id),
     );
   }
 
@@ -157,25 +156,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
     'uid' => trim($user->uid),
   );
 
-  // If we are deleting the given instance, go through the appropriate
-  // motions...
-  if ($form_state['clicked_button']['#name'] == 'delete') {
-    $galaxy = db_query("DELETE FROM {tripal_galaxy} WHERE servername = :servername",
-        array(':servername' => $form_state['values']['servername']));
-
-    // Set error if appripriate
-    if ($galaxy === FALSE || $galaxy == NULL) {
-      drupal_set_message(t('Error deleting record'), 'error');
-      return;
-    }
-    else {
-      // If there is no error, redirect.
-      drupal_set_message(t('Galaxy instance has been deleted'));
-      drupal_goto("/admin/tripal/extension/galaxy");
-    }
-  }
-  // If we are not deleting, are we submitting?
-  else if ($form_state['clicked_button']['#name'] == 'submit') {
+   if ($form_state['clicked_button']['#name'] == 'submit') {
     // If there is a galaxy ID this will be an edit.
     if ($form_state['values']['galaxy_id']) {
       $data['galaxy_id'] = $form_state['values']['galaxy_id'];
@@ -203,4 +184,67 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
     $connect = tripal_galaxy_split_url($data['url']);
     tripal_galaxy_test_connection($connect);
   }
+}
+
+/**
+ * Deletes a site-wide file.
+ *
+ * @param $swfid
+ *   The file ID
+ */
+function tripal_galaxy_admin_delete_galaxy_instance_form($form, &$form_state, $galaxy_id) {
+  $form = array();
+
+  $galaxy = db_select('tripal_galaxy', 'tg')
+    ->fields('tg')
+    ->condition('galaxy_id', array($galaxy_id))
+    ->execute()
+    ->fetchObject();
+
+  $form['galaxy_id'] = array(
+    '#type' => 'value',
+    '#value' => $galaxy_id,
+  );
+
+  return confirm_form($form,
+    t('Confirm removal of the galaxy instance: "' . $galaxy->servername . '"? '),
+    'admin/tripal/extension/galaxy/quota',
+    t('WARNING: removal of a Galaxy instance will delete all workflows that have been executed by users of this site. Are you sure you want to do this?')
+   );
+}
+
+/**
+ * Implements submit hook for the tripal_galaxy_admin_remove_quota_form form.
+ */
+function tripal_galaxy_admin_delete_galaxy_instance_form_submit($form, &$form_state) {
+
+  $galaxy_id = $form_state['values']['galaxy_id'];
+
+  try {
+    // Remove any submissions.
+    $sql = "
+      DELETE FROM {tripal_galaxy_workflow_submission}
+      WHERE galaxy_workflow_id IN
+        (SELECT galaxy_workflow_id
+         FROM {tripal_galaxy_workflow}
+         WHERE galaxy_id = :galaxy_id)";
+    $args = array(':galaxy_id' => $galaxy_id);
+    $galaxy = db_query($sql, $args);
+
+    // Remove the galaxy workflows
+    $sql = "DELETE FROM {tripal_galaxy_workflow} WHERE galaxy_id = :galaxy_id";
+    $args = array(':galaxy_id' => $galaxy_id);
+    $galaxy = db_query($sql, $args);
+
+    // Remove the Galaxy instance itself
+    $sql = "DELETE FROM {tripal_galaxy} WHERE galaxy_id = :galaxy_id";
+    $args = array(':galaxy_id' => $galaxy_id);
+    $galaxy = db_query($sql, $args);
+
+    drupal_set_message(t('Galaxy instance, workflows and submissions have all been removed.'));
+  }
+  catch (ErrorException $e) {
+    drupal_set_message(t('Error deleting record'), 'error');
+  }
+  drupal_goto("/admin/tripal/extension/galaxy");
 }

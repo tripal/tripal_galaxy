@@ -126,6 +126,17 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   ];
 
+  $items['admin/tripal/extension/galaxy/delete/%'] = [
+    'description' => 'Delete a galaxy server instance',
+    'title' => 'Delete Galaxy Instance',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['tripal_galaxy_admin_delete_galaxy_instance_form', 5],
+    'access arguments' => ['administer galaxy'],
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin_configuration_form.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
+
   // Available Workflows
   $items['admin/tripal/extension/galaxy/workflows'] = [
     'title' => 'Workflows',
@@ -184,7 +195,7 @@ function tripal_galaxy_menu() {
     'description' => 'The results for a submitted analysis.',
     'page callback' => 'tripal_galaxy_submission_user_report',
     'page arguments' => [3],
-    'access arguments' => ['view content'],
+    'access arguments' => ['use galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
@@ -197,7 +208,7 @@ function tripal_galaxy_menu() {
     'description' => 'The files from a submitted workflow.',
     'page callback' => '',
     'page arguments' => [3],
-    'access arguments' => ['view content'],
+    'access arguments' => ['use galaxy'],
     'type' => MENU_CALLBACK,
     'file' => 'includes/tripal_galaxy.admin.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
@@ -353,7 +364,7 @@ function tripal_galaxy_menu() {
     'description' => 'Monitors what files that have been uploaded by user through the tripal_galaxy module',
     'page callback' => 'tripal_galaxy_user_files_page',
     'page arguments' => [1],
-    'access arguments' => ['administer galaxy'],
+    'access arguments' => ['use galaxy'],
     'type' => MENU_LOCAL_TASK,
     'file' => 'includes/tripal_galaxy.user.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
