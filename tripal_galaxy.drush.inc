@@ -65,8 +65,13 @@ function drush_tripal_galaxy_trp_galaxy_invoke() {
     drush_error('Please provide a submission id (ie.g. --submission=512).');
   }
   drush_print('Launching workflow...');
-  tripal_galaxy_invoke_workflow($sid);
-  drush_print('Done.');
+  try {
+    tripal_galaxy_invoke_workflow($sid);
+    drush_print('Done.');
+  }
+  catch (Exception $e) {
+    drush_set_error("Cannot lanuch workflow: " . $e->getMessage());
+  }
 }
 
 function drush_tripal_galaxy_trp_galaxy_status() {

@@ -340,7 +340,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
   $submission = $query->execute()->fetchObject();
 
   if (!$submission) {
-    throw new Exception('The submission ID does not exist');
+    throw new Exception('The provided submission ID does not exist');
   }
 
   // Get a connection to the remote galaxy instance.
