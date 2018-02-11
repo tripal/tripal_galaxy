@@ -64,6 +64,12 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
     // Obtain the workflows
     $gworkflows = new GalaxyWorkflows($galaxy);
     $workflows = $gworkflows->index();
+    if (!$workflows) {
+      $error = $galaxy->getError();
+      drupal_set_message($error['message'], 'error');
+      return $form;
+    }
+
 
     // Loop through each workflow to add it to the form
     foreach ($workflows as $workflow) {

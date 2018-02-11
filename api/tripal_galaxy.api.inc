@@ -145,6 +145,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
   $all_ok = FALSE;
   $end_time = NULL;
   $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
+print_r($invocation);
 
   // If there's an altered workflow this will throw an error
   // Need to go further up to find out why this is being called and not
@@ -261,7 +262,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
 
   } // end foreach ($invocation['steps'] as $step) { ...
 
-  $status = $invocation->state;
+  $status = $invocation['state'];
   if($status == 'scheduled') {
     $status = 'Running';
   }
@@ -631,8 +632,9 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     'inputs' => $input_datasets,
     'history_id' => $history['id'],
   );
+  //print_r($params);
   $invocation = $gworkflows->invoke($params);
-  print_r($invocation);
+  //print_r($invocation);
 
   if (!$invocation) {
     $error = $galaxy->getError();
