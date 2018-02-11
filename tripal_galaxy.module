@@ -1058,6 +1058,17 @@ function tripal_galaxy_workflow_report($sid) {
 
   $has_any_results = FALSE;
   if (is_array($submission->errors)) {
+    // If the workflow status is 'Completed' then there will be a history and
+    // history contents.  We'll get those out and remove them so we
+    // can more easily iterate through the steps.
+    if (array_key_exists('history', $submission->errors)) {
+      $history = $submission->errors['history'];
+      unset($submission->errors['history']);
+    }
+    if (array_key_exists('history_contents', $submission->errors)) {
+      $history_contents = $submission->errors['history_contents'];
+      unset($submission->errors['history_contents']);
+    }
     ksort($submission->errors);
     foreach ($submission->errors as $step_index => $jobs) {
       $has_step_results = FALSE;
@@ -1118,63 +1129,60 @@ function tripal_galaxy_workflow_report($sid) {
           ];
         }
 
-        // Find the files from this step.
-        $history = $logs['history'];
-        $history_contents = $logs['history_contents'];
-        foreach ($history_contents as $index => $history_content) {
+        // In previous versions of this module, the history was stored in
+        // every step.  This was inefficient, but for backwards compatibility
+        // we will check.
+        if (array_key_exists('history', $logs)) {
+          $history = $logs['history'];
+        }
+        if (array_key_exists('history_contents', $logs)) {
+          $history_contents = $logs['history_contents'];
+        }
 
-          // Skip history items that aren't for this job.
-          if ($history_content['creating_job'] != $job_id) {
-            continue;
-          }
+        // If we have history contents then we want to display it.
+        if ($history_contents) {
+          foreach ($history_contents as $index => $history_content) {
 
-          $has_step_results = TRUE;
-          $has_any_results = TRUE;
-          $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index] = [
-            '#type' => 'fieldset',
-            '#title' => $history_content['name'],
-            '#collapsed' => TRUE,
-            '#collapsible' => TRUE,
-            '#attributes' => [
-              'class' => ['collapsible', 'collapsed'],
-            ],
-            '#attached' => [
-              'js' => ['misc/collapse.js', 'misc/form.js'],
-            ],
-          ];
+            // Skip history items that aren't for this job.
+            if ($history_content['creating_job'] != $job_id) {
+              continue;
+            }
 
-          switch ($history_content['type']) {
-            case 'file':
-              if (!isset($history_content['content_link'])) {
+            $has_step_results = TRUE;
+            $has_any_results = TRUE;
+            $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index] = [
+              '#type' => 'fieldset',
+              '#title' => $history_content['name'],
+              '#collapsed' => TRUE,
+              '#collapsible' => TRUE,
+              '#attributes' => [
+                'class' => ['collapsible', 'collapsed'],
+              ],
+              '#attached' => [
+                'js' => ['misc/collapse.js', 'misc/form.js'],
+              ],
+            ];
+
+            switch ($history_content['type']) {
+              case 'file':
+                if (!isset($history_content['content_link'])) {
+                  break;
+                }
+                $link = $history_content['content_link'];
+                $proxy_id = tripal_galaxy_set_proxy_url($link, $galaxy, $history_content, $submission, $node);
+                $file_size = tripal_galaxy_format_bytes($history_content['file_size']);
+                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['download_link'] = [
+                  '#type' => 'item',
+                  '#title' => t('Download Results'),
+                  '#markup' => l($history_content['name'], 'galaxy/download/' . $proxy_id) . ' (' . $file_size . ')',
+                ];
                 break;
-              }
-              $link = $history_content['content_link'];
-              $proxy_id = tripal_galaxy_set_proxy_url($link, $galaxy, $history_content, $submission, $node);
-              $file_size = tripal_galaxy_format_bytes($history_content['file_size']);
-              $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['download_link'] = [
-                '#type' => 'item',
-                '#title' => t('Download Results'),
-                '#markup' => l($history_content['name'], 'galaxy/download/' . $proxy_id) . ' (' . $file_size . ')',
-              ];
-              break;
-            default:
-              break;
-          }
+              default:
+                break;
+            }
 
-          switch ($history_content['extension']) {
-            case 'html':
-              $url = $galaxy_server->url . $history_content['download_url'];
-              $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
-              $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
-                '#type' => 'item',
-                '#title' => t('View Results'),
-                '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
-                '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
-              ];
-              break;
-            default:
-              // Any files that are smaller than 1MB can be shown in a browser.
-              if ($history_content['file_size'] < pow(10, 6)) {
+            switch ($history_content['extension']) {
+              case 'html':
                 $url = $galaxy_server->url . $history_content['download_url'];
                 $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
                 $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
@@ -1183,23 +1191,36 @@ function tripal_galaxy_workflow_report($sid) {
                   '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
                   '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
                 ];
-              }
-              else {
-                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
+                break;
+              default:
+                // Any files that are smaller than 1MB can be shown in a browser.
+                if ($history_content['file_size'] < pow(10, 6)) {
+                  $url = $galaxy_server->url . $history_content['download_url'];
+                  $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
+                  $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
+                    '#type' => 'item',
+                    '#title' => t('View Results'),
+                    '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
+                    '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
+                  ];
+                }
+                else {
+                  $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
+                    '#type' => 'item',
+                    '#title' => t('View Results'),
+                    '#markup' => 'Result file is too large to view. Please download.',
+                  ];
+                }
+                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['peek'] = [
                   '#type' => 'item',
-                  '#title' => t('View Results'),
-                  '#markup' => 'Result file is too large to view. Please download.',
+                  '#title' => ('Peek at the results'),
+                  '#description' => 'A view of the top of the output file.',
+                  '#markup' => $history_content['peek'],
                 ];
-              }
-              $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['peek'] = [
-                '#type' => 'item',
-                '#title' => ('Peek at the results'),
-                '#description' => 'A view of the top of the output file.',
-                '#markup' => $history_content['peek'],
-              ];
-              break;
-          } // end switch ($history_content['extension']) { ...
-        } // end foreach ($history_contents as $index => $history_content) { ...
+                break;
+            } // end switch ($history_content['extension']) { ...
+          } // end foreach ($history_contents as $index => $history_content) { ...
+        } // if ($history_contents) { ....
       } // foreach ($jobs as $job_id => $logs) { ...
 
       if (!$has_step_results) {
