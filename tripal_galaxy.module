@@ -932,7 +932,7 @@ function tripal_galaxy_workflow_report($sid) {
     ],
     $node->title,
   ];
-  if (user_access('Administer Galaxy')) {
+  if (user_access('administer galaxy')) {
     $rows[] = [
       [
         'data' => 'Submission ID',
@@ -1093,7 +1093,7 @@ function tripal_galaxy_workflow_report($sid) {
       // backwards compatibiity warn the user that then need to update their
       // job status.
       if (array_key_exists('history', $jobs)) {
-        if (user_access('Administer Galaxy')) {
+        if (user_access('administer galaxy')) {
           $content['status_message'] = [
             '#type' => 'markup',
             '#markup' => '<div class="messages error">' .
@@ -1241,7 +1241,7 @@ function tripal_galaxy_workflow_report($sid) {
         ];
       }
 
-      if (user_access('Administer Galaxy')) {
+      if (user_access('administer galaxy')) {
         $step_content['run_summary'] = [
           '#type' => 'fieldset',
           '#title' => 'Run Details',
@@ -1402,7 +1402,7 @@ function tripal_galaxy_cron() {
 
   $args = [];
   tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy',
-    'tripal_galaxy_check_status', $args, 1, array(), TRUE);
+    'tripal_galaxy_check_status', $args, 1, [], TRUE);
 }
 
 /**
@@ -1912,4 +1912,20 @@ function import_tripal_galaxy_workflow($node) {
   ];
 
   return $build_page;
+}
+
+/**
+ * Implements hook_node_access().
+ */
+function tripal_galaxy_node_access($node, $op, $account = NULL) {
+  if (property_exists($node, 'webform')) {
+    if (!empty($node->webform['components'])) {
+      $component = current($node->webform['components']);
+      if ($component['form_key'] === 'galaxy_webform') {
+        return user_access('use galaxy', $account) ? NODE_ACCESS_ALLOW : NODE_ACCESS_DENY;
+      }
+    }
+  }
+
+  return NODE_ACCESS_IGNORE;
 }
