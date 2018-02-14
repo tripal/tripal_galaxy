@@ -72,7 +72,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'description' => '',
         'description_above' => 1,
         'private' => 0,
-        'css_classes' => '',
+        'css_classes' => 'tripal-galaxy-fieldset',
         'title_display' => 0,
         'collapsible' => 1,
         'collapsed' => 0,
@@ -168,6 +168,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         // we also want to add tool description to the end, like what we see in Galaxy.
         $fieldset_name .= ': ' . $tool['name'] . ' ' . $tool['description'] . ' (Galaxy Version ' . $tool['version'] . ')';
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
+
 
         // Add the "Optional settings" fieldset.
         $dcid = count($webform->components) + 1;
