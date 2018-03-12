@@ -370,6 +370,7 @@ function tripal_galaxy_view_file($uid, $fid) {
  * Retrieves the workflow submission report for the submitting user.
  *
  * @param $sid
+ * @return mixed
  */
 function tripal_galaxy_submission_user_report($sid) {
   global $user;
@@ -383,5 +384,10 @@ function tripal_galaxy_submission_user_report($sid) {
 
   module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.admin');
 
-  return tripal_galaxy_workflow_report($sid);
+  if($report =  tripal_galaxy_workflow_report($sid)) {
+    return $report;
+  }
+
+  drupal_not_found();
+  return;
 }
