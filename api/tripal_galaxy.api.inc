@@ -47,7 +47,7 @@ function tripal_galaxy_split_url($url) {
   // TODO: should this go into blend4php?
 
   // First check a URL with a port
-  $matches = array();
+  $matches = [];
   if (preg_match('/^(.*)\:\/\/(.+?)\:(\d+)\/*$/', $url, $matches)) {
     $protocol = $matches[1];
     $host = $matches[2];
@@ -58,27 +58,31 @@ function tripal_galaxy_split_url($url) {
     }
   }
   // Next check a URL without a port
-  else if (preg_match('/^(.*)\:\/\/(.+?)\/*$/', $url, $matches)) {
-    $protocol = $matches[1];
-    $host = $matches[2];
-    $use_https = FALSE;
-    $port = 80;
-    if ($protocol == 'https') {
-      $use_https = TRUE;
-      $port = 443;
+  else {
+    if (preg_match('/^(.*)\:\/\/(.+?)\/*$/', $url, $matches)) {
+      $protocol = $matches[1];
+      $host = $matches[2];
+      $use_https = FALSE;
+      $port = 80;
+      if ($protocol == 'https') {
+        $use_https = TRUE;
+        $port = 443;
+      }
+    }
+    // for simple url w/port ie. localhost:8080
+    else {
+      if (preg_match('/(.*)\:(\d+)\/*$/', $url, $matches)) {
+        $use_https = FALSE;
+        $host = $matches[1];
+        $port = $matches[2];
+      }
     }
   }
-  // for simple url w/port ie. localhost:8080
-  else if(preg_match('/(.*)\:(\d+)\/*$/', $url, $matches)) {
-    $use_https = FALSE;
-    $host = $matches[1];
-    $port = $matches[2];
-  }
-  return array(
+  return [
     'host' => $host,
     'port' => $port,
-    'use_https' => $use_https
-  );
+    'use_https' => $use_https,
+  ];
 }
 
 /**
@@ -86,7 +90,7 @@ function tripal_galaxy_split_url($url) {
  *
  * @param $sid
  *   The submission ID of the workflow.
- * @param $force.
+ * @param $force .
  *   If a workflow submission is already completed this function will
  *   quickly return and not check the status again.  Setting the $force
  *   argument to TRUE will force the function to check the status.
@@ -102,9 +106,15 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
   }
 
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', array('invocation_id', 'galaxy_workflow_id', 'sid', 'submit_date',  'status'));
+  $query->fields('tgws', [
+    'invocation_id',
+    'galaxy_workflow_id',
+    'sid',
+    'submit_date',
+    'status',
+  ]);
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', array('galaxy_id', 'workflow_id', 'nid'));
+  $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
 
@@ -130,22 +140,22 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
 
   // Get the invocation specified.
   $gworkflows = new GalaxyWorkflows($galaxy);
-  $invocation = $gworkflows->showInvocations(array(
+  $invocation = $gworkflows->showInvocations([
     'workflow_id' => $submission->workflow_id,
-    'invocation_id' => $submission->invocation_id
-  ));
+    'invocation_id' => $submission->invocation_id,
+  ]);
   if (!$invocation) {
     throw new Exception($galaxy->getErrorMessage());
   }
 
   // Iterate through the invocation steps and look for any steps that
   // are in the error state.
-  $job_states = array();
+  $job_states = [];
   $end_time = NULL;
   $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
 
   // Get the status of each step.
-  $invocation_info = array();
+  $invocation_info = [];
   foreach ($invocation['steps'] as $step) {
     $step_index = $step['order_index'];
     $step_state = '';
@@ -163,10 +173,10 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
 
       // Get the STDERR and STDOUT for the job.
       $gjobs = new GalaxyJobs($galaxy);
-      $job = $gjobs->show(array(
+      $job = $gjobs->show([
         'job_id' => $step['job_id'],
         'full' => TRUE,
-      ));
+      ]);
       if (!$job) {
         throw new ErrorException($galaxy->getErrorMessage());
       }
@@ -175,7 +185,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
 
       // Get the tool
       $gtools = new GalaxyTools($galaxy);
-      $tool = $gtools->show(array('tool_id' => $job['tool_id']));
+      $tool = $gtools->show(['tool_id' => $job['tool_id']]);
       if (!$tool) {
         throw new ErrorException($galaxy->getErrorMessage());
       }
@@ -189,7 +199,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
       // from that.
       if ($job and $job['outputs']['output']['id']) {
         $gdataset = new GalaxyDatasets($galaxy);
-        $dataset = $gdataset->show(array('dataset_id' => $job['outputs']['output']['id']));
+        $dataset = $gdataset->show(['dataset_id' => $job['outputs']['output']['id']]);
         if (!$dataset) {
           throw new ErrorException($galaxy->getErrorMessage());
         }
@@ -198,7 +208,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     }
 
     $job_id = $step['job_id'] ? $step['job_id'] : 'NULL';
-    $invocation_info[$step_index][$job_id] = array(
+    $invocation_info[$step_index][$job_id] = [
       'step_name' => $step_name,
       'step_id' => $step['id'],
       'job_id' => $job_id,
@@ -206,7 +216,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
       'stderr' => $stderr,
       'stdout' => $stdout,
       'misc_info' => $misc_info,
-    );
+    ];
   } // end foreach ($invocation['steps'] as $step) { ...
 
   $status = 'Waiting';
@@ -237,7 +247,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
   }
   if ($status == 'Completed') {
     // Get the history contents if the job step status is 'Completed'.
-    $history_contents = array();
+    $history_contents = [];
 
     // Find the History for this submission.
     $history_name = tripal_galaxy_get_history_name($submission, $node);
@@ -254,18 +264,18 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
 
     if ($history) {
       $ghistory_contents = new GalaxyHistoryContents($galaxy);
-      $history_contents = $ghistory_contents->index(array('history_id' => $history['id']));
+      $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
     }
 
     // Get more details about each history content item.
     foreach ($history_contents as $index => $history_content) {
-      $history_contents[$index] = $ghistory_contents->show(array(
+      $history_contents[$index] = $ghistory_contents->show([
         'id' => $history_content['id'],
         'history_id' => $history['id'],
-      ));
+      ]);
       switch ($history_content['type']) {
         case 'file':
-          $params = array();
+          $params = [];
           $params['history_id'] = $history['id'];
           $params['url_only'] = TRUE;
           $params['history_content_id'] = $history_content['id'];
@@ -287,10 +297,10 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     }
   }
 
-  $fields = array(
+  $fields = [
     'status' => $status,
     'errors' => serialize($invocation_info),
-  );
+  ];
   if ($end_time != NULL) {
     $fields['end_time'] = $end_time;
   }
@@ -317,6 +327,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
 function tripal_galaxy_get_history_name($submission, $node) {
   return "TG-" . $node->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s', $submission->submit_date);
 }
+
 /**
  * Invokes all submitted workflows that are in the 'Waiting' state.
  *
@@ -335,7 +346,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
   $query->fields('tgws');
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', array('galaxy_id', 'workflow_id', 'nid'));
+  $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
 
@@ -354,19 +365,19 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
   $node = node_load($submission->nid);
 
   // The array where the workflow input parameters are stored.
-  $parameters = array();
+  $parameters = [];
 
   $query = db_select('webform_submitted_data', 'wsd');
   $query->fields('wsd');
   $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
-  $query->fields('wc', array('form_key', 'type', 'extra'));
+  $query->fields('wc', ['form_key', 'type', 'extra']);
   $query->condition('wsd.sid', $submission->sid);
   $query->condition('wc.nid', $submission->nid);
   $query->orderBy('wsd.cid');
   $submitted_data = $query->execute()->fetchAll();
 
   // Get the history that we'll use for this submission.
-  $error = array();
+  $error = [];
   $history_name = tripal_galaxy_get_history_name($submission, $node);
   $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
   if (!$history) {
@@ -377,7 +388,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
   // Get the history contents so we don't upload the same file more than once
   // in the event that this invocation occurs more than once.
   $ghistory_contents = new GalaxyHistoryContents($galaxy);
-  $history_contents = $ghistory_contents->index(array('history_id' => $history['id']));
+  $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
   if ($error['message']) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);
@@ -385,8 +396,8 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
 
   // Iterate through our submitted data to look for files that need uploading.
   // For those in a dataset collection, create those collections as well.
-  $collections = array();
-  $inputs = array();
+  $collections = [];
+  $inputs = [];
   foreach ($submitted_data as $data) {
 
     // Handle a single file upload.
@@ -398,112 +409,118 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
           $inputs[$data->form_key] = $file;
         }
       }
-      else if ($data->no == 'site_wide'){
-        $fid = $data->data;
-        if ($fid) {
-          $swfile = db_select('tripal_galaxy_site_files', 'tgsf')
-            ->fields('tgsf')
-            ->condition('fid', $fid)
-            ->execute()
-            ->fetchObject();
-          if (!$swfile) {
-            throw new Exception('Cannot find site-wide file with fid: ' . $fid);
-          }
-          // If this is a remote file....
-          if ($swfile->url) {
+      else {
+        if ($data->no == 'site_wide') {
+          $fid = $data->data;
+          if ($fid) {
+            $swfile = db_select('tripal_galaxy_site_files', 'tgsf')
+              ->fields('tgsf')
+              ->condition('fid', $fid)
+              ->execute()
+              ->fetchObject();
+            if (!$swfile) {
+              throw new Exception('Cannot find site-wide file with fid: ' . $fid);
+            }
+            // If this is a remote file....
+            if ($swfile->url) {
 
-          }
-          // not a remote file.
-          else {
-            $file = tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
-            $inputs[$data->form_key] = $file;
+            }
+            // not a remote file.
+            else {
+              $file = tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
+              $inputs[$data->form_key] = $file;
+            }
           }
         }
       }
     }
-    else if($data->type == 'galaxy_sflist') {
+    else {
+      if ($data->type == 'galaxy_sflist') {
 
-      if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
-        $fids = $data->data;
-        if (!$fids) {
-          continue;
-        }
-        $set = explode('|', $fids);
-
-        // Create the paired dataset.
-        $collections[$data->form_key] = array(
-          'collection_type' => 'list',
-          'instance_type' => 'history',
-          'name' => $data->form_key,
-          'history_id' => $history['id'],
-          'element_identifiers' => array(),
-        );
-
-        for ($i = 0; $i < count($set); $i++) {
-          // Upload each file.
-          if ($set[$i]) {
-            $dataset1 = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
-
-            // Next add the element.
-            $collections[$data->form_key]['element_identifiers'][] = array(
-              'id' => $dataset1['id'],
-              'name' => $dataset1['name'],
-              'src' => 'hda'
-            );
+        if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+          $fids = $data->data;
+          if (!$fids) {
+            continue;
           }
-        } // end for ($i = 0; $i < count($set1); $i++) {
+          $set = explode('|', $fids);
+
+          // Create the paired dataset.
+          $collections[$data->form_key] = [
+            'collection_type' => 'list',
+            'instance_type' => 'history',
+            'name' => $data->form_key,
+            'history_id' => $history['id'],
+            'element_identifiers' => [],
+          ];
+
+          for ($i = 0; $i < count($set); $i++) {
+            // Upload each file.
+            if ($set[$i]) {
+              $dataset1 = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
+
+              // Next add the element.
+              $collections[$data->form_key]['element_identifiers'][] = [
+                'id' => $dataset1['id'],
+                'name' => $dataset1['name'],
+                'src' => 'hda',
+              ];
+            }
+          } // end for ($i = 0; $i < count($set1); $i++) {
+        }
       }
-    }
-    else if($data->type == 'galaxy_pflist') {
-      if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
-        $fids = $data->data;
-        if (!$fids) {
-          continue;
+      else {
+        if ($data->type == 'galaxy_pflist') {
+          if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+            $fids = $data->data;
+            if (!$fids) {
+              continue;
+            }
+            $set1 = [];
+            $set2 = [];
+            if ($fids) {
+              list($set1, $set2) = explode(',', $fids);
+              $set1 = explode('|', $set1);
+              $set2 = explode('|', $set2);
+            }
+
+            // Create the paired dataset.
+            $collections[$data->form_key] = [
+              'collection_type' => 'list:paired',
+              'instance_type' => 'history',
+              'name' => $data->form_key,
+              'history_id' => $history['id'],
+              'element_identifiers' => [],
+            ];
+
+            for ($i = 0; $i < count($set1); $i++) {
+              // Upload each file.
+              if ($set1[$i] and $set2[$i]) {
+                $dataset1 = tripal_galaxy_upload_file($galaxy, $set1[$i], $history['id'], $history_contents);
+                $dataset2 = tripal_galaxy_upload_file($galaxy, $set2[$i], $history['id'], $history_contents);
+
+                // Next create the paired dataset collection array.
+                $collections[$data->form_key]['element_identifiers'][] = [
+                  'name' => $dataset1['name'] . ' and ' . $dataset2['name'],
+                  'collection_type' => 'paired',
+                  'src' => 'new_collection',
+                  'element_identifiers' => [
+                    [
+                      'id' => $dataset1['id'],
+                      'name' => 'forward',
+                      'src' => 'hda',
+                    ],
+                    [
+                      'id' => $dataset2['id'],
+                      'name' => 'reverse',
+                      'src' => 'hda',
+                    ],
+                  ],
+                ];
+              }
+            } // end for ($i = 0; $i < count($set1); $i++) {
+          } // end if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
         }
-        $set1 = array();
-        $set2 = array();
-        if ($fids) {
-          list($set1, $set2) = explode(',', $fids);
-          $set1 = explode('|', $set1);
-          $set2 = explode('|', $set2);
-        }
-
-        // Create the paired dataset.
-        $collections[$data->form_key] = array(
-          'collection_type' => 'list:paired',
-          'instance_type' => 'history',
-          'name' => $data->form_key,
-          'history_id' => $history['id'],
-          'element_identifiers' => array(),
-        );
-
-        for ($i = 0; $i < count($set1); $i++) {
-          // Upload each file.
-          if ($set1[$i] and $set2[$i]) {
-            $dataset1 = tripal_galaxy_upload_file($galaxy, $set1[$i], $history['id'], $history_contents);
-            $dataset2 = tripal_galaxy_upload_file($galaxy, $set2[$i], $history['id'], $history_contents);
-
-            // Next create the paired dataset collection array.
-            $collections[$data->form_key]['element_identifiers'][] = array(
-              'name' => $dataset1['name'] . ' and ' . $dataset2['name'],
-              'collection_type' => 'paired',
-              'src' => 'new_collection',
-              'element_identifiers' => array(
-                array(
-                  'id' => $dataset1['id'],
-                  'name' => 'forward',
-                  'src' => 'hda'
-                ),
-                array(
-                  'id' => $dataset2['id'],
-                  'name' => 'reverse',
-                  'src' => 'hda'
-                ),
-              ),
-            );
-          }
-        } // end for ($i = 0; $i < count($set1); $i++) {
-      } // end if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+      }
     } // end else if($data->type == 'galaxy_pflist') {
   } // foreach ($submitted_data as $data) {
 
@@ -513,7 +530,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     // Check for the dataset in the history before trying to readd it.
     $found_collection = FALSE;
     foreach ($history_contents as $hcontent) {
-      if ($hcontent['name'] == $form_key and $hcontent[deleted] == 0){
+      if ($hcontent['name'] == $form_key and $hcontent[deleted] == 0) {
         $inputs[$form_key] = $hcontent;
         $found_collection = TRUE;
       }
@@ -547,8 +564,8 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
   }
 
   // Next we need to re-get the history content to get the IDs of the new files.
-  $history_contents = $ghistory_contents->index(array('history_id' => $history['id']));
-  $input_datasets = array();
+  $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
+  $input_datasets = [];
 
   // Iterate through the submitted data values and create an input aray
   // for Galaxy workflow submission.
@@ -575,42 +592,48 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
       $value = $data->data;
       if (array_key_exists('linked', $data->extra) and $data->extra['linked']) {
         list($source_step, $step_output) = explode('|', $data->data);
-        $value = array(
+        $value = [
           'step_output' => $step_output,
           'source_step' => $source_step,
-        );
+        ];
       }
-    }
-    else if ($data->type == 'galaxy_sfile') {
-      $file = $inputs[$data->form_key];
-      foreach ($history_contents as $hcontent) {
-        if ($hcontent['name'] == $file['name']) {
-          $value = $hcontent['id'];
-          $input_datasets[$step_index] = array(
-            'id' => $value,
-            'src' => 'hda',
-          );
-        }
-      }
-    }
-    else if($data->type == 'galaxy_sflist') {
-      $dataset = $inputs[$data->form_key];
-      $value = $dataset['id'];
-      $input_datasets[$step_index] = array(
-        'id' => $value,
-        'src' => 'hdca',
-      );
-    }
-    else if($data->type == 'galaxy_pflist') {
-      $dataset = $inputs[$data->form_key];
-      $value = $dataset['id'];
-      $input_datasets[$step_index] = array(
-        'id' => $value,
-        'src' => 'hdca',
-      );
     }
     else {
-      $value = $data->data;
+      if ($data->type == 'galaxy_sfile') {
+        $file = $inputs[$data->form_key];
+        foreach ($history_contents as $hcontent) {
+          if ($hcontent['name'] == $file['name']) {
+            $value = $hcontent['id'];
+            $input_datasets[$step_index] = [
+              'id' => $value,
+              'src' => 'hda',
+            ];
+          }
+        }
+      }
+      else {
+        if ($data->type == 'galaxy_sflist') {
+          $dataset = $inputs[$data->form_key];
+          $value = $dataset['id'];
+          $input_datasets[$step_index] = [
+            'id' => $value,
+            'src' => 'hdca',
+          ];
+        }
+        else {
+          if ($data->type == 'galaxy_pflist') {
+            $dataset = $inputs[$data->form_key];
+            $value = $dataset['id'];
+            $input_datasets[$step_index] = [
+              'id' => $value,
+              'src' => 'hdca',
+            ];
+          }
+          else {
+            $value = $data->data;
+          }
+        }
+      }
     }
 
     // If we don't have a value then skip it and let the workflow use it's
@@ -620,7 +643,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     }
 
     if (!array_key_exists($step_index, $parameters)) {
-      $parameters[$step_index] = array();
+      $parameters[$step_index] = [];
     }
     $current_values = $parameters[$step_index];
     _tripal_galaxy_workflow_invoke_build_values($current_values, $input_name, $value);
@@ -629,34 +652,34 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
 
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
-  $params = array(
+  $params = [
     'workflow_id' => $submission->workflow_id,
     'parameters' => $parameters,
     'inputs' => $input_datasets,
     'history_id' => $history['id'],
-  );
+  ];
   $invocation = $gworkflows->invoke($params);
 
   if (!$invocation) {
     $error = $galaxy->getError();
     drupal_set_message($error['message'], 'error');
     db_update('tripal_galaxy_workflow_submission')
-      ->fields(array(
+      ->fields([
         'status' => 'Error',
         'errors' => $error['message'],
-      ))
+      ])
       ->condition('sid', $submission->sid)
       ->execute();
     tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
   }
   else {
     db_update('tripal_galaxy_workflow_submission')
-      ->fields(array(
+      ->fields([
         'status' => 'Submitted',
         'start_time' => REQUEST_TIME,
         'end_time' => NULL,
         'invocation_id' => $invocation['id'],
-      ))
+      ])
       ->condition('sid', $submission->sid)
       ->execute();
     tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
@@ -676,6 +699,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
  *   The history ID.
  * @param $history_contents
  *   The Galaxy history contents array.
+ *
  * @throws Exception
  * @return
  *   An array of the dataset details from Galaxy for the uploaded file.
@@ -698,13 +722,13 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
 
   // Only upload the file if it isn't already there.
   if (!$uploaded_file) {
-    $file_list = array();
-    $file_list[] = array(
+    $file_list = [];
+    $file_list[] = [
       'name' => $file->filename,
-      'path' =>  drupal_realpath($file->uri)
-    );
+      'path' => drupal_realpath($file->uri),
+    ];
     // Now upload the files.
-    $report =  "Uploading $file->filename...";
+    $report = "Uploading $file->filename...";
     if (is_object($job)) {
       $job->logMessage($report);
     }
@@ -712,11 +736,11 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
       print $report . "\n";
     }
     $gtool = new GalaxyTools($galaxy);
-    $tool = $gtool->create(array(
+    $tool = $gtool->create([
       'tool_id' => 'upload1',
       'history_id' => $history_id,
       'files' => $file_list,
-    ));
+    ]);
     if (!$tool) {
       $error = $galaxy->getError();
       throw new Exception($error['message']);
@@ -724,7 +748,7 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
     return $tool['outputs'][0];
   }
   else {
-    $report =  "File already exists in history: $file->filename...";
+    $report = "File already exists in history: $file->filename...";
     if (is_object($job)) {
       $job->logMessage($report);
     }
@@ -734,6 +758,7 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
     return $uploaded_file;
   }
 }
+
 /**
  * Retrieves a history by name from Galaxy.
  *
@@ -769,10 +794,10 @@ function tripal_galaxy_get_history(GalaxyInstance $galaxy, $history_name, &$erro
   }
 
   // If we're here then the history doesn't exist, so create one.
-  $history = $ghistories->create(array(
+  $history = $ghistories->create([
     'name' => $history_name,
-  ));
-  if (!$history){
+  ]);
+  if (!$history) {
     $error = $galaxy->getError();
     return FALSE;
   }
@@ -831,7 +856,7 @@ function tripal_galaxy_test_connection($connect) {
     return FALSE;
   }
   else {
-    drupal_set_message(t('Successful connection to the Galaxy server (version %version)', array('%version' => $version['version_major'])));
+    drupal_set_message(t('Successful connection to the Galaxy server (version %version)', ['%version' => $version['version_major']]));
   }
   return TRUE;
 }
@@ -842,10 +867,9 @@ function tripal_galaxy_test_connection($connect) {
  *
  * @return Associative array of user's new quota and exp_date from db table.
  **/
- function tripal_galaxy_admin_edit_user_quota($uid, $new_quota, $new_exp_date) {
+function tripal_galaxy_admin_edit_user_quota($uid, $new_quota, $new_exp_date) {
 
- }
-
+}
 
 
 /**
@@ -860,40 +884,40 @@ function tripal_galaxy_test_connection($connect) {
  * @return
  *   The inserted record.
  */
- function tripal_galaxy_set_user_quota($uid, $quota, $expriation) {
+function tripal_galaxy_set_user_quota($uid, $quota, $expriation) {
 
-   $values = array(
-     'uid' => $uid,
-     'custom_quota' => $quota,
-     'custom_expiration' => $expriation,
-   );
-   return db_insert('tripal_galaxy_custom_quota')
-     ->fields($values)
-     ->execute();
- }
+  $values = [
+    'uid' => $uid,
+    'custom_quota' => $quota,
+    'custom_expiration' => $expriation,
+  ];
+  return db_insert('tripal_galaxy_custom_quota')
+    ->fields($values)
+    ->execute();
+}
 
- /**
-  * Retrieves the user's quote and default days to expire.
-  *
-  * @param $uid
-  *   The User ID.
-  *
-  * @return
-  *   An associative array containing the quota and default days to
-  *   expire.
-  */
- function tripal_galaxy_get_user_quota($uid) {
-   $quota =  db_select('tripal_galaxy_custom_quota', 'tgcq')
-     ->fields('tgcq', array('custom_quota', 'custom_expiration'))
-     ->condition('uid', $uid)
-     ->execute()
-     ->fetchObject();
-   if (!$quota) {
-     $quota = new stdClass();
-     $quota->custom_quota = variable_get('tripal_galaxy_default_file_quota', pow(20,6));
-     $quota->custom_expiration = variable_get('tripal_galaxy_default_file_expiration', '60');
-   }
-   return $quota;
+/**
+ * Retrieves the user's quote and default days to expire.
+ *
+ * @param $uid
+ *   The User ID.
+ *
+ * @return
+ *   An associative array containing the quota and default days to
+ *   expire.
+ */
+function tripal_galaxy_get_user_quota($uid) {
+  $quota = db_select('tripal_galaxy_custom_quota', 'tgcq')
+    ->fields('tgcq', ['custom_quota', 'custom_expiration'])
+    ->condition('uid', $uid)
+    ->execute()
+    ->fetchObject();
+  if (!$quota) {
+    $quota = new stdClass();
+    $quota->custom_quota = variable_get('tripal_galaxy_default_file_quota', pow(20, 6));
+    $quota->custom_expiration = variable_get('tripal_galaxy_default_file_expiration', '60');
+  }
+  return $quota;
 }
 
 /**
@@ -913,70 +937,74 @@ function tripal_galaxy_get_user_usage($uid) {
       INNER JOIN {file_managed} FM ON FM.fid = FU.fid and FU.module = 'tripal_galaxy'
     WHERE FM.uid = :uid
   ";
-  $fids = db_query($sql, array(':uid' => $uid));
+  $fids = db_query($sql, [':uid' => $uid]);
   $total_size = 0;
-  while($fid = $fids->fetchObject()) {
+  while ($fid = $fids->fetchObject()) {
     $sql = "SELECT filesize FROM {file_managed} WHERE fid = :fid";
-    $total_size += db_query($sql, array (':fid' => $fid->fid))->fetchObject()->filesize;
+    $total_size += db_query($sql, [':fid' => $fid->fid])->fetchObject()->filesize;
   }
   return $total_size;
 }
- /**
-  * Removes a user's file space and default file expiration.
-  *
-  * @param $uid
-  *   The User ID for whom the quota will be removed.
-  *
-  * @return
-  */
- function tripal_galaxy_remove_user_quota($uid) {
-   db_delete('tripal_galaxy_custom_quota')
-     ->condition('uid', $uid)
-     ->execute();
- }
+
+/**
+ * Removes a user's file space and default file expiration.
+ *
+ * @param $uid
+ *   The User ID for whom the quota will be removed.
+ *
+ * @return
+ */
+function tripal_galaxy_remove_user_quota($uid) {
+  db_delete('tripal_galaxy_custom_quota')
+    ->condition('uid', $uid)
+    ->execute();
+}
 
 
- /**
-  * Formats a size (in bytes) in human readable format.
-  *
-  * Function taken from php.net
-  *
-  * @param $bytes
-  *   The size of the file in bytes
-  * @param $precision
-  *   The number of decimal places to use in the final number if needed
-  *
-  * @return string
-  *   A formatted string indicating the size of the file
-  */
- function tripal_galaxy_format_bytes($bytes, $precision = 2) {
-   $units = array('B', 'KB', 'MB', 'GB', 'TB');
+/**
+ * Formats a size (in bytes) in human readable format.
+ *
+ * Function taken from php.net
+ *
+ * @param $bytes
+ *   The size of the file in bytes
+ * @param $precision
+ *   The number of decimal places to use in the final number if needed
+ *
+ * @return string
+ *   A formatted string indicating the size of the file
+ */
+function tripal_galaxy_format_bytes($bytes, $precision = 2) {
+  $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
-   $bytes = max($bytes, 0);
-   $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-   $pow = min($pow, count($units) - 1);
+  $bytes = max($bytes, 0);
+  $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+  $pow = min($pow, count($units) - 1);
 
-   // Uncomment one of the following alternatives
-   $bytes /= pow(1000, $pow);
-   // $bytes /= (1 << (10 * $pow));
+  // Uncomment one of the following alternatives
+  $bytes /= pow(1000, $pow);
+  // $bytes /= (1 << (10 * $pow));
 
-   return round($bytes, $precision) . '' . $units[$pow];
- }
+  return round($bytes, $precision) . '' . $units[$pow];
+}
 
 /**
  * Checks if a file needs to be expired.
  *
-**/
+ **/
 function tripal_galaxy_check_file_expiration() {
   $results = db_select('tripal_galaxy_expiration_files', 'tgfe')
     ->fields('tgfe')
     ->execute();
-  while($result = $results->fetchObject()) {
-    if(time() <= $result->expiration_date){
+  while ($result = $results->fetchObject()) {
+    if (time() > $result->expiration_date) {
       // remove the file from the server as it is outdated and has not been
       // renewed through user action
       // TRUE to force the file to be deleted and dropped from all tables
       file_delete(file_load($result->fid), TRUE);
+      $query = db_delete('tripal_galaxy_expiration_files', 'tgfe');
+      $query->condition('fid', $result->fid);
+      $query->execute();
     }
   }
 }
@@ -998,7 +1026,7 @@ function tripal_galaxy_get_files_dir() {
   $site_dir = 'public://tripal/files/galaxy/' . $user_uid;
   if (!file_prepare_directory($site_dir, FILE_CREATE_DIRECTORY)) {
     $message = 'Could not access the directory on the server for storing this file.';
-    watchdog('tripal', $message, array(), WATCHDOG_ERROR);
+    watchdog('tripal', $message, [], WATCHDOG_ERROR);
     return FALSE;
   }
 

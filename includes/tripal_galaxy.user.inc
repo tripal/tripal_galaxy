@@ -145,7 +145,7 @@ function tripal_galaxy_renew_file($fid) {
   // A custom expiration entry was not found so add the site wide default time
   // to the expiration date
   else {
-    $values['expiration_date'] = time() + variable_get('tripal_galaxy_default_file_expiration', 60);
+    $values['expiration_date'] = time() + variable_get('tripal_galaxy_default_file_expiration', 60 * 60 * 24 * 30);
   }
 
   // Write the update to the db_table
