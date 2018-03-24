@@ -390,13 +390,13 @@ function tripal_galaxy_admin_delete_file_form($form, &$form_state, $swfid) {
 
   return confirm_form($form,
     t('Confirm removal of the file named "' . $file->filename . '"? '),
-    'admin/tripal/extension/galaxy/quota',
+    'admin/tripal/extension/galaxy/files',
     t('Note if this file is used in a Galaxy workflow it will no longer show when a user views their submission.')
   );
 }
 
 /**
- * Implements submit hook for the tripal_galaxy_admin_remove_quota_form form.
+ * Implements submit hook for the tripal_galaxy_admin_delete_file_form.
  */
 function tripal_galaxy_admin_delete_file_form_submit($form, &$form_state) {
   $fid = $form_state['values']['fid'];

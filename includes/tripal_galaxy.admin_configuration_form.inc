@@ -208,13 +208,13 @@ function tripal_galaxy_admin_delete_galaxy_instance_form($form, &$form_state, $g
 
   return confirm_form($form,
     t('Confirm removal of the galaxy instance: "' . $galaxy->servername . '"? '),
-    'admin/tripal/extension/galaxy/quota',
+    'admin/tripal/extension/galaxy',
     t('WARNING: removal of a Galaxy instance will delete all workflows that have been executed by users of this site. Are you sure you want to do this?')
    );
 }
 
 /**
- * Implements submit hook for the tripal_galaxy_admin_remove_quota_form form.
+ * Implements submit hook for tripal_galaxy_admin_delete_galaxy_instance_form.
  */
 function tripal_galaxy_admin_delete_galaxy_instance_form_submit($form, &$form_state) {
 

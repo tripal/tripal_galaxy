@@ -89,9 +89,9 @@ function tripal_galaxy_fixed_value_process($element, $form_state, $complete_form
  */
 function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   global $user;
-  $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
-  $quota = tripal_galaxy_get_user_quota($user->uid);
-  $quota = tripal_galaxy_format_bytes($quota->custom_quota);
+  $usage = tripal_format_bytes(tripal_get_user_usage($user->uid));
+  $quota = tripal_get_user_quota($user->uid);
+  $quota = tripal_format_bytes($quota->custom_quota);
 
   $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
 
@@ -128,20 +128,9 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
 
   $files_list = array();
   $files_list[] = '-- Select a File --';
-  $query = db_select('file_managed', 'FM');
-  $query->fields('FM', array('fid'));
-  $query->distinct();
-  $query->condition('FM.uid', $user->uid);
-  $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal_galaxy'");
-  $query->orderBy('FM.filename');
-  $files = $query->execute();
-  while ($fid = $files->fetchField()) {
-    $file = file_load($fid);
-    foreach ($allowed_types as $type) {
-      if (preg_match('/\.' . $type . '$/', $file->filename)) {
-        $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-      }
-    }
+  $files = tripal_get_user_uploads($user->uid, $allowed_types);
+  foreach ($files as $fid => $file) {
+    $files_list[$fid] = $file->filename . ' (' . tripal_format_bytes($file->filesize) . ') ';
   }
 
   // Generate the ID that will be used for the table.
@@ -344,9 +333,9 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
 
   global $user;
 
-  $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
-  $quota = tripal_galaxy_get_user_quota($user->uid);
-  $quota = tripal_galaxy_format_bytes($quota->custom_quota);
+  $usage = tripal_format_bytes(tripal_get_user_usage($user->uid));
+  $quota = tripal_get_user_quota($user->uid);
+  $quota = tripal_format_bytes($quota->custom_quota);
 
   $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
 
@@ -391,22 +380,10 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
 
   $files_list = array();
   $files_list[] = '-- Select a File --';
-  $existing_file_names = array();
-  $query = db_select('file_managed', 'FM');
-  $query->fields('FM', array('fid'));
-  $query->distinct();
-  $query->condition('FM.uid', $user->uid);
-  $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal_galaxy'");
-  $query->orderBy('FM.filename');
-  $files = $query->execute();
-  while ($fid = $files->fetchField()) {
-    $file = file_load($fid);
-    foreach ($allowed_types as $type) {
-      if (preg_match('/\.' . $type . '$/', $file->filename)) {
-        $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-        $existing_file_names[] = $file->filename;
-      }
-    }
+  $files = tripal_get_user_uploads($user->uid, $allowed_types);
+  foreach ($files as $fid => $file) {
+    $files_list[$fid] = $file->filename . ' (' . tripal_format_bytes($file->filesize) . ') ';
+    $existing_file_names[] = $file->filename;
   }
   if (count(array_keys($files_list)) > 1) {
     $element['existing_fset'] = array(
@@ -474,27 +451,14 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
   $data_collection_value_id = strtolower(preg_replace('/[^\w]/', '-', $data_collection_value_id)) . '-data-collection';
 
   $files_list = array();
-  $files_list[] = '-- Select a File --';
-  $query = db_select('file_managed', 'FM');
-  $query->fields('FM', array('fid'));
-  $query->distinct();
-  $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal'");
-  $query->condition('FM.uid', $user->uid);
-  $query->condition('FU.type', 'data-collection');
-  $query->orderBy('FM.filename');
-  $files = $query->execute();
-  while ($fid = $files->fetchField()) {
-    $file = file_load($fid);
-    foreach ($allowed_types as $type) {
-      // Ignore files that don't have the correct extension.
-      if (preg_match('/\.' . $type . '$/', $file->filename)) {
-        // Ignore files that are in the user's existing files that have
-        // the exact same name. These would be data collections previously
-        // used and now in the user's files list.
-        if (!in_array($file->filename, array_values($existing_file_names))) {
-          $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-        }
-      }
+  $files_list[] = '-- Select a File --'; 
+  $files = tripal_get_user_uploads($user->uid, $allowed_types);
+  foreach ($files as $fid => $file) {
+    // Ignore files that are in the user's existing files that have
+    // the exact same name. These would be data collections previously
+    // used and now in the user's files list.
+    if (!in_array($file->filename, array_values($existing_file_names))) {
+      $files_list[$fid] = $file->filename . ' (' . tripal_format_bytes($file->filesize) . ') ';
     }
   }
   if (count(array_keys($files_list)) > 1) {
@@ -523,8 +487,6 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
       )
     );
   }
-
-
 
   // The existing element cannot be inside the fieldset or value won't be found.
    $element['existing'] = array(
@@ -616,9 +578,9 @@ function tripal_galaxy_sfile_value($element, $input = FALSE, &$form_state) {
 function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 
   global $user;
-  $usage = tripal_galaxy_format_bytes(tripal_galaxy_get_user_usage($user->uid));
-  $quota = tripal_galaxy_get_user_quota($user->uid);
-  $quota = tripal_galaxy_format_bytes($quota->custom_quota);
+  $usage = tripal_format_bytes(tripal_get_user_usage($user->uid));
+  $quota = tripal_get_user_quota($user->uid);
+  $quota = tripal_format_bytes($quota->custom_quota);
 
   $allowed_types = array_key_exists('#allowed_types', $element) ? $element['#allowed_types'] : array();
 
@@ -655,20 +617,9 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 
   $files_list = array();
   $files_list[] = '-- Select a File --';
-  $query = db_select('file_managed', 'FM');
-  $query->fields('FM', array('fid'));
-  $query->distinct();
-  $query->condition('FM.uid', $user->uid);
-  $query->innerJoin('file_usage', 'FU', "FU.fid = FM.fid and FU.module = 'tripal_galaxy'");
-  $query->orderBy('FM.filename');
-  $files = $query->execute();
-  while ($fid = $files->fetchField()) {
-    $file = file_load($fid);
-    foreach ($allowed_types as $type) {
-      if (preg_match('/\.' . $type . '$/', $file->filename)) {
-        $files_list[$fid] = $file->filename . ' (' . tripal_galaxy_format_bytes($file->filesize) . ') ';
-      }
-    }
+  $files = tripal_get_user_uploads($user->uid, $allowed_types);  
+  foreach ($files as $fid => $file) {
+    $files_list[$fid] = $file->filename . ' (' . tripal_format_bytes($file->filesize) . ') ';
   }
 
   // Generate the ID that will be used for the table.
