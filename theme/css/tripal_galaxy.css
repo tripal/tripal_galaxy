@@ -23,3 +23,7 @@
   white-space: nowrap;
   overflow: hidden;
 }
+
+.tripal-galaxy-fieldset .fieldset-description {
+  color: #0099ff;
+}
