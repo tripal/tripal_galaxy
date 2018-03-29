@@ -410,7 +410,6 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow, $step,
     $tool, $tool_input, $pid = 0, $data_inputs) {
 
   $step_index = $step['id'];
-
   // We want to keep track of which inputs come from a repeat input type
   // because there can be multiple values at different indicies.
   $is_repeat = array_key_exists('is_repeat', $tool_input) ? $tool_input['is_repeat'] : FALSE;
@@ -566,9 +565,13 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
   $webform_value = "";
   $webform_type = 'select';
   $is_required = 1;
+  $extra_description = '';
+  if (isset($input['help'])) {
+    $extra_description = $input['help'];
+  }
   $extra = [
     'title_display' => 'before',
-    'description' => '',
+    'description' => $extra_description,
     'description_above' => 0,
     'items' => '',
     'aslist' => $is_list,
