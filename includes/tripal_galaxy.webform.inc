@@ -54,6 +54,10 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $steps = $workflow['steps'];
   foreach ($steps as $step_index => $step) {
 
+    $step_annotation = '';
+    if (isset($step['annotation'])) {
+      $step_annotation = $step['annotation'];
+    }
     // Each step is contained in a fieldset. We'll name the field set after
     // it's step and if a tool is present we'll include the tool info.
     $cid = count($webform->components) + 1;
@@ -69,7 +73,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'type' => 'fieldset',
       'value' => '',
       'extra' => [
-        'description' => '',
+        'description' => $step_annotation,
         'description_above' => 1,
         'private' => 0,
         'css_classes' => 'tripal-galaxy-fieldset',
@@ -166,7 +170,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         // We want to change the name of the fieldset to have the name of
         // the tool.
         // we also want to add tool description to the end, like what we see in Galaxy.
-        $fieldset_name .= ': ' . $tool['name'] . ' ' . $tool['description'] . ' (Galaxy Version ' . $tool['version'] . ')';
+        $fieldset_name .= ': ' . $tool['name'] . ' (Galaxy Version ' . $tool['version'] . ')';
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
 
 
