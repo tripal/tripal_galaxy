@@ -856,10 +856,16 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     'weight' => $cid,
     'required' => $is_required,
   ];
+  // to determine whether put a component in the "Optional Settings".
   if ($component['type'] != 'fixed_value' and isset($webform->current_optional_fieldset)) {
     $component['pid'] = $webform->current_optional_fieldset;
   }
 
+  // When it is an "Avanced Options" component but it's value is "Hide Advanced Options",
+  // we should not add this component to the webform.
+  if ($component['name'] == 'Advanced Options' and $component['type'] == 'fixed_value') {
+    return $cid;
+  }
   $webform->components[] = $component;
 
   return $cid;
