@@ -185,6 +185,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           'value' => '',
           'extra' => [
             'description_above' => 1,
+            'description' => 'Values of inputs below are predefined in the workflow and cannot be changed.',
             'private' => 0,
             'css_classes' => '',
             'title_display' => 1,
