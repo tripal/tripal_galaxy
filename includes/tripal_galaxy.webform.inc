@@ -174,13 +174,13 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
 
 
-        // Add the "Optional settings" fieldset.
+        // Add the "fixed inputs" fieldset.
         $dcid = count($webform->components) + 1;
         $webform->components[] = [
           'cid' => $dcid,
           'pid' => $cid,
           'form_key' => $fieldset_key . '_additional',
-          'name' => 'Optional Settings',
+          'name' => 'Fixed value inputs',
           'type' => 'fieldset',
           'value' => '',
           'extra' => [
@@ -194,7 +194,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           'required' => '0',
           'weight' => '1000',
         ];
-        $webform->current_optional_fieldset = $dcid;
+        $webform->current_fixed_inputs_fieldset = $dcid;
 
         // Itearte through each of the inputs of this tool and add them
         // to the webform.
@@ -809,14 +809,6 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     $webform_value = $source_step . '|' . $step_output;
     $webform_type = 'fixed_value';
     $extra['linked'] = TRUE;
-    $linked = TRUE;
-  }
-
-  // If this component has a value then put it in the "Optional Settings"
-  if (!$is_required or $webform_value or $webform_value === 0) {
-    if (!$linked) {
-      $pid = $webform->current_optional_fieldset;
-    }
   }
 
   $cid = count($webform->components) + 1;
@@ -833,6 +825,10 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     'weight' => $cid,
     'required' => $is_required,
   ];
+
+  if ($component['type'] == 'fixed_value' and isset($webform->current_fixed_inputs_fieldset)) {
+    $component['pid'] = $webform->current_fixed_inputs_fieldset;
+  }
   $webform->components[] = $component;
 
   return $cid;
