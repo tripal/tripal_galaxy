@@ -257,6 +257,26 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $node->promote = 0;
   $node->comment = 0;
 
+  // if the fixed value fieldset has no child component, it should be removed.
+  $fixed_value_cids = [];
+  $other_component_pids = [];
+  foreach ($webform->components as $component_key=>$component_value) {
+    // if this is an Fixed value inputs fieldset, we save the cid;
+    // else, we save the pid.
+    if ($component_value['type'] == 'fieldset' and $component_value['name'] == 'Fixed value inputs') {
+      $fixed_value_cids[$component_key] = $component_value['cid'];
+    }
+    else {
+      $other_component_pids[$component_key] = $component_value['pid'];
+    }
+  }
+  // any element in $fixed_value_cids that are not in $other_component_pids indicates
+  // an empty fixed value input fieldset component. This component should be removed.
+  $empty_fixed_value_components = array_diff($fixed_value_cids, $other_component_pids);
+  foreach (array_keys($empty_fixed_value_components) as $component_key) {
+    unset($webform->components[$component_key]);
+  }
+  
   // Attach the webform to the node.
   $node->webform = [
     'confirmation' => '',
