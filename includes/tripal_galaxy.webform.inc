@@ -173,36 +173,28 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         $fieldset_name .= ': ' . $tool['name'] . ' (Galaxy Version ' . $tool['version'] . ')';
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
 
-        // only add optional settings fieldset when the tool has non-data and non-conditional input types.
-        $add_optional_settings_fieldset = FALSE;
-        foreach ($tool['inputs'] as $input) {
-          if ($input['type'] != 'data' & $input['type'] != 'conditional') {
-            $add_optional_settings_fieldset = TRUE;
-          }
-        }
-        if ($add_optional_settings_fieldset) {
-          // Add the "Optional settings" fieldset.
-          $dcid = count($webform->components) + 1;
-          $webform->components[] = [
-            'cid' => $dcid,
-            'pid' => $cid,
-            'form_key' => $fieldset_key . '_additional',
-            'name' => 'Optional Settings',
-            'type' => 'fieldset',
-            'value' => '',
-            'extra' => [
-              'description_above' => 1,
-              'private' => 0,
-              'css_classes' => '',
-              'title_display' => 1,
-              'collapsible' => 1,
-              'collapsed' => 1,
-            ],
-            'required' => '0',
-            'weight' => '1000',
-          ];
-          $webform->current_optional_fieldset = $dcid;
-        }
+
+        // Add the "Optional settings" fieldset.
+        $dcid = count($webform->components) + 1;
+        $webform->components[] = [
+          'cid' => $dcid,
+          'pid' => $cid,
+          'form_key' => $fieldset_key . '_additional',
+          'name' => 'Optional Settings',
+          'type' => 'fieldset',
+          'value' => '',
+          'extra' => [
+            'description_above' => 1,
+            'private' => 0,
+            'css_classes' => '',
+            'title_display' => 1,
+            'collapsible' => 1,
+            'collapsed' => 1,
+          ],
+          'required' => '0',
+          'weight' => '1000',
+        ];
+        $webform->current_optional_fieldset = $dcid;
 
         // Itearte through each of the inputs of this tool and add them
         // to the webform.
