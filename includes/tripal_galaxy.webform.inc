@@ -813,11 +813,14 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
   }
 
   // If this component has a value then put it in the "Optional Settings"
-  if (!$is_required or $webform_value or $webform_value === 0) {
-    if (!$linked) {
-      $pid = $webform->current_optional_fieldset;
-    }
-  }
+//  if ($input['type'] != 'data' and $input['type'] != 'conditional') {
+//    if (!$is_required or $webform_value or $webform_value === 0) {
+//      if (!$linked) {
+//        $pid = $webform->current_optional_fieldset;
+//      }
+//    }
+//  }
+
 
   $cid = count($webform->components) + 1;
   $component = [
@@ -833,6 +836,10 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     'weight' => $cid,
     'required' => $is_required,
   ];
+  if ($component['type'] != 'fixed_value' and isset($webform->current_optional_fieldset)) {
+    $component['pid'] = $webform->current_optional_fieldset;
+  }
+
   $webform->components[] = $component;
 
   return $cid;
