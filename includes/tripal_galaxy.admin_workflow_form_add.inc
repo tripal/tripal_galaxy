@@ -66,6 +66,10 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
     $workflows = $gworkflows->index();
     if (!$workflows) {
       $error = $galaxy->getError();
+      if (empty($error['message'])) {
+        $error['message'] = 'No workflow is found in this Galaxy server for the user you used
+        to connect to the Galaxy server.';
+      }
       drupal_set_message($error['message'], 'error');
       return $form;
     }
