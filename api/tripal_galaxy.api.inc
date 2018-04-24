@@ -144,7 +144,10 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     'workflow_id' => $submission->workflow_id,
     'invocation_id' => $submission->invocation_id,
   ]);
-  if (!$invocation) {
+  dpm($invocation);
+  if (!$invocation) {     
+    // Set status to deleted if workflow is no longer present on the galaxy server.
+    $status = 'Deleted From Galaxy Server -- Please Delete';
     throw new Exception($galaxy->getErrorMessage());
   }
 
@@ -389,6 +392,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
   // in the event that this invocation occurs more than once.
   $ghistory_contents = new GalaxyHistoryContents($galaxy);
   $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
+  print_r($history_contents);
   if ($error['message']) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);

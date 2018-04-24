@@ -82,7 +82,7 @@ function drush_tripal_galaxy_trp_galaxy_status() {
     $force = FALSE;
   }
   else {
-    $force - TRUE;
+    $force = TRUE;
   }
 
   if (!$sid) {
