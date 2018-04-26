@@ -716,10 +716,6 @@ function tripal_galaxy_workflow_report($sid) {
     return FALSE;
   }
 
-  // Before doing anything check that the report is still available on the 
-  // galaxy server.
-  tripal_galaxy_check_submission_status($sid, TRUE);
-
   // Create a galaxy logo clickable image.
   $galaxy_logo = l('<img src="' . url(drupal_get_path('module', 'tripal_galaxy') . '/theme/images/PoweredByGalaxy120.png') . '" border="0"></img>', "https://galaxyproject.org/", [
     'html' => TRUE,
@@ -748,19 +744,6 @@ function tripal_galaxy_workflow_report($sid) {
 
   $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
 
-
-  // Before doing anything check that the report is still available on the 
-  // galaxy server.
-  dpm($submission);
-  if ($submission->status == 'Deleted From Galaxy Server -- Please Delete') {
-    $content['deleted'] = [
-      '#type' => 'item',
-      '#title' => t('Results deleted from Galaxy Server'),
-      '#description' => t('It appears this analysis result has been deleted from the galaxy server on which it was run. Please return to the previous page and delete this from your workflow listing.'),
-    ];
-    return $content;
-  }
-
   // Get the node that this workflow belongs to
   $node = node_load($submission->nid);
 
@@ -777,6 +760,28 @@ function tripal_galaxy_workflow_report($sid) {
     ->condition('galaxy_id', $submission->galaxy_id)
     ->execute()
     ->fetchObject();
+
+  // Before doing anything check that the history has not been deleted.
+  $galaxy_instance = tripal_galaxy_get_connection($submission->galaxy_id);
+  $history_name = tripal_galaxy_get_history_name($submission, $node);
+  $error = [];
+  $history = tripal_galaxy_get_history($galaxy_instance, $history_name, $error);
+  dpm($history);
+  if ($history['deleted'] === TRUE) {
+    $content['deleted'] = [
+      '#type' => 'item',
+      '#title' => t('Results deleted from Galaxy Server'),
+      '#description' => t('It appears this analysis result has been deleted from the galaxy server on which it was run. Please return to the previous page and delete this from your workflow listing.'),
+    ];
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields(array(
+        'status' => 'deleted'
+      ))
+      ->condition('sid', $submission->sid)
+      ->execute();
+    return $content;
+  }
+
 
   $headers = [];
   $rows = [];
@@ -1671,4 +1676,21 @@ function tripal_galaxy_node_access($node, $op, $account = NULL) {
   }
 
   return NODE_ACCESS_IGNORE;
+}
+
+/**
+ * Implements hook_views_pre_render().
+ * 
+ * Hook views pre render to hide the 'View Results', 'Re-Run', and 'View Details' 
+ * links in the user workflow listing found on /user/#/galaxy-jobs.
+ */
+function tripal_galaxy_views_pre_render(&$view) {
+
+  if ($view->name == 'galaxy_usage') {
+    if ($view->result[0]->tripal_galaxy_workflow_submission_status == 'deleted') {
+      $view->field['ctools_dropdown']->options['fields']['nothing_2'] = null;
+      $view->field['ctools_dropdown']->options['fields']['nothing_3'] = null;
+      $view->field['ctools_dropdown']->options['fields']['nothing'] = null;
+    }
+  }
 }
