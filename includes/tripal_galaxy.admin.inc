@@ -23,11 +23,32 @@ function tripal_galaxy_admin_home() {
   $results = db_query($sql);
 
   while ($result = $results->fetchObject()) {
+    //Check the status of the server to determine which link to include.
+    if ($results->serverstatus == 'unavailable') {
+      $status_link = l('disable all workflows', '/admin/tripal/extension/galaxy/disable/' . $result->galaxy_id);
+    }
+    elseif ($results->serverstatus == 'available') {
+      //Now check if any workflows are disable
+      $workflow = db_select('tripal_galaxy_workflow', 'tgw')
+        ->fields('tgw')
+        ->condition('galaxy_id', $$result->galaxy_id)
+        ->execute()
+        ->fetchObject();
+
+        if ($workflow) {
+          $status_link = l('enable all workflows', '/admin/tripal/extension/galaxy/enable/' . $result->galaxy_id);
+        }
+        else {
+          $status_link = NULL;
+        }
+
+    }
     $rows[] = array(
       $result->servername,
       $result->description,
       l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id) . ' ' .
-      l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id)
+      l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' ' . 
+      $status_link
     );
   }
 
@@ -185,4 +206,61 @@ function tripal_galaxy_admin_confirm_remove_workflow_form($form, &$form_state, $
 function tripal_galaxy_admin_test_server($galaxy_id) {
   tripal_galaxy_test_connection(array('galaxy_id' => $galaxy_id));
   drupal_goto('admin/tripal/extension/galaxy');
+}
+
+/**
+ * Responds to the menu item admin/tripal/extension/galaxy/disable/%.
+ *
+ * @param  $galaxy_id
+ *   A galaxy server ID
+ */
+function tripal_galaxy_admin_disable_workflows($galaxy_id) {
+
+  try {
+    $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE galaxy_id = $galaxy_id";
+    $results = db_query($sql);
+
+    while ($result = $results->fetchObject()) {
+      $sucess = db_update('tripal_galaxy_workflow')
+        ->fields(array(
+          'status' => 'disable',
+        ))
+        ->condition('galaxy_id', $galaxy_id, '=')
+        ->execute();
+    }
+  } catch (Exception $e) {
+    $transaction->rollback();
+    drupal_set_message($e->getMessage(), 'error');
+    drupal_set_message(t('Cannot disable the workflows'), 'error');
+    drupal_goto("/admin/tripal/extension/galaxy/workflows");
+    return;
+  }
+}
+
+/**
+ * Responds to the menu item admin/tripal/extension/enable/test/%.
+ *
+ * @param  $galaxy_id
+ *   A galaxy server ID
+ */
+function tripal_galaxy_admin_enable_workflows($galaxy_id) {
+  try {
+    $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE galaxy_id = $galaxy_id";
+    $results = db_query($sql);
+
+    while ($result = $results->fetchObject()) {
+      $sucess = db_update('tripal_galaxy_workflow')
+        ->fields(array(
+          'status' => 'Active',
+        ))
+        ->condition('galaxy_id', $galaxy_id, '=')
+        ->execute();
+    }
+  } catch (Exception $e) {
+    $transaction->rollback();
+    drupal_set_message($e->getMessage(), 'error');
+    drupal_set_message(t('Cannot disable the workflows'), 'error');
+    drupal_goto("/admin/tripal/extension/galaxy/workflows");
+    return;
+  }
 }
