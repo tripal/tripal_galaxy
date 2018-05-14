@@ -23,20 +23,36 @@ function tripal_galaxy_admin_home() {
   $results = db_query($sql);
 
   while ($result = $results->fetchObject()) {
-    //Check the status of the server to determine which link to include.
-    if ($results->serverstatus == 'unavailable') {
-      $status_link = l('disable all workflows', '/admin/tripal/extension/galaxy/disable/' . $result->galaxy_id);
-    }
-    elseif ($results->serverstatus == 'available') {
-      //Now check if any workflows are disable
-      $workflow = db_select('tripal_galaxy_workflow', 'tgw')
-        ->fields('tgw')
-        ->condition('galaxy_id', $$result->galaxy_id)
-        ->execute()
-        ->fetchObject();
 
-        if ($workflow) {
-          $status_link = l('enable all workflows', '/admin/tripal/extension/galaxy/enable/' . $result->galaxy_id);
+    $disabled_workflows = db_select('tripal_galaxy_workflow', 'tgw')
+      ->fields('tgw')
+      ->condition('galaxy_id', $result->galaxy_id)
+      ->condition('status', 'disabled')
+      ->execute()
+      ->fetchObject();
+
+    $enabled_workflows = db_select('tripal_galaxy_workflow', 'tgw')
+      ->fields('tgw')
+      ->condition('galaxy_id', $result->galaxy_id)
+      ->condition('status', 'Active')
+      ->execute()
+      ->fetchObject();
+
+    //Check the status of the server to determine which link to include.
+    if ($result->serverstatus == 'unavailable') {
+      if ($disabled_workflows && $enabled_workflows == NULL) {
+        $status_link = t("<br /> All workflows for this server are disabled.");
+        $status_link .= t("<br /> <b> The galaxy server is still unavailable, 
+                           <br /> enabling your workflows is not recommended.</b> <br />");
+        $status_link .= l("\n enable all workflows", '/admin/tripal/extension/galaxy/enable/' . $result->galaxy_id);
+      }
+      else {
+        $status_link = l("\t disable all workflows", '/admin/tripal/extension/galaxy/disable/' . $result->galaxy_id);
+      }
+    }
+    elseif ($result->serverstatus == 'available') {
+        if ($disabled_workflows) {
+          $status_link = l("\t enable all workflows", '/admin/tripal/extension/galaxy/enable/' . $result->galaxy_id);
         }
         else {
           $status_link = NULL;
@@ -223,16 +239,19 @@ function tripal_galaxy_admin_disable_workflows($galaxy_id) {
     while ($result = $results->fetchObject()) {
       $sucess = db_update('tripal_galaxy_workflow')
         ->fields(array(
-          'status' => 'disable',
+          'status' => 'disabled',
         ))
         ->condition('galaxy_id', $galaxy_id, '=')
         ->execute();
     }
+    drupal_set_message(t('All workflows disabled'), 'status');
+    drupal_goto("/admin/tripal/extension/galaxy");
+
   } catch (Exception $e) {
     $transaction->rollback();
     drupal_set_message($e->getMessage(), 'error');
     drupal_set_message(t('Cannot disable the workflows'), 'error');
-    drupal_goto("/admin/tripal/extension/galaxy/workflows");
+    drupal_goto("/admin/tripal/extension/galaxy");
     return;
   }
 }
@@ -256,11 +275,14 @@ function tripal_galaxy_admin_enable_workflows($galaxy_id) {
         ->condition('galaxy_id', $galaxy_id, '=')
         ->execute();
     }
+    drupal_set_message(t('All workflows enabled'), 'status');
+    drupal_goto("/admin/tripal/extension/galaxy");
+
   } catch (Exception $e) {
     $transaction->rollback();
     drupal_set_message($e->getMessage(), 'error');
     drupal_set_message(t('Cannot disable the workflows'), 'error');
-    drupal_goto("/admin/tripal/extension/galaxy/workflows");
+    drupal_goto("/admin/tripal/extension/galaxy");
     return;
   }
 }
