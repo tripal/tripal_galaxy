@@ -15,8 +15,6 @@ function tripal_galaxy_schema() {
   tripal_galaxy_add_galaxy_table($schema);
   tripal_galaxy_add_workflow_table($schema);
   tripal_galaxy_add_workflow_submission_table($schema);
-  tripal_galaxy_add_custom_quota_table($schema);
-  tripal_galaxy_add_expiration_files_table($schema);
   tripal_galaxy_add_site_wide_files_table($schema);
 
   return $schema;
@@ -187,55 +185,6 @@ function tripal_galaxy_add_workflow_table(&$schema){
   );
 }
 
-/**
- * Adds the 'tripal_galaxy_custom_quota' table to Drupal schema.
- */
-function tripal_galaxy_add_custom_quota_table(&$schema) {
-  $schema['tripal_galaxy_custom_quota'] = array (
-    'table' => 'tripal_galaxy_custom_quota',
-    'fields' => array (
-      'uid' => array(
-        'type' => 'int',
-        'size' => 'big',
-        'not NULL' => TRUE,
-      ),
-      'custom_quota' => array(
-        'type' => 'int',
-        'size' => 'big',
-        'not NULL' => TRUE,
-      ),
-      'custom_expiration' => array(
-        'type' => 'int',
-        'size' => 'big',
-        'not NULL' => TRUE,
-      ),
-    ),
-    'primary key' => array(
-      0 => 'uid',
-    ),
-  );
-  // TODO: missing indexes and unique constraints.
-}
-function tripal_galaxy_add_expiration_files_table(&$schema) {
-  $schema['tripal_galaxy_expiration_files'] = array (
-    'table' => 'tripal_galaxy_expiration_files',
-    'fields' => array (
-      'fid' => array(
-        'type' => 'int',
-        'not NULL' => TRUE
-      ),
-      'expiration_date' => array(
-        'type' => 'int',
-        'size' => 'big',
-        'not NULL' => TRUE
-      ),
-    ),
-    'primary key' => array(
-      0 => 'fid'
-    ),
-  );
-  // TODO: missing indexes and unique constraints.
-}
 
 function tripal_galaxy_add_site_wide_files_table(&$schema) {
   $schema['tripal_galaxy_site_files'] = array (
@@ -304,29 +253,23 @@ function tripal_galaxy_requirements($phase) {
 
 
 function tripal_galaxy_uninstall () {
-  // Remove the two quota variables
   // Remove the db tables that this installed
   drupal_uninstall_schema('tripal_galaxy');
   db_drop_table('tripal_galaxy');
   db_drop_table('tripal_galaxy_workflow');
   db_drop_table('tripal_galaxy_workflow_submission');
-  db_drop_table('tripal_galaxy_custom_quota');
-  db_drop_table('tripal_galaxy_expiration_files');
 }
 
 
 
 
 /**
- * Adds support for file quotas.
+ * This update previously added support for file quotas, but that code
+ * has been moved to the core Tripal. Therefore, this update does nothing now.
  */
 function tripal_galaxy_update_7100() {
   try {
-    $schema = array();
-    tripal_galaxy_add_custom_quota_table($schema);
-    db_create_table('tripal_galaxy_custom_quota',$schema['tripal_galaxy_custom_quota']);
-    tripal_galaxy_add_expiration_files_table($schema);
-    db_create_table('tripal_galaxy_expiration_files',$schema['tripal_galaxy_expiration_files']);
+     // Do nothing.
   }
   catch (\PDOException $e) {
     $error = $e->getMessage();
@@ -350,17 +293,12 @@ function tripal_galaxy_update_7101() {
 }
 
 /**
- * Changes the custom_quota field to a big int.
+ * This update previously added support for file quotas, but that code
+ * has been moved to the core Tripal. Therefore, this update does nothing now.
  */
 function tripal_galaxy_update_7102() {
   try {
-    db_change_field('tripal_galaxy_custom_quota', 'custom_quota', 'custom_quota',
-      array(
-        'type' => 'int',
-        'size' => 'big',
-        'not NULL' => TRUE,
-      )
-    );
+    // Do nothing.
   }
   catch (\PDOException $e) {
     $error = $e->getMessage();

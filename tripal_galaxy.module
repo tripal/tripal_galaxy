@@ -288,137 +288,6 @@ function tripal_galaxy_menu() {
     'file' => 'includes/tripal_galaxy.admin_files.inc',
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   ];
-  //
-  // FILE QUOTAS
-  //
-
-  // Admin view quota
-  $items['admin/tripal/extension/galaxy/quota'] = [
-    'title' => 'Quota',
-    'description' => 'Table of the default quota, expiration date, and custom quotas',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => ['tripal_galaxy_admin_manage_quota_form'],
-    'access arguments' => ['administer galaxy'],
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-    'weight' => 30,
-  ];
-
-  // Admin remove user quota
-  $items['admin/tripal/extension/galaxy/quota/remove/%'] = [
-    'title' => 'Remove custom user quota',
-    'description' => "Revert's a user's quota and expiration of files to the site wide defaults.",
-    'page callback' => 'drupal_get_form',
-    'page arguments' => ['tripal_galaxy_admin_remove_quota_form', 6],
-    'access arguments' => ['administer galaxy'],
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-
-  // Add user quota
-  $items['admin/tripal/extension/galaxy/quota/add'] = [
-    'title' => 'Add Custom Quota',
-    'description' => 'Gives the user a new quota and expiration date',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => ['tripal_galaxy_admin_add_custom_form'],
-    'access arguments' => ['administer galaxy'],
-    // TODO: Ask Stephen is this is fine as a link at the top of the form
-    // as well as a link in the table
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-
-  // Autocomplete path for the users on the site
-  $items['admin/tripal/extension/galaxy/quota/user/autocomplete'] = [
-    'title' => 'Autocomplete for existing users',
-    'description' => 'Provide a list of existing users on the site.',
-    'page callback' => 'tripal_galaxy_users_autocomplete',
-    'access arguments' => ['administer galaxy'],
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-
-  // Edit user quota
-  $items['admin/tripal/extension/galaxy/quota/edit/%'] = [
-    'title' => 'Edit Custom Quota',
-    'description' => 'Edit an existing user\'s quota and/or expiration date.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => ['tripal_galaxy_admin_edit_quota_form', 6],
-    'access arguments' => ['administer galaxy'],
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.admin_file_quota.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-
-  //
-  // USER FILES
-  //
-
-  // User view quota (Tab)
-  $items['user/%/galaxy-files'] = [
-    'title' => 'Uploads',
-    'description' => 'Monitors what files that have been uploaded by user through the tripal_galaxy module',
-    'page callback' => 'tripal_galaxy_user_files_page',
-    'page arguments' => [1],
-    'access arguments' => ['use galaxy'],
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.user.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-    'weight' => 10,
-  ];
-
-  $items['user/%/galaxy-files/%'] = [
-    'title' => 'File Details',
-    'description' => "View details about the file",
-    'page callback' => 'tripal_galaxy_view_file',
-    'page arguments' => [1, 3],
-    'access callback' => 'tripal_galaxy_file_action_access',
-    'access arguments' => ['renew', 3],
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.user.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-  // User file renew.
-  $items['user/%/galaxy-files/%/renew'] = [
-    'title' => 'Renew File',
-    'description' => "Renew a user's file",
-    'page callback' => 'tripal_galaxy_renew_file',
-    'page arguments' => [3],
-    'access callback' => 'tripal_galaxy_file_action_access',
-    'access arguments' => ['renew', 3],
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.user.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-  // User file download.
-  $items['user/%/galaxy-files/%/download'] = [
-    'title' => 'Download File',
-    'description' => "Download a user's file based off of the link clicked in the table",
-    'page callback' => 'tripal_galaxy_download_file',
-    'page arguments' => [3],
-    'access arguments' => ['download', 3],
-    'access callback' => 'tripal_galaxy_file_action_access',
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.user.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-  // User file delete.
-  $items['user/%/galaxy-files/%/delete'] = [
-    'title' => 'Delete File',
-    'description' => "Delete a user's file based on either user action or expired file",
-    'page callback' => 'drupal_get_form',
-    'page arguments' => ['tripal_galaxy_delete_file_form', 1, 3],
-    'access callback' => 'tripal_galaxy_file_action_access',
-    'access arguments' => ['delete', 3],
-    'type' => MENU_CALLBACK,
-    'file' => 'includes/tripal_galaxy.user.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-
 
   $items['galaxy/proxy/%'] = [
     'title' => 'Results Viewer',
@@ -483,35 +352,6 @@ function tripal_galaxy_menu_alter(&$items) {
  */
 function tripal_galaxy_admin_paths_alter(&$paths) {
   $paths['galaxy/viewer*'] = TRUE;
-}
-
-/**
- * Checks if the current user has permissions to perform an action on a file.
- *
- * @param $op
- *   The operation to perform.  These include 'download', 'renew' and 'delete'
- * @param $fid
- *   The file ID.
- */
-function tripal_galaxy_file_action_access($op, $fid) {
-  global $user;
-
-  // The site admin can do anything.
-  if (in_array('administrator', $user->roles)) {
-    return TRUE;
-  }
-
-  $file = file_load($fid);
-  switch ($op) {
-    case 'download':
-    case 'renew':
-    case 'delete':
-      if ($user->uid == $file->uid) {
-        return TRUE;
-      }
-      break;
-  }
-  return FALSE; // default
 }
 
 /**
@@ -921,6 +761,28 @@ function tripal_galaxy_workflow_report($sid) {
     ->execute()
     ->fetchObject();
 
+  // Before doing anything check that the history has not been deleted.
+  $galaxy_instance = tripal_galaxy_get_connection($submission->galaxy_id);
+  $history_name = tripal_galaxy_get_history_name($submission, $node);
+  $error = [];
+  $history = tripal_galaxy_get_history($galaxy_instance, $history_name, $error);
+  dpm($history);
+  if ($history['deleted'] === TRUE) {
+    $content['deleted'] = [
+      '#type' => 'item',
+      '#title' => t('Results deleted from Galaxy Server'),
+      '#description' => t('It appears this analysis result has been deleted from the galaxy server on which it was run. Please return to the previous page and delete this from your workflow listing.'),
+    ];
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields(array(
+        'status' => 'deleted'
+      ))
+      ->condition('sid', $submission->sid)
+      ->execute();
+    return $content;
+  }
+
+
   $headers = [];
   $rows = [];
 
@@ -1151,7 +1013,7 @@ function tripal_galaxy_workflow_report($sid) {
         }
 
         // If we have history contents then we want to display it.
-        if ($history_contents) {
+        if (isset($history_contents)) {
           foreach ($history_contents as $index => $history_content) {
 
             // Skip history items that aren't for this job.
@@ -1181,7 +1043,7 @@ function tripal_galaxy_workflow_report($sid) {
                 }
                 $link = $history_content['content_link'];
                 $proxy_id = tripal_galaxy_set_proxy_url($link, $galaxy, $history_content, $submission, $node);
-                $file_size = tripal_galaxy_format_bytes($history_content['file_size']);
+                $file_size = tripal_format_bytes($history_content['file_size']);
                 $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['download_link'] = [
                   '#type' => 'item',
                   '#title' => t('Download Results'),
@@ -1328,54 +1190,6 @@ function tripal_galaxy_workflow_report($sid) {
 }
 
 /**
- * Retrieves the uploaded files for the given user.
- *
- * @param $sid
- */
-function tripal_galaxy_user_view_files($form, &$form_state) {
-
-  // TODO: Ask Stephen if there is another place to put the below code in
-  // a more intuitive place ...
-  global $user;
-
-  // set the breadcrumb
-  $breadcrumb = [];
-  $breadcrumb[] = l('Home', '<front>');
-  $breadcrumb[] = l($user->name, 'user/' . $user->uid);
-  $breadcrumb[] = l('Files', 'user/' . $user->uid . '/files');
-  drupal_set_breadcrumb($breadcrumb);
-
-  $rows = [];
-  $rows = tripal_galaxy_gather_user_files($user->uid, 'tripal_galaxy');
-
-  // Check to see if there is a custom quota/exp date to place at the
-  // heading of the form else place the default values found in the drupal
-  // variables
-
-  // Display on the table, include the original time of upload, size, actions
-  // (delete, renew), and file usage (what workflows are using the file)
-  $header = [
-    'fid' => t('FID'),
-    'filename' => t('File'), // TODO: File name needs to be a download link
-    'timestamp' => t('Uploaded'),
-    'expiration_date' => t('Expires On'),
-    'filesize' => t('File Size'),
-    'file_usage' => t('File Usage'),
-    'actions' => t('Actions'), // Delete, Renew, others?
-  ];
-
-  // $module in this case is tripal_galaxy
-  $form['table'] = [
-    '#theme' => 'table',
-    '#header' => $header,
-    '#rows' => $rows,
-  ];
-
-  //drupal_set_message("y hello there");
-  return $form;
-}
-
-/**
  * Retrieves the workflow submission report for an admin user.
  *
  * @param $sid
@@ -1433,9 +1247,6 @@ function tripal_galaxy_check_status(TripalJob $job) {
   while ($workflow = $workflows->fetchObject()) {
     $queue->createItem($workflow);
   }
-
-  // Add the call to iterate through the expired files on the api
-  tripal_galaxy_check_file_expiration();
 }
 
 /**
@@ -1645,79 +1456,16 @@ function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
 /**
  * Implements hook_handle_uploaded_file().
  */
-function tripal_galaxy_handle_uploaded_file($filename, $filepath, $type) {
+function tripal_galaxy_handle_uploaded_file($file, $type) {
 
   global $user;
 
   // Split the type into a node ID and form_key
   list($id, $form_key) = explode('-', $type);
 
-
-  // See if this file is already managed then add another entry in the
-  // usage table.
-  $fid = db_select('file_managed', 'fm')
-    ->fields('fm', ['fid'])
-    ->condition('uri', $filepath)
-    ->execute()
-    ->fetchField();
-
-  // Create a file object.
-  if (!$fid) {
-    $file = new stdClass();
-    $file->uri = $filepath;
-    $file->filename = $filename;
-    $file->filemime = file_get_mimetype($filepath);
-    $file->uid = $user->uid;
-    $file->status = FILE_STATUS_PERMANENT;
-    $file = file_save($file);
-    $fid = $file->fid;
-  }
-
-  $file = file_load($fid);
+  // Add another usage for this module.
   file_usage_add($file, 'tripal_galaxy', $form_key, $id);
-  return $fid;
-}
-
-/**
- * Autocomplete function for listing existing users on the site.
- *
- * @return json array of users that match the query in the textfield
- **/
-function tripal_galaxy_users_autocomplete($string) {
-  $matches = [];
-  $result = db_select('users', 'u')
-    ->fields('u', ['name'])
-    ->condition('name', '%' . db_like($string) . '%', 'LIKE')
-    ->execute();
-
-  foreach ($result as $row) {
-    $matches[$row->name] = check_plain($row->name);
-  }
-  drupal_json_output($matches);
-}
-
-/**
- * Implements hook_file_upload_check().
- *
- * This is a Tripal-defined hook to allow a module to interact with the
- * Tripal file uploader.  If a message is returned then the uploader
- * will halt and report to the end-user them essage.
- */
-function tripal_galaxy_file_upload_check($action, $details, &$message) {
-
-  global $user;
-
-  $usage = tripal_galaxy_get_user_usage($user->uid);
-  $quota = tripal_galaxy_get_user_quota($user->uid);
-  $quota_size = $quota->custom_quota;
-
-  $file_size = $details['file_size'];
-  if ($file_size + $usage > $quota_size) {
-    $message = t("Unfortunately, you cannot upload this file as the size exceeds the remainder of your quota. See your account page under the 'Uploads' tab to manage your uploaded files.");
-    return FALSE;
-  }
-
-  return TRUE;
+ 
 }
 
 /**
@@ -1928,4 +1676,21 @@ function tripal_galaxy_node_access($node, $op, $account = NULL) {
   }
 
   return NODE_ACCESS_IGNORE;
+}
+
+/**
+ * Implements hook_views_pre_render().
+ * 
+ * Hook views pre render to hide the 'View Results', 'Re-Run', and 'View Details' 
+ * links in the user workflow listing found on /user/#/galaxy-jobs.
+ */
+function tripal_galaxy_views_pre_render(&$view) {
+
+  if ($view->name == 'galaxy_usage') {
+    if ($view->result[0]->tripal_galaxy_workflow_submission_status == 'deleted') {
+      $view->field['ctools_dropdown']->options['fields']['nothing_2'] = null;
+      $view->field['ctools_dropdown']->options['fields']['nothing_3'] = null;
+      $view->field['ctools_dropdown']->options['fields']['nothing'] = null;
+    }
+  }
 }

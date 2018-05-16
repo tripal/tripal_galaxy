@@ -144,7 +144,8 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     'workflow_id' => $submission->workflow_id,
     'invocation_id' => $submission->invocation_id,
   ]);
-  if (!$invocation) {
+
+  if (!$invocation) {     
     throw new Exception($galaxy->getErrorMessage());
   }
 
@@ -861,153 +862,6 @@ function tripal_galaxy_test_connection($connect) {
   return TRUE;
 }
 
-/**
- * API call to edit an existing user's custom quota
- *
- *
- * @return Associative array of user's new quota and exp_date from db table.
- **/
-function tripal_galaxy_admin_edit_user_quota($uid, $new_quota, $new_exp_date) {
-
-}
-
-
-/**
- * Sets a user's file space quota and default file expiration.
- *
- * @param $uid
- *   The User ID for whom the quota will be set.
- * @param $quota
- *   The quota
- * @param $expriation
- *
- * @return
- *   The inserted record.
- */
-function tripal_galaxy_set_user_quota($uid, $quota, $expriation) {
-
-  $values = [
-    'uid' => $uid,
-    'custom_quota' => $quota,
-    'custom_expiration' => $expriation,
-  ];
-  return db_insert('tripal_galaxy_custom_quota')
-    ->fields($values)
-    ->execute();
-}
-
-/**
- * Retrieves the user's quote and default days to expire.
- *
- * @param $uid
- *   The User ID.
- *
- * @return
- *   An associative array containing the quota and default days to
- *   expire.
- */
-function tripal_galaxy_get_user_quota($uid) {
-  $quota = db_select('tripal_galaxy_custom_quota', 'tgcq')
-    ->fields('tgcq', ['custom_quota', 'custom_expiration'])
-    ->condition('uid', $uid)
-    ->execute()
-    ->fetchObject();
-  if (!$quota) {
-    $quota = new stdClass();
-    $quota->custom_quota = variable_get('tripal_galaxy_default_file_quota', pow(20, 6));
-    $quota->custom_expiration = variable_get('tripal_galaxy_default_file_expiration', '60');
-  }
-  return $quota;
-}
-
-/**
- * Retrieves the current size of all files uploaded by the user.
- *
- * @param $uid
- *   The User ID.
- *
- * @return
- *   The total number of bytes currently used.
- */
-function tripal_galaxy_get_user_usage($uid) {
-  // Get the user's current file usage
-  $sql = "
-    SELECT DISTINCT FU.fid
-    FROM {file_usage} FU
-      INNER JOIN {file_managed} FM ON FM.fid = FU.fid and FU.module = 'tripal_galaxy'
-    WHERE FM.uid = :uid
-  ";
-  $fids = db_query($sql, [':uid' => $uid]);
-  $total_size = 0;
-  while ($fid = $fids->fetchObject()) {
-    $sql = "SELECT filesize FROM {file_managed} WHERE fid = :fid";
-    $total_size += db_query($sql, [':fid' => $fid->fid])->fetchObject()->filesize;
-  }
-  return $total_size;
-}
-
-/**
- * Removes a user's file space and default file expiration.
- *
- * @param $uid
- *   The User ID for whom the quota will be removed.
- *
- * @return
- */
-function tripal_galaxy_remove_user_quota($uid) {
-  db_delete('tripal_galaxy_custom_quota')
-    ->condition('uid', $uid)
-    ->execute();
-}
-
-
-/**
- * Formats a size (in bytes) in human readable format.
- *
- * Function taken from php.net
- *
- * @param $bytes
- *   The size of the file in bytes
- * @param $precision
- *   The number of decimal places to use in the final number if needed
- *
- * @return string
- *   A formatted string indicating the size of the file
- */
-function tripal_galaxy_format_bytes($bytes, $precision = 2) {
-  $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-  $bytes = max($bytes, 0);
-  $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-  $pow = min($pow, count($units) - 1);
-
-  // Uncomment one of the following alternatives
-  $bytes /= pow(1000, $pow);
-  // $bytes /= (1 << (10 * $pow));
-
-  return round($bytes, $precision) . '' . $units[$pow];
-}
-
-/**
- * Checks if a file needs to be expired.
- *
- **/
-function tripal_galaxy_check_file_expiration() {
-  $results = db_select('tripal_galaxy_expiration_files', 'tgfe')
-    ->fields('tgfe')
-    ->execute();
-  while ($result = $results->fetchObject()) {
-    if (time() > $result->expiration_date) {
-      // remove the file from the server as it is outdated and has not been
-      // renewed through user action
-      // TRUE to force the file to be deleted and dropped from all tables
-      file_delete(file_load($result->fid), TRUE);
-      $query = db_delete('tripal_galaxy_expiration_files', 'tgfe');
-      $query->condition('fid', $result->fid);
-      $query->execute();
-    }
-  }
-}
 
 /**
  * Returns the URI where the Tripal Galaxy module stores files.
@@ -1032,3 +886,4 @@ function tripal_galaxy_get_files_dir() {
 
   return $site_dir;
 }
+
