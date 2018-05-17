@@ -92,7 +92,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'cid' => $dcid,
       'pid' => $cid,
       'form_key' => $fieldset_key,
-      'name' => '',
+      'name' => 'workflow step annotation',
       'type' => 'markup',
       'value' => $step_annotation,
       'extra' => [
