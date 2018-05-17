@@ -84,6 +84,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'required' => '0',
       'weight' => $cid,
     ];
+    $fieldset_cid = count($webform->components);
 
     // add a markup component to display annotation from each step from galaxy workflow.
     $dcid = count($webform->components) + 1;
@@ -104,7 +105,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'weight' => $cid,
     ];
 
-    $fieldset_cid = count($webform->components);
 
     // Handle the step type. So far we only know about 'data_input' and 'tool'.
     // The succeeding tool to the
