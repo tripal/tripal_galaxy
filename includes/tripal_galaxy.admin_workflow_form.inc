@@ -52,11 +52,17 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
       '#markup' => 'Workflow ID: ' . $workflow->workflow_id . '</br>' .
         'Workflow UUID: ' . $workflow->workflow_uuid . '',
     );
+    if ($workflow->status == 'Active') {
+      $status_change = l("Disable", '/admin/tripal/extension/galaxy/workflows/disable/' . $workflow->galaxy_workflow_id);
+    } else if ($workflow->status == 'disabled') {
+        $status_change = l("Enable", '/admin/tripal/extension/galaxy/workflows/enable/' . $workflow->galaxy_workflow_id);
+    }
     $form['rows'][$i]['actions-' . $i] = array(
       '#type' => 'item',
-      '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_workflow_id)
+      '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_workflow_id) . '  |  ' .
+      $status_change
     );
-
+   
     $i++;
   }
 

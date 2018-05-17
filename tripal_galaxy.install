@@ -312,8 +312,7 @@ function tripal_galaxy_update_7102() {
 }
 
 /**
- * This update previously added support for file quotas, but that code
- * has been moved to the core Tripal. Therefore, this update does nothing now.
+ * This update adds the serverstatus column to the tripal_galaxy table.
  */
 function tripal_galaxy_update_7103()
 {

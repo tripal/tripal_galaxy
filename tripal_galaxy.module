@@ -127,7 +127,7 @@ function tripal_galaxy_menu() {
 
   // Enable workflows for this Galaxy
   $items['admin/tripal/extension/galaxy/enable/%'] = [
-    'description' => 'Disable all workflows for this galaxy server',
+    'description' => 'Enable all workflows for this galaxy server',
     'page callback' => 'tripal_galaxy_admin_enable_workflows',
     'page arguments' => [5],
     'access arguments' => ['administer galaxy'],
@@ -194,6 +194,31 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 10,
   ];
+
+    // Disable Workflows
+  $items['admin/tripal/extension/galaxy/workflows/disable/%'] = [
+    'description' => 'Disable this workflow',
+    'page callback' => 'tripal_galaxy_admin_disable_workflow',
+    'page arguments' => [6],
+    'access arguments' => ['administer galaxy'],
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 10,
+  ];
+
+    // Enable Workflows
+  $items['admin/tripal/extension/galaxy/workflows/enable/%'] = [
+    'description' => 'Enable this workflow',
+    'page callback' => 'tripal_galaxy_admin_enable_workflow',
+    'page arguments' => [6],
+    'access arguments' => ['administer galaxy'],
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 10,
+  ];
+
 
   // Admin submission report.
   $items['admin/tripal/extension/galaxy/workflows/report/%'] = [
@@ -445,6 +470,21 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
       TRIPAL_ERROR);
     $form['actions']['next']['#disabled'] = TRUE;
   }
+  else if ($workflow and $workflow->status == 'disabled') {
+    drupal_set_message('Unfortunately, this wokflow is disabled because the Galaxy
+                        server it is on is not currently available.', 'error');
+    tripal_set_message(
+      'Dear site administrator. This form is disabled because the remote Galaxy 
+         Instance is unavailable.  If you want to continue to offer this workflow
+        to your site visitors you will need to work with the remote Galaxy instances\'s
+        maintainer to get it back up or move the workflow to another remote Galaxy
+        instance. Once that is done you can enable all workflows
+        here:  ' . l('enable the workflow', 'admin/tripal/extension/galaxy') . '.',
+      TRIPAL_ERROR
+    );
+    $form['actions']['next']['#disabled'] = true;
+  }
+
 
   // Check if this particular webform really is a galaxy webform
   // At each 'turn of the page' of the particular webform this is being called

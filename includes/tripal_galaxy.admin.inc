@@ -39,6 +39,7 @@ function tripal_galaxy_admin_home() {
       ->fetchObject();
 
     //Check the status of the server to determine which link to include.
+    $status_link = '';
     if ($result->serverstatus == 'unavailable') {
       if ($disabled_workflows && $enabled_workflows == NULL) {
         $status_link = t("<br /> All workflows for this server are disabled.");
@@ -55,15 +56,15 @@ function tripal_galaxy_admin_home() {
           $status_link = l("\t enable all workflows", '/admin/tripal/extension/galaxy/enable/' . $result->galaxy_id);
         }
         else {
-          $status_link = NULL;
+          $status_link = l("\t disable all workflows", '/admin/tripal/extension/galaxy/disable/' . $result->galaxy_id);
         }
 
     }
     $rows[] = array(
       $result->servername,
       $result->description,
-      l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id) . ' ' .
-      l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' ' . 
+      l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id) . ' | ' .
+      l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' | ' . 
       $status_link
     );
   }
@@ -220,7 +221,25 @@ function tripal_galaxy_admin_confirm_remove_workflow_form($form, &$form_state, $
  *   A galaxy server ID
  */
 function tripal_galaxy_admin_test_server($galaxy_id) {
-  tripal_galaxy_test_connection(array('galaxy_id' => $galaxy_id));
+  $status = tripal_galaxy_test_connection(array('galaxy_id' => $galaxy_id));
+  if ($status === FALSE) {
+    // Update status in the db.
+    db_update('tripal_galaxy')
+      ->fields(array(
+        'serverstatus' => 'unavailable',
+      ))
+      ->condition('galaxy_id', $result->galaxy_id, '=')
+      ->execute();
+  }
+  else if ($status === TRUE) {
+    // Update status in the db.
+    db_update('tripal_galaxy')
+      ->fields(array(
+        'serverstatus' => 'available',
+      ))
+      ->condition('galaxy_id', $result->galaxy_id, '=')
+      ->execute();
+  }
   drupal_goto('admin/tripal/extension/galaxy');
 }
 
@@ -257,6 +276,35 @@ function tripal_galaxy_admin_disable_workflows($galaxy_id) {
 }
 
 /**
+ * Responds to the menu item admin/tripal/extension/galaxy/disable/%.
+ *
+ * @param  $galaxy_id
+ *   A galaxy server ID
+ */
+function tripal_galaxy_admin_disable_workflow($galaxy_workflow_id)
+{
+
+  try {
+    db_update('tripal_galaxy_workflow')
+      ->fields(array(
+        'status' => 'disabled',
+      ))
+      ->condition('galaxy_workflow_id', $galaxy_workflow_id, '=')
+      ->execute();
+    
+    drupal_set_message(t('Workflow disabled'), 'status');
+    drupal_goto("/admin/tripal/extension/galaxy/workflows");
+
+  } catch (Exception $e) {
+    $transaction->rollback();
+    drupal_set_message($e->getMessage(), 'error');
+    drupal_set_message(t('Cannot disable the workflow'), 'error');
+    drupal_goto("/admin/tripal/extension/galaxy/workflows");
+    return;
+  }
+}
+
+/**
  * Responds to the menu item admin/tripal/extension/enable/test/%.
  *
  * @param  $galaxy_id
@@ -283,6 +331,34 @@ function tripal_galaxy_admin_enable_workflows($galaxy_id) {
     drupal_set_message($e->getMessage(), 'error');
     drupal_set_message(t('Cannot disable the workflows'), 'error');
     drupal_goto("/admin/tripal/extension/galaxy");
+    return;
+  }
+}
+
+/**
+ * Responds to the menu item admin/tripal/extension/enable/test/%.
+ *
+ * @param  $galaxy_id
+ *   A galaxy server ID
+ */
+function tripal_galaxy_admin_enable_workflow($galaxy_workflow_id)
+{
+  try {
+    $sucess = db_update('tripal_galaxy_workflow')
+      ->fields(array(
+        'status' => 'Active',
+      ))
+      ->condition('galaxy_workflow_id', $galaxy_workflow_id, '=')
+      ->execute();
+    
+    drupal_set_message(t('Workflow enabled'), 'status');
+    drupal_goto("/admin/tripal/extension/galaxy/workflows");
+
+  } catch (Exception $e) {
+    $transaction->rollback();
+    drupal_set_message($e->getMessage(), 'error');
+    drupal_set_message(t('Cannot enable the workflow'), 'error');
+    drupal_goto("/admin/tripal/extension/galaxy/workflows");
     return;
   }
 }
