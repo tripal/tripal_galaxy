@@ -95,9 +95,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'name' => 'workflow step annotation',
       'type' => 'markup',
       'value' => '<div class="workflow-step-annotation">' .
-        '<h3>Instruction:' .
-        $step_annotation .
-        '</h3></div>',
+        '<h3>Instruction:</h3>h3>' .
+        $step_annotation . '</div>',
       'extra' => [
         'description' => '',
         'description_above' => 1,
