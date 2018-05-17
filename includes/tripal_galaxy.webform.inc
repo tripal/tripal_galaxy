@@ -100,6 +100,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'description_above' => 1,
         'private' => 0,
         'title_display' => 0,
+        'format' => 'full_html',
       ],
       'required' => '0',
       'weight' => $cid,
