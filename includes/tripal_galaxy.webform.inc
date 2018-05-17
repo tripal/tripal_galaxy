@@ -73,7 +73,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'type' => 'fieldset',
       'value' => '',
       'extra' => [
-        'description' => $step_annotation,
+        'description' => '',
         'description_above' => 1,
         'private' => 0,
         'css_classes' => 'tripal-galaxy-fieldset',
@@ -85,6 +85,24 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'weight' => $cid,
     ];
 
+    // add a markup component to display annotation from each step from galaxy workflow.
+    $dcid = count($webform->components) + 1;
+    $webform->components[] = [
+      'cid' => $dcid,
+      'pid' => $cid,
+      'form_key' => $fieldset_key,
+      'name' => '',
+      'type' => 'markup',
+      'value' => $step_annotation,
+      'extra' => [
+        'description' => '',
+        'description_above' => 1,
+        'private' => 0,
+        'title_display' => 0,
+      ],
+      'required' => '0',
+      'weight' => $cid,
+    ];
 
     $fieldset_cid = count($webform->components);
 
