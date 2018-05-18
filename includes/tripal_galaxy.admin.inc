@@ -15,7 +15,7 @@ function tripal_galaxy_admin_home() {
 
   // Initialize the headers and rows of the table.
   $rows = array();
-  $headers = array('Galaxy Server', 'Description', 'Options');
+  $headers = array('Galaxy Server', 'Description', 'Status', 'Options');
 
   // Retrieve the list of galaxy servers that have been added and generate
   // the rows for the table.
@@ -42,13 +42,10 @@ function tripal_galaxy_admin_home() {
     $status_link = '';
     if ($result->serverstatus == 'unavailable') {
       if ($disabled_workflows && $enabled_workflows == NULL) {
-        $status_link = t("<br /> All workflows for this server are disabled.");
-        $status_link .= t("<br /> <b> The galaxy server is still unavailable, 
-                           <br /> enabling your workflows is not recommended.</b> <br />");
-        $status_link .= l("\n enable all workflows", '/admin/tripal/extension/galaxy/enable/' . $result->galaxy_id);
+        $status_link = l("enable all workflows", '/admin/tripal/extension/galaxy/enable/' . $result->galaxy_id);
       }
       else {
-        $status_link = l("\t disable all workflows", '/admin/tripal/extension/galaxy/disable/' . $result->galaxy_id);
+        $status_link = l("disable all workflows", '/admin/tripal/extension/galaxy/disable/' . $result->galaxy_id);
       }
     }
     elseif ($result->serverstatus == 'available') {
@@ -63,6 +60,7 @@ function tripal_galaxy_admin_home() {
     $rows[] = array(
       $result->servername,
       $result->description,
+      $result->serverstatus,
       l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id) . ' | ' .
       l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' | ' . 
       $status_link
@@ -228,7 +226,7 @@ function tripal_galaxy_admin_test_server($galaxy_id) {
       ->fields(array(
         'serverstatus' => 'unavailable',
       ))
-      ->condition('galaxy_id', $result->galaxy_id, '=')
+      ->condition('galaxy_id', $galaxy_id, '=')
       ->execute();
   }
   else if ($status === TRUE) {
@@ -237,7 +235,7 @@ function tripal_galaxy_admin_test_server($galaxy_id) {
       ->fields(array(
         'serverstatus' => 'available',
       ))
-      ->condition('galaxy_id', $result->galaxy_id, '=')
+      ->condition('galaxy_id', $galaxy_id, '=')
       ->execute();
   }
   drupal_goto('admin/tripal/extension/galaxy');
