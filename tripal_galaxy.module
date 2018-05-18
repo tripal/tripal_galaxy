@@ -114,6 +114,28 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
   ];
 
+  // Disable workflows for this Galaxy
+  $items['admin/tripal/extension/galaxy/disable/%'] = [
+    'description' => 'Disable all workflows for this galaxy server',
+    'page callback' => 'tripal_galaxy_admin_disable_workflows',
+    'page arguments' => [5],
+    'access arguments' => ['administer galaxy'],
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
+
+  // Enable workflows for this Galaxy
+  $items['admin/tripal/extension/galaxy/enable/%'] = [
+    'description' => 'Enable all workflows for this galaxy server',
+    'page callback' => 'tripal_galaxy_admin_enable_workflows',
+    'page arguments' => [5],
+    'access arguments' => ['administer galaxy'],
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+  ];
+
   // Add Galaxy
   $items['admin/tripal/extension/galaxy/add'] = [
     'description' => 'Add a galaxy server instance',
@@ -172,6 +194,31 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 10,
   ];
+
+    // Disable Workflows
+  $items['admin/tripal/extension/galaxy/workflows/disable/%'] = [
+    'description' => 'Disable this workflow',
+    'page callback' => 'tripal_galaxy_admin_disable_workflow',
+    'page arguments' => [6],
+    'access arguments' => ['administer galaxy'],
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 10,
+  ];
+
+    // Enable Workflows
+  $items['admin/tripal/extension/galaxy/workflows/enable/%'] = [
+    'description' => 'Enable this workflow',
+    'page callback' => 'tripal_galaxy_admin_enable_workflow',
+    'page arguments' => [6],
+    'access arguments' => ['administer galaxy'],
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 10,
+  ];
+
 
   // Admin submission report.
   $items['admin/tripal/extension/galaxy/workflows/report/%'] = [
@@ -416,13 +463,21 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
   if ($workflow and $workflow->status == 'Altered') {
     drupal_set_message('Unfortunately, this wokflow is deprecated and no longer
         avaliable for submissions.', 'error');
-    tripal_set_message('Dear site administrator. This form is disabled because the workflow was
+    tripal_set_message('This form is disabled because the workflow was
         altered on the remote Galaxy Instance and may be out of sync
         with this web form.  If you want to continue to offer this workflow
         to your site visitors, you will need to ' . l('add the workflow', 'admin/tripal/extension/galaxy/workflows') . ' again as a new web form on this site.',
       TRIPAL_ERROR);
     $form['actions']['next']['#disabled'] = TRUE;
   }
+  else if ($workflow and $workflow->status == 'disabled') {
+    drupal_set_message('Unfortunately, this wokflow is disabled and no longer
+        avaliable for submissions.', 'error');
+    tripal_set_message('This form is disabled you may ' . 
+      l('enable the workflow here', 'admin/tripal/extension/galaxy') . '.',TRIPAL_ERROR);
+    $form['actions']['next']['#disabled'] = true;
+  }
+
 
   // Check if this particular webform really is a galaxy webform
   // At each 'turn of the page' of the particular webform this is being called
@@ -766,7 +821,7 @@ function tripal_galaxy_workflow_report($sid) {
   $history_name = tripal_galaxy_get_history_name($submission, $node);
   $error = [];
   $history = tripal_galaxy_get_history($galaxy_instance, $history_name, $error);
-  dpm($history);
+
   if ($history['deleted'] === TRUE) {
     $content['deleted'] = [
       '#type' => 'item',
@@ -1217,6 +1272,73 @@ function tripal_galaxy_cron() {
   $args = [];
   tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy',
     'tripal_galaxy_check_status', $args, 1, [], TRUE);
+
+  // TODO: add a setting somewhere to let the user set the date.
+  $interval = variable_get('tripal_galaxy_interval', 24 * 60 * 60);
+
+  if (time() >= variable_get('tripal_galaxy_next_execution', 0)) {
+    try {
+      // Retrieve the list of galaxy servers that have been added and generate
+      // the rows for the table.
+      $sql = "SELECT * FROM {tripal_galaxy}";
+      $results = db_query($sql);
+
+      while ($result = $results->fetchObject()) {
+        $server_status = tripal_galaxy_test_connection(array('galaxy_id' => $result->galaxy_id));
+        if ($server_status === FALSE) {
+          // Update status in the db.
+          db_update('tripal_galaxy')
+            ->fields(array(
+              'serverstatus' => 'unavailable',
+            ))
+            ->condition('galaxy_id', $result->galaxy_id, '=')
+            ->execute();
+
+          // Put a message on the dashboard.
+          $title = t('Galaxy Server %servername was unreachable when tested at %time', 
+              array('%server' => $result->servername, '%time' => format_date(time())));
+          $details = t('Galaxy Server %servername was unreachable when tested at %time ' .
+           'Please check the server status. If the server is down you may disable the workflows associated ' .
+           'with that server by going to the Tripal Galaxy admin page.', 
+            array('%server' => $result->servername, '%time' => format_date(time())));
+          $actions['Disable Server\'s Workflows'] = 'admin/tripal/extension/galaxy/disable/' . $result->galaxy_id;
+          $type = 'Tripal Galaxy';
+          $submitter_id = 'tripal_galaxy' . $result->servername . time();
+          tripal_add_notification($title, $details, $type, $actions, $submitter_id);
+          // $result->servername,
+          // $result->description,
+        } 
+        else if ($server_status === TRUE) {
+          db_update('tripal_galaxy')
+            ->fields(array(
+              'serverstatus' => 'available',
+            ))
+            ->condition('galaxy_id', $result->galaxy_id, '=')
+            ->execute();
+
+          //Make sure no notification is up about the server being down.
+          $submitter_id = 'tripal_galaxy' . $result->servername;
+          $note = db_select('tripal_admin_notfications', 'tan')
+            ->fields('tan')
+            ->condition('submitter_id', $submitter_id, '=')
+            ->execute()->fetchAll();
+          if ($note) {
+            db_delete('tripal_admin_notfications')
+              ->condition('submitter_id', $submitter_id)
+              ->execute();
+          }  
+        }   
+      }
+    } 
+    catch (Exception $e) {
+      $transaction->rollback();
+      drupal_set_message($e->getMessage(), 'error');
+      drupal_set_message(t('Cannot disable the workflows'), 'error');
+      drupal_goto("/admin/tripal/extension/galaxy/workflows");
+      return;
+    }
+    variable_set('tripal_galaxy_next_execution', time() + $interval);
+  }
 }
 
 /**

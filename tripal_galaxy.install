@@ -61,8 +61,13 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
       ),
       'description' => array(
         'type' => 'text',
-      'not NULL' => FALSE,
+        'not NULL' => FALSE,
        ),
+      'serverstatus' => array(
+        'type' => 'varchar',
+        'length ' => 1024,
+        'not NULL' => FALSE,
+      ),
     ),
     'primary key' => array(
        0 => 'galaxy_id',
@@ -303,5 +308,23 @@ function tripal_galaxy_update_7102() {
   catch (\PDOException $e) {
     $error = $e->getMessage();
     throw new DrupalUpdateException('Could not update the tripal_galaxy_custom_quota table: '. $error);
+  }
+}
+
+/**
+ * This update adds the serverstatus column to the tripal_galaxy table.
+ */
+function tripal_galaxy_update_7103()
+{
+  try {
+    $status = array(
+      'type' => 'varchar',
+      'length ' => 1024,
+      'not NULL' => FALSE,
+    );
+    db_add_field('tripal_galaxy', 'serverstatus', $status);
+  } catch (\PDOException $e) {
+    $error = $e->getMessage();
+    throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
   }
 }

@@ -886,4 +886,3 @@ function tripal_galaxy_get_files_dir() {
 
   return $site_dir;
 }
-
