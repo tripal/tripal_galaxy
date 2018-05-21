@@ -370,31 +370,6 @@ function tripal_galaxy_menu() {
 
 
 /**
- * Implements hook_menu_alter().
- */
-function tripal_galaxy_menu_alter(&$items) {
-  $items['node/%webform_menu/webform/export-workflow'] = [
-    'title' => 'Export',
-    'page callback' => 'export_tripal_galaxy_workflow',
-    'page arguments' => [1],
-    'access arguments' => ['access content'],
-    'weight' => 9,
-    'type' => MENU_LOCAL_TASK,
-  ];
-  $items['node/%webform_menu/webform/import-workflow'] = [
-    'title' => 'Import',
-    'page callback' => 'import_tripal_galaxy_workflow',
-    'page arguments' => [1],
-    'access arguments' => ['access content'],
-    'weight' => 10,
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'includes/tripal_galaxy.import_webform.form.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-}
-
-
-/**
  * Implements hook_admin_paths_alter().
  */
 function tripal_galaxy_admin_paths_alter(&$paths) {
@@ -1746,43 +1721,6 @@ function export_tripal_galaxy_workflow($node) {
 
 }
 
-
-/**
- * @param $node
- *
- * @return array
- *
- * a page callback to import galaxy webform from a json file.
- */
-function import_tripal_galaxy_workflow($node) {
-  if (count($node->webform['components']) < 1) {
-    drupal_set_message('This is not a valid Galaxy webform. This action only works for Galaxy webform.', 'warning');
-    return '';
-  }
-
-  if (isset($node->webform['components'][1])) {
-    if ($node->webform['components'][1]['form_key'] != 'galaxy_webform') {
-      drupal_set_message('This is not a valid Galaxy webform. This action only works for Galaxy webform.', 'warning');
-      return '';
-    };
-  }
-
-  // store nid and workflow id.
-  $workflow_and_node_ids = [
-    'nid' => $node->nid,
-    'workflow_id' => $node->webform['components'][1]['extra']['workflow_id'],
-  ];
-  $build_page = [
-    'json_markup' => [
-      '#markup' => t('<h1>Replace Galaxy Webform</h1>' .
-        '<p>Import a well-annotated Galaxy webform in JSON format
-        to replace this original Galaxy webform.</p>'),
-    ],
-    'form' => drupal_get_form('galaxy_webform_import_form', $workflow_and_node_ids),
-  ];
-
-  return $build_page;
-}
 
 /**
  * Implements hook_node_access().
