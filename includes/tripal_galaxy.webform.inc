@@ -174,17 +174,18 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
 
 
-        // Add the "Optional settings" fieldset.
+        // Add the "fixed inputs" fieldset.
         $dcid = count($webform->components) + 1;
         $webform->components[] = [
           'cid' => $dcid,
           'pid' => $cid,
           'form_key' => $fieldset_key . '_additional',
-          'name' => 'Optional Settings',
+          'name' => 'Fixed value inputs',
           'type' => 'fieldset',
           'value' => '',
           'extra' => [
             'description_above' => 1,
+            'description' => 'Values of inputs below are predefined in the workflow and cannot be changed.',
             'private' => 0,
             'css_classes' => '',
             'title_display' => 1,
@@ -194,7 +195,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           'required' => '0',
           'weight' => '1000',
         ];
-        $webform->current_optional_fieldset = $dcid;
+        $webform->current_fixed_inputs_fieldset = $dcid;
 
         // Itearte through each of the inputs of this tool and add them
         // to the webform.
@@ -256,6 +257,26 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $node->promote = 0;
   $node->comment = 0;
 
+  // if the fixed value fieldset has no child component, it should be removed.
+  $fixed_value_cids = [];
+  $other_component_pids = [];
+  foreach ($webform->components as $component_key=>$component_value) {
+    // if this is an Fixed value inputs fieldset, we save the cid;
+    // else, we save the pid.
+    if ($component_value['type'] == 'fieldset' and $component_value['name'] == 'Fixed value inputs') {
+      $fixed_value_cids[$component_key] = $component_value['cid'];
+    }
+    else {
+      $other_component_pids[$component_key] = $component_value['pid'];
+    }
+  }
+  // any element in $fixed_value_cids that are not in $other_component_pids indicates
+  // an empty fixed value input fieldset component. This component should be removed.
+  $empty_fixed_value_components = array_diff($fixed_value_cids, $other_component_pids);
+  foreach (array_keys($empty_fixed_value_components) as $component_key) {
+    unset($webform->components[$component_key]);
+  }
+  
   // Attach the webform to the node.
   $node->webform = [
     'confirmation' => '',
@@ -809,14 +830,6 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     $webform_value = $source_step . '|' . $step_output;
     $webform_type = 'fixed_value';
     $extra['linked'] = TRUE;
-    $linked = TRUE;
-  }
-
-  // If this component has a value then put it in the "Optional Settings"
-  if (!$is_required or $webform_value or $webform_value === 0) {
-    if (!$linked) {
-      $pid = $webform->current_optional_fieldset;
-    }
   }
 
   $cid = count($webform->components) + 1;
@@ -833,6 +846,17 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     'weight' => $cid,
     'required' => $is_required,
   ];
+
+  if ($component['type'] == 'fixed_value' and isset($webform->current_fixed_inputs_fieldset)) {
+    $component['pid'] = $webform->current_fixed_inputs_fieldset;
+  }
+
+  //When it is an "Avanced Options" component but it's value is "Hide Advanced Options",
+  //we should not add this component to the webform.
+  if ($component['name'] == 'Advanced Options' and $component['type'] == 'fixed_value') {
+    return $cid;
+  }
+
   $webform->components[] = $component;
 
   return $cid;
