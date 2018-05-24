@@ -886,3 +886,59 @@ function tripal_galaxy_get_files_dir() {
 
   return $site_dir;
 }
+
+/**
+ * Walks through the tripal_galaxy_workflow_submission table and deletes any 
+ * workflows older than specifed in the tripal_galaxy_history_age system 
+ * variable.
+ *
+ *
+ */
+function tripal_galaxy_delete_expired_histories(){
+  $max_history_age = variable_get('tripal_galaxy_history_age');
+  $old_workflows = db_select('tripal_galaxy_workflow_submission', 'tgws')
+    ->fields('tgws')
+    ->condition('end_time', $max_history_age, “ > ”)
+    ->execute();
+
+  while ($old_workflow = $old_workflows->fetchObject()) {
+    $node = node_load($old_workflow->nid);
+    $history_name = tripal_galaxy_get_history_name($old_workflow, $node);
+    tripal_galaxy_delete_remote_history($old_workflow->galaxy_id, $history_name);
+  }
+
+}
+
+/**
+ * Deletes a single remote history from the remote galaxy server.
+ *
+ * @param $galaxy_id: A unique ID for the galaxy server. If this is provided no
+ *        other arguments are needed.
+ * 
+ * @param $history_name
+ *   The name of the history to retrieve. If the history doesn't exist then
+ *   it will be created.
+ * 
+ */
+function tripal_galaxy_delete_remote_history($galaxy_id, $history_name)
+{
+  $error = [];
+  try {
+    $galaxy = tripal_galaxy_get_connection($galaxy_id);
+    $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
+    $ghistories = new GalaxyHistories($galaxy);
+    $ghistories->deleteHistory($history['history_id']);
+
+    //disable the workflow on the site.
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields(array(
+        'status' => 'deleted'
+      ))
+      ->condition('invocation_id', $history['id'])
+      ->execute();
+  }
+  catch (Exception $e) {
+    drupal_set_message(t('Could not delete the remote history.  Please contact the web site administrator to report this issue.'), 'error');
+    watchdog_exception('tripal_galaxy', $e);
+  }
+}
