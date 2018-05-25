@@ -907,7 +907,8 @@ function tripal_galaxy_delete_expired_histories(){
     ->execute();
   while ($old_workflow = $old_workflows->fetchObject()) {
 
-    if($old_workflow->status == 'deleted') {
+    // Skip already delated workflow invocations.
+    if($old_workflow->status == 'Deleted') {
       continue;
     }
     
@@ -919,9 +920,22 @@ function tripal_galaxy_delete_expired_histories(){
 
     $node = node_load($tp_workflow->nid);
     $history_name = tripal_galaxy_get_history_name($old_workflow, $node);
-    tripal_galaxy_delete_remote_history($tp_workflow->galaxy_id, $history_name);
+    $success = tripal_galaxy_delete_remote_history($tp_workflow->galaxy_id, $history_name);
+    
+    if ($success) {
+      drupal_set_message('Successfully deleted workflow invocation: ' . $old_workflow->invocation_id);
+      //disable the workflow on the site.
+      db_update('tripal_galaxy_workflow_submission')
+        ->fields(array(
+          'status' => 'Deleted'
+        ))
+        ->condition('invocation_id', $old_workflow->invocation_id)
+        ->execute();
+    }
+    else {
+      drupal_set_message('Failed to deleted workflow invocation: ' . $old_workflow->invocation_id, 'error');
+    }
   }
-
 }
 
 /**
@@ -940,19 +954,22 @@ function tripal_galaxy_delete_remote_history($galaxy_id, $history_name) {
   try {
     $galaxy = tripal_galaxy_get_connection($galaxy_id);
     $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
-    $ghistories = new GalaxyHistories($galaxy);
-    $ghistories->deleteHistory(array('history_id' => $history['history_id']));
+    if (!$history) {
+      $error = $galaxy->getError();
+      throw new Exception("Cannot find history, $history_name :" . $error['message']);
+    }
 
-    //disable the workflow on the site.
-    db_update('tripal_galaxy_workflow_submission')
-      ->fields(array(
-        'status' => 'deleted'
-      ))
-      ->condition('invocation_id', $history['id'])
-      ->execute();
+    $ghistories = new GalaxyHistories($galaxy);
+    $deleted = $ghistories->deleteHistory(array('history_id' => $history['id']));
+    if (!$deleted) {
+      $error = $galaxy->getError();
+      throw new Exception("Cannot delete the history, $history_name :" . $error['message']);
+    }
+    return TRUE;
   }
   catch (Exception $e) {
     drupal_set_message(t('Could not delete the remote history.  Please contact the web site administrator to report this issue.'), 'error');
     watchdog_exception('tripal_galaxy', $e);
+    return FALSE;
   }
 }
