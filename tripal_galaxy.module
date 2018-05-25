@@ -1354,7 +1354,7 @@ function tripal_galaxy_cron() {
     // Remove old histories from the remote tripal server.
     try {
 
-      tripal_galaxy_delete_all_old_remote_history();
+      tripal_galaxy_delete_expired_histories();
 
       } catch (Exception $e) {
         watchdog_exception('tripal_galaxy', $e);
