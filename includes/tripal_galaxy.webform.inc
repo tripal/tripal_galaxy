@@ -53,11 +53,48 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $tool_list = [];
   $steps = $workflow['steps'];
   foreach ($steps as $step_index => $step) {
-
-    $step_annotation = '';
     if (isset($step['annotation'])) {
       $step_annotation = $step['annotation'];
+
+      // add a markup component within a fieldset to display annotation from each step from galaxy workflow.
+      $markup_fieldset_cid = count($webform->components) + 1;
+      $webform->components[] = [
+        'cid' => $markup_fieldset_cid,
+        'pid' => 0,
+        'form_key' => "Step_" . $step_index . "_annotation_fieldset",
+        'name' => 'Description',
+        'type' => 'fieldset',
+        'value' => '',
+        'extra' => [
+          'description' => '',
+          'description_above' => 1,
+          'private' => 0,
+          'css_classes' => 'tripal-galaxy-fieldset',
+          'title_display' => 0,
+          'collapsible' => 1,
+          'collapsed' => 0,
+        ],
+        'required' => '0',
+        'weight' => $markup_fieldset_cid,
+      ];
+      $webform->components[] = [
+        'cid' => $markup_fieldset_cid + 1,
+        'pid' => $markup_fieldset_cid,
+        'form_key' => "Step_" . $step_index . "_annotation_markup",
+        'name' => 'workflow step annotation',
+        'type' => 'markup',
+        'value' => $step_annotation,
+        'extra' => [
+          'private' => 0,
+          //        'display_on' => 'display',
+          'format' => 'full_html',
+        ],
+        'required' => '0',
+        'weight' => $markup_fieldset_cid + 1,
+      ];
     }
+
+
     // Each step is contained in a fieldset. We'll name the field set after
     // it's step and if a tool is present we'll include the tool info.
     $cid = count($webform->components) + 1;
@@ -73,7 +110,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'type' => 'fieldset',
       'value' => '',
       'extra' => [
-        'description' => $step_annotation,
+        'description' => '',
         'description_above' => 1,
         'private' => 0,
         'css_classes' => 'tripal-galaxy-fieldset',
@@ -87,6 +124,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
 
     $fieldset_cid = count($webform->components);
+
 
     // Handle the step type. So far we only know about 'data_input' and 'tool'.
     // The succeeding tool to the
