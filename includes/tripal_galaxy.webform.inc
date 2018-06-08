@@ -52,6 +52,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // Iterate through each step of the workflow.
   $tool_list = [];
   $steps = $workflow['steps'];
+
   foreach ($steps as $step_index => $step) {
 
     $step_annotation = '';
@@ -166,6 +167,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           drupal_set_message('Error building tool: ' . $tool_id . '. ' . $error['message'], 'error');
           return FALSE;
         }
+
         $tool_list[] = '<b>' . $tool['name'] . ' (version ' . $tool['version'] . ')</b>: ' . $tool['description'];
         // We want to change the name of the fieldset to have the name of
         // the tool.
@@ -173,28 +175,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         $fieldset_name .= ': ' . $tool['name'] . ' (Galaxy Version ' . $tool['version'] . ')';
         $webform->components[$fieldset_cid - 1]['name'] = $fieldset_name;
 
-
-        // Add the "Optional settings" fieldset.
-        $dcid = count($webform->components) + 1;
-        $webform->components[] = [
-          'cid' => $dcid,
-          'pid' => $cid,
-          'form_key' => $fieldset_key . '_additional',
-          'name' => 'Optional Settings',
-          'type' => 'fieldset',
-          'value' => '',
-          'extra' => [
-            'description_above' => 1,
-            'private' => 0,
-            'css_classes' => '',
-            'title_display' => 1,
-            'collapsible' => 1,
-            'collapsed' => 1,
-          ],
-          'required' => '0',
-          'weight' => '1000',
-        ];
-        $webform->current_optional_fieldset = $dcid;
 
         // Itearte through each of the inputs of this tool and add them
         // to the webform.
@@ -442,6 +422,7 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow, $step,
       if ($is_repeat) {
         $test_param['is_repeat'] = TRUE;
       }
+      $test_param['type'] = 'conditional_select';
 
       // Now add the test param as a component for the webform.
       tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
@@ -506,13 +487,6 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow, $step,
             ];
           }
           $webform->conditionals[] = $conditional;
-        }
-        // There are no case inputs for this condition. So that means under
-        // this condition we do not need to provide any inputs.  However,
-        // we don't want the field to show up blank so we'll add an
-        // informational field.
-        else {
-          $webform->components[$test_param_index - 1]['value'] =  $case['value'];
         }
       }
       break;
@@ -589,7 +563,6 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
   // Get the value of this component input.
   $webform_value = tripal_galaxy_build_webform_get_input_value($workflow, $step['id'], $input['full_name']);
 
-
   // Is this a required component?
   if (array_key_exists('optional', $input) and $input['optional']) {
     $is_required = 0;
@@ -603,6 +576,33 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
       $webform_type = 'textfield';
       break;
 
+    case 'conditional_select':
+      // A select box is fixed on conditionals that have been set by the
+      // workflow creator. So, we want to show the selected option, and not 
+      // let the change it.
+      $webform_type = 'fixed_value';
+      $extra['description'] = 'This option has been preset for this workfow and cannot be changed.';     
+      
+      // For the 'fixed_value' content type we want to set a human-readable
+      // value.
+      if (array_key_exists('options', $input)) {
+        foreach ($input['options'] as $key => $val) {
+          if ($val[1]) {
+            if ($val[1] == $webform_value) {
+              $extra['markup'] = $val[0];
+            }
+            // The val is now that sub-array containing the human readable option
+            // (index 0) as well as the unique key-name (index 1).
+            if ($val[1]) {
+              $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
+            }
+            else {
+              $extra['items'] .= $step['id'] . "|" . $val[0] . "\n";
+            }
+          }
+        }
+      }
+      break;
     case 'select':
       $webform_type = 'select';
       // Select should be the default list drop-down. Unless it has a display
@@ -778,7 +778,7 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
       // add component again
       $section_inputs = $input['inputs'];
       foreach ($section_inputs as $section_index => $section_input) {
-        $section_input['full_name'] = $section_input['name'];
+        $section_input['full_name'] = $input['name'] . '|' . $section_input['name'];
         tripal_galaxy_build_webform_add_tool_input($webform, $workflow,
           $step, $tool, $section_input, $dcid, $data_inputs);
       }
@@ -796,13 +796,6 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     $webform_type = 'BDSS_file';
   }
 
-  // If this is a test param then automatically change the webform type to
-  // a fixed value. This is because a test param was set by the person
-  // who created the workflow and should not be changed by the user.
-  if ($fixed) {
-    $webform_type = 'fixed_value';
-  }
-
   // If the input step uses an output from another tool then we need
   // to set that and not let the user change it.
   $linked = FALSE;
@@ -813,13 +806,6 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     $webform_type = 'fixed_value';
     $extra['linked'] = TRUE;
     $linked = TRUE;
-  }
-
-  // If this component has a value then put it in the "Optional Settings"
-  if (!$is_required or $webform_value or $webform_value === 0) {
-    if (!$linked) {
-      $pid = $webform->current_optional_fieldset;
-    }
   }
 
   $cid = count($webform->components) + 1;
@@ -837,7 +823,7 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     'required' => $is_required,
   ];
   $webform->components[] = $component;
-
+  
   return $cid;
 }
 
