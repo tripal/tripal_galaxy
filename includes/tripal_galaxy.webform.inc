@@ -747,6 +747,9 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     case 'hidden_data':
       break;
 
+    case 'hidden':
+      break;
+
     // This looks like a field set in the drupal world so make it so, then
     // this part needs to be traversed to get all of the children elements
     case 'section':
