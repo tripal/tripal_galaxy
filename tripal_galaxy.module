@@ -1809,7 +1809,7 @@ function tripal_galaxy_node_access($node, $op, $account = NULL) {
 function tripal_galaxy_views_pre_render(&$view) {
 
   if ($view->name == 'galaxy_usage') {
-    if ($view->result[0]->tripal_galaxy_workflow_submission_status == 'deleted') {
+    if (isset($view->result[0]) and $view->result[0]->tripal_galaxy_workflow_submission_status == 'deleted') {
       $view->field['ctools_dropdown']->options['fields']['nothing_2'] = null;
       $view->field['ctools_dropdown']->options['fields']['nothing_3'] = null;
       $view->field['ctools_dropdown']->options['fields']['nothing'] = null;
