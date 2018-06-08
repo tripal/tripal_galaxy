@@ -24,6 +24,7 @@
   overflow: hidden;
 }
 
-.tripal-galaxy-fieldset .fieldset-description {
-  color: #0099ff;
+.workflow-step-annotation {
+  background: #F8FFF1;
+  padding: 2px 2px 2px 10px;
 }

@@ -73,7 +73,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'type' => 'fieldset',
       'value' => '',
       'extra' => [
-        'description' => $step_annotation,
+        'description' => '',
         'description_above' => 1,
         'private' => 0,
         'css_classes' => 'tripal-galaxy-fieldset',
@@ -84,9 +84,30 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       'required' => '0',
       'weight' => $cid,
     ];
-
-
     $fieldset_cid = count($webform->components);
+
+    // add a markup component to display annotation from each step from galaxy workflow.
+    $dcid = count($webform->components) + 1;
+    $webform->components[] = [
+      'cid' => $dcid,
+      'pid' => $cid,
+      'form_key' => $fieldset_key,
+      'name' => 'workflow step annotation',
+      'type' => 'markup',
+      'value' => '<div class="workflow-step-annotation">' .
+        '<h3>Instruction:</h3>' .
+        $step_annotation . '</div>',
+      'extra' => [
+        'description' => '',
+        'description_above' => 1,
+        'private' => 0,
+        'title_display' => 0,
+        'format' => 'full_html',
+      ],
+      'required' => '0',
+      'weight' => $cid,
+    ];
+
 
     // Handle the step type. So far we only know about 'data_input' and 'tool'.
     // The succeeding tool to the
