@@ -86,6 +86,58 @@ function tripal_galaxy_split_url($url) {
 }
 
 /**
+ * Retrieves a submission record 
+ * @param $sid
+ *   A unique webform submission ID for the workflow.
+ * @return 
+ *   A workflow submisison object containing these properties: sid, 
+ *   galaxy_workflow_id, status, errors, submit_date, start_time, end_time and
+ *   inocation_id.
+ */
+function tripal_galaxy_get_workflow_submission($sid) {
+  
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws', [
+    'sid',
+    'galaxy_workflow_id',
+    'status',
+    'errors',
+    'submit_date',
+    'start_time',
+    'end_time',
+    'invocation_id',
+  ]);
+  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+  $query->fields('tgw', ['nid', 'galaxy_id', 'workflow_id']);
+  $query->condition('tgws.sid', $sid);
+  
+  $submission = $query->execute()->fetchObject();
+  $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
+  
+  return $submission;
+  
+}
+
+/**
+ * Retrieves details about a Galaxy server.
+ * 
+ * The object return provides details submitted by the site admin about the
+ * Galaxy server.  To retrieve an object that connects directly to the
+ * Galaxy server use the function tripal_galaxy_get_connection().
+ *   
+ * @param $galaxy_id
+ * 
+ * @return
+ *   An object containing details about the galaxy server.
+ */
+function tripal_galaxy_get_server($galaxy_id) {
+  return db_select('tripal_galaxy', 'tg')
+    ->fields('tg')
+    ->condition('galaxy_id', $galaxy_id)
+    ->execute()
+    ->fetchObject();
+}
+/**
  * Checks and updates the status of a Galaxy workflow.
  *
  * @param $sid
