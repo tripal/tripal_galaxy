@@ -52,6 +52,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // Iterate through each step of the workflow.
   $tool_list = [];
   $steps = $workflow['steps'];
+
   foreach ($steps as $step_index => $step) {
 
     $step_annotation = '';
@@ -166,6 +167,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           drupal_set_message('Error building tool: ' . $tool_id . '. ' . $error['message'], 'error');
           return FALSE;
         }
+
         $tool_list[] = '<b>' . $tool['name'] . ' (version ' . $tool['version'] . ')</b>: ' . $tool['description'];
         // We want to change the name of the fieldset to have the name of
         // the tool.
@@ -420,16 +422,7 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow, $step,
       if ($is_repeat) {
         $test_param['is_repeat'] = TRUE;
       }
-
-      // All conditional input has a 'select' type. But we need to mark it so that we know
-      // this 'select' type input is a conditional select and it is different from other select type input.
-      // later we will use this mark to remove unselected options. This is because, users should not be allowed
-      // to change the selected value for a conditional input. The value is pre-defined by the workflow creator.
-      $test_param['conditional_select'] = TRUE;
-      // we also add a description to tell the user that this is a conditional input.
-      $test_param['help'] .= ' (This is a conditional input. Uses can change the value of a conditional input when the tool is used
-            in standalone mode. When a Galaxy tool is used in a workflow, conditional input has a fixed value. 
-            Users are not allow to change the value of this input).';
+      $test_param['type'] = 'conditional_select';
 
       // Now add the test param as a component for the webform.
       tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
@@ -494,13 +487,6 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow, $step,
             ];
           }
           $webform->conditionals[] = $conditional;
-        }
-        // There are no case inputs for this condition. So that means under
-        // this condition we do not need to provide any inputs.  However,
-        // we don't want the field to show up blank so we'll add an
-        // informational field.
-        else {
-          $webform->components[$test_param_index - 1]['value'] =  $case['value'];
         }
       }
       break;
@@ -577,7 +563,6 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
   // Get the value of this component input.
   $webform_value = tripal_galaxy_build_webform_get_input_value($workflow, $step['id'], $input['full_name']);
 
-
   // Is this a required component?
   if (array_key_exists('optional', $input) and $input['optional']) {
     $is_required = 0;
@@ -591,25 +576,21 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
       $webform_type = 'textfield';
       break;
 
-    case 'select':
-      $webform_type = 'select';
-      // Select should be the default list drop-down. Unless it has a display
-      // of Checkbox
+    case 'conditional_select':
+      // A select box is fixed on conditionals that have been set by the
+      // workflow creator. So, we want to show the selected option, and not 
+      // let the change it.
+      $webform_type = 'fixed_value';
+      $extra['description'] = 'This option has been preset for this workfow and cannot be changed.';     
+      
+      // For the 'fixed_value' content type we want to set a human-readable
+      // value.
       if (array_key_exists('options', $input)) {
-        if (isset($input['conditional_select'])) {
-          // check if this 'select' input is a 'conditional_select' input. If yes, we only keep the
-          // selected option item.
-          // users should not be allowed to change the selected value for a conditional input.
-          // The value is pre-defined by the workflow creator.
-          foreach ($input['options'] as $key => $val) {
+        foreach ($input['options'] as $key => $val) {
+          if ($val[1]) {
             if ($val[1] == $webform_value) {
-              $extra['items'] = $val[1] . "|" . $val[0] . "\n";
-              break;
+              $extra['markup'] = $val[0];
             }
-          }
-        }
-        else {
-          foreach ($input['options'] as $key => $val) {
             // The val is now that sub-array containing the human readable option
             // (index 0) as well as the unique key-name (index 1).
             if ($val[1]) {
@@ -618,6 +599,23 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
             else {
               $extra['items'] .= $step['id'] . "|" . $val[0] . "\n";
             }
+          }
+        }
+      }
+      break;
+    case 'select':
+      $webform_type = 'select';
+      // Select should be the default list drop-down. Unless it has a display
+      // of Checkbox
+      if (array_key_exists('options', $input)) {
+        foreach ($input['options'] as $key => $val) {
+          // The val is now that sub-array containing the human readable option
+          // (index 0) as well as the unique key-name (index 1).
+          if ($val[1]) {
+            $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
+          }
+          else {
+            $extra['items'] .= $step['id'] . "|" . $val[0] . "\n";
           }
         }
       }
@@ -822,7 +820,7 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
     'required' => $is_required,
   ];
   $webform->components[] = $component;
-
+  
   return $cid;
 }
 
