@@ -536,7 +536,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     // Check for the dataset in the history before trying to readd it.
     $found_collection = FALSE;
     foreach ($history_contents as $hcontent) {
-      if ($hcontent['name'] == $form_key and $hcontent[deleted] == 0) {
+      if ($hcontent['name'] == $form_key and $hcontent['deleted'] == 0) {
         $inputs[$form_key] = $hcontent;
         $found_collection = TRUE;
       }

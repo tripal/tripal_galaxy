@@ -76,6 +76,9 @@ function _webform_render_fixed_value($component, $value, $filter = TRUE) {
       }
     }
   }
+  if(!empty($component['extra']['markup'])){
+    $human_readable = $component['extra']['markup'];
+  }
 
   $element = array(
     '#type' => 'fixed_value',
@@ -85,6 +88,7 @@ function _webform_render_fixed_value($component, $value, $filter = TRUE) {
     '#markup' => $human_readable,
     '#weight' => $component['weight'],
     '#theme_wrappers' => array('webform_element'),
+    '#description' => $component['extra']['description']
   );
   return $element;
 
