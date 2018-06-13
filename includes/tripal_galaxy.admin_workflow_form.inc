@@ -4,9 +4,10 @@
  * Implements Drupal's hook_form function, responsible for displaying all of the
  * available Workflows
  */
-function tripal_galaxy_admin_workflows_form($form, &$form_state) {
+function tripal_galaxy_admin_workflows_form($form, &$form_state)
+{
 
-  $form['#tree'] = TRUE;
+  $form['#tree'] = true;
 
   // Get the list of workflows and interate through them.
   $workflows = db_select('tripal_galaxy_workflow', 'tgw')
@@ -55,14 +56,14 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
     if ($workflow->status == 'Active') {
       $status_change = l("Disable", '/admin/tripal/extension/galaxy/workflows/disable/' . $workflow->galaxy_workflow_id);
     } else if ($workflow->status == 'disabled') {
-        $status_change = l("Enable", '/admin/tripal/extension/galaxy/workflows/enable/' . $workflow->galaxy_workflow_id);
+      $status_change = l("Enable", '/admin/tripal/extension/galaxy/workflows/enable/' . $workflow->galaxy_workflow_id);
     }
     $form['rows'][$i]['actions-' . $i] = array(
       '#type' => 'item',
       '#markup' => l('Remove', '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_workflow_id) . '  |  ' .
-      $status_change
+        $status_change
     );
-   
+
     $i++;
   }
 
@@ -85,7 +86,8 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
  * @param $form
  * @param $form_state
  */
-function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
+function theme_tripal_galaxy_admin_workflows_form_rows($variables)
+{
   $form_rows = $variables['form'];
 
   // The apparopriate headers for this form's table.
@@ -105,7 +107,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     $rows[] = array(
       drupal_render($row["galaxy_workflow_id" . $i]),
       '<i>Name on this site:</i> ' . drupal_render($row["workflow_name" . $i]) .
-      '<i>Name on Galaxy server:</i> ' . drupal_render($row["workflow_name_galaxy" . $i]),
+        '<i>Name on Galaxy server:</i> ' . drupal_render($row["workflow_name_galaxy" . $i]),
       drupal_render($row["servername-" . $i]),
       drupal_render($row["workflow_status-" . $i]),
      // drupal_render($row["workflow_ids-" . $i]),
@@ -118,7 +120,7 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     'header' => $headers,
     'rows' => $rows,
     'attributes' => array(),
-    'sticky' => TRUE,
+    'sticky' => true,
     'caption' => '',
     'colgroups' => array(),
     'empty' => 'There are no workflows',
@@ -131,7 +133,8 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
  * @param $form
  * @param $form_state
  */
-function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
+function tripal_galaxy_admin_workflows_form_submit($form, &$form_state)
+{
   $i = 0;
   $form_rows = $form_state['values']['rows'];
 
@@ -142,23 +145,23 @@ function tripal_galaxy_admin_workflows_form_submit($form, &$form_state) {
     $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE workflow_id = :workflow_id AND galaxy_id = :galaxy_id";
     $galaxy = $form_rows[$i]['galaxy-' . $i];
     $galaxy_id = $galaxy->galaxy_id;
-    $args = array (
-      ':workflow_id' => $form_rows[$i]['workflow_id-' . $i] ,
+    $args = array(
+      ':workflow_id' => $form_rows[$i]['workflow_id-' . $i],
       ':galaxy_id' => $galaxy_id,
     );
-    $workflow_instance = db_query ($sql, $args);
-    $workflow_instance = $workflow_instance->fetchObject ();
+    $workflow_instance = db_query($sql, $args);
+    $workflow_instance = $workflow_instance->fetchObject();
 
     // If the workflow has changed values, update it
     if ($workflow_instance->status != $form_rows[$i]['enabled-' . $i]) {
-      $data = array (
+      $data = array(
         'status' => $form_rows[$i]['enabled-' . $i],
         'galaxy_workflow_id' => $workflow_instance->galaxy_workflow_id,
         'workflow_name' => $form_rows[$i]['workflow_name-' . $i],
       );
-      $workflow = drupal_write_record('tripal_galaxy_workflow', $data, 'galaxy_workflow_id' );
-      drupal_set_message ( t ( 'Workflow information Updated' ) );
+      $workflow = drupal_write_record('tripal_galaxy_workflow', $data, 'galaxy_workflow_id');
+      drupal_set_message(t('Workflow information Updated'));
     }
-    $i ++;
+    $i++;
   }
 }

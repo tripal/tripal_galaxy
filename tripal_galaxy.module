@@ -365,6 +365,20 @@ function tripal_galaxy_menu() {
     'type' => MENU_CALLBACK,
   ];
 
+  // SETTINGS
+    // Available Workflows
+  $items['admin/tripal/extension/galaxy/settings'] = [
+    'title' => 'Settings',
+    'description' => 'Galaxy Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['tripal_galaxy_admin_settings_form'],
+    'access arguments' => ['administer galaxy'],
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/tripal_galaxy.admin_settings_form.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 50,
+  ];
+
   return $items;
 }
 
@@ -1273,8 +1287,7 @@ function tripal_galaxy_cron() {
   tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy',
     'tripal_galaxy_check_status', $args, 1, [], TRUE);
 
-  // TODO: add a setting somewhere to let the user set the date.
-  $interval = variable_get('tripal_galaxy_interval', 24 * 60 * 60);
+  $interval = variable_get('tripal_galaxy_cron_frequency', 24 * 60 * 60);
 
   if (time() >= variable_get('tripal_galaxy_next_execution', 0)) {
     try {
@@ -1331,10 +1344,19 @@ function tripal_galaxy_cron() {
       }
     } 
     catch (Exception $e) {
-      $transaction->rollback();
       drupal_set_message($e->getMessage(), 'error');
       drupal_set_message(t('Cannot disable the workflows'), 'error');
+      watchdog_exception('tripal_galaxy', $e);
       drupal_goto("/admin/tripal/extension/galaxy/workflows");
+      return;
+    }
+
+    // Remove old histories from the remote tripal server.
+    try {
+      tripal_galaxy_delete_expired_histories();
+    } 
+    catch (Exception $e) {
+      watchdog_exception('tripal_galaxy', $e);
       return;
     }
     variable_set('tripal_galaxy_next_execution', time() + $interval);
