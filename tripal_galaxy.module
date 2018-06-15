@@ -565,45 +565,6 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
   drupal_goto('user/' . $user->uid . '/galaxy-jobs');
 }
 
-/**
- * A helper function for recursively building a values array.
- *
- * The values array is needed to invoke a Galaxy workflow.
- *
- * @param $values
- *   The array into which the value will be placed.
- * @param $input_full_name
- *   The full name of the input paramter.
- * @param $value
- *   The value to add to the array.
- */
-function _tripal_galaxy_workflow_invoke_build_values(&$values, $input_full_name, $value) {
-  // Pop the first name off the list.
-  $names = explode('|', $input_full_name);
-  $name = array_shift($names);
-
-  // As long as we have names in our "name path" then recurse.
-  if (count($names) > 0) {
-    $temp = [];
-    $next_name = implode("|", $names);
-    $had_value = _tripal_galaxy_workflow_invoke_build_values($temp, $next_name, $value);
-    if ($had_value) {
-      $values[$name] = $temp;
-      return TRUE;
-    }
-    else {
-      return FALSE;
-    }
-  }
-  else {
-    if ($value) {
-      $values[$name] = $value;
-      return TRUE;
-    }
-    return FALSE;
-  }
-}
-
 
 /**
  * Implements of hook_webform_component_info().

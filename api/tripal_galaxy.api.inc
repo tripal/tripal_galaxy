@@ -647,11 +647,11 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     if (!$value) {
       continue;
     }
-
     if (!array_key_exists($step_index, $parameters)) {
       $parameters[$step_index] = [];
     }
     $current_values = $parameters[$step_index];
+
     _tripal_galaxy_workflow_invoke_build_values($current_values, $input_name, $value);
     $parameters[$step_index] = $current_values;
   }
@@ -665,6 +665,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     'history_id' => $history['id'],
   ];
   $invocation = $gworkflows->invoke($params);
+  
 
   if (!$invocation) {
     $error = $galaxy->getError();
@@ -693,6 +694,47 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
 
 }
 
+/**
+ * A helper function for recursively building a values array.
+ *
+ * The values array is needed to invoke a Galaxy workflow.
+ *
+ * @param $values
+ *   The array into which the value will be placed.
+ * @param $input_full_name
+ *   The full name of the input paramter.
+ * @param $value
+ *   The value to add to the array.
+ */
+function _tripal_galaxy_workflow_invoke_build_values(&$values, $input_full_name, $value) {
+  // Pop the first name off the list.
+  $names = explode('|', $input_full_name);
+  $name = array_shift($names);
+  
+  // As long as we have names in our "name path" then recurse.
+  if (count($names) > 0) {
+    $temp = [];
+    if (array_key_exists($name, $values)) {
+      $temp = $values[$name];
+    }
+    $next_name = implode("|", $names);
+    $had_value = _tripal_galaxy_workflow_invoke_build_values($temp, $next_name, $value);
+    if ($had_value) {
+      $values[$name] = $temp;
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+  else {
+    if ($value) {
+      $values[$name] = $value;
+      return TRUE;
+    }
+    return FALSE;
+  }
+}
 
 /**
  * Uploads a file to a given history on Galaxy.
