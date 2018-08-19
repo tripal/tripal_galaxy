@@ -220,7 +220,6 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     'status' => $status,
     'errors' => serialize($invocation_info),
   ];
-  print_r($fields);
   if ($end_time != NULL) {
     $fields['end_time'] = $end_time;
   }
