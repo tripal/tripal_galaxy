@@ -206,6 +206,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
 
       $invocation_info['history'] = $history;
       $invocation_info['history_contents'] = $history_contents;
+      $invocation_info['history_info'] = $history_info;
     }
   }
 
