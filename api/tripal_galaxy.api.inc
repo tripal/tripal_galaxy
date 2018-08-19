@@ -179,7 +179,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     $state_details = array_filter($history_info['state_details']);
     $status = json_encode($state_details);
     // get history content is all states are 'ok'
-    if (isset($state_details['ok']) and count($state_details) == 1) {
+    if (isset($state_details['ok']) or isset($state_details['error'])) {
       $status = 'Completed';
       $ghistory_contents = new GalaxyHistoryContents($galaxy);
       $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);

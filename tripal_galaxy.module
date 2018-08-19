@@ -976,8 +976,8 @@ function tripal_galaxy_workflow_report($sid) {
       foreach ($history_contents as $index => $history_content) {
         $has_any_results = TRUE;
 
-        // Skip history items that does not have 'ok' state
-        if (!in_array($history_content['id'], $history_info['state_ids']['ok'])) {
+        // Skip history items that does not have 'ok' or 'error' state
+        if (!in_array($history_content['id'], array_merge($history_info['state_ids']['ok'], $history_info['state_ids']['error']))) {
           continue;
         }
         $has_step_results = TRUE;
@@ -1045,9 +1045,14 @@ function tripal_galaxy_workflow_report($sid) {
                 '#markup' => 'Result file is too large to view. Please download.',
               ];
             }
+            $peek_title = 'Peek at the results';
+            if ($history_content['peek'] == NULL and isset($history_info)) {
+              $peek_title = 'Error message';
+              $history_content['peek'] = $history_content['misc_info'];
+            }
             $step_content['history_content_' . $history_content['id'] . '_' . $index]['peek'] = [
               '#type' => 'item',
-              '#title' => ('Peek at the results'),
+              '#title' => $peek_title,
               '#description' => 'A view of the top of the output file.',
               '#markup' => $history_content['peek'],
             ];
@@ -1063,7 +1068,8 @@ function tripal_galaxy_workflow_report($sid) {
               ['%status' => json_decode($history_info['state_details'])]),
           ];
         }
-        $step_name = $history_content['name'];
+
+        $step_name = $history_content['name'] . ' (' . $history_content['state']. ')';
         $fieldset = [
           '#type' => 'fieldset',
           '#title' => $step_name,
