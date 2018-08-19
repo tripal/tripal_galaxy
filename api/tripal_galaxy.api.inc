@@ -124,15 +124,6 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     return;
   }
 
-  // If the status is already completed or error then we've already handled this
-  // workflow fully and we don't need to check the full status again unless
-  // the $force argument is set to TRUE.
-  if (($submission->status == 'Completed' or $submission->status == 'Error') and !$force) {
-    print "Workflow already handled. Status is: $submission->status\n";
-    print "Skipping\n";
-    return;
-  }
-
   // Get the node for this submission.
   $node = node_load($submission->nid);
 
@@ -149,109 +140,11 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     'workflow_id' => $submission->workflow_id,
     'invocation_id' => $submission->invocation_id,
   ]);
-
-  if (!$invocation) {     
+  if (!$invocation) {
     throw new Exception($galaxy->getErrorMessage());
   }
-
-  // Iterate through the invocation steps and look for any steps that
-  // are in the error state.
-  $job_states = [];
   $end_time = NULL;
   $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
-
-  // Get the status of each step.
-  $invocation_info = [];
-  foreach ($invocation['steps'] as $step) {
-    $step_index = $step['order_index'];
-    $stderr = '';
-    $stdout = '';
-    $misc_info = '';
-    $step_name = $step['workflow_step_label'];
-    $job_state = '';
-
-    // If this step has a job then get some additional information and
-    // add it to our step details.
-    $job = NULL;
-    if ($step['job_id']) {
-
-      // Get the STDERR and STDOUT for the job.
-      $gjobs = new GalaxyJobs($galaxy);
-      $job = $gjobs->show([
-        'job_id' => $step['job_id'],
-        'full' => TRUE,
-      ]);
-      if (!$job) {
-        throw new ErrorException($galaxy->getErrorMessage());
-      }
-      $stderr = $job['stderr'];
-      $stdout = $job['stdout'];
-
-      // Get the tool
-      $gtools = new GalaxyTools($galaxy);
-      $tool = $gtools->show(['tool_id' => $job['tool_id']]);
-      if (!$tool) {
-        throw new ErrorException($galaxy->getErrorMessage());
-      }
-      $step_name = $tool['name'];
-      $job_state = $job['state'];
-      $job_states[$step_index] = $job_state;
-    }
-
-    if ($step['state'] == 'error') {
-      // Sometimes the error message is in a dataset. So, get the 'misc_info'
-      // from that.
-      if ($job and $job['outputs']['output']['id']) {
-        $gdataset = new GalaxyDatasets($galaxy);
-        $dataset = $gdataset->show(['dataset_id' => $job['outputs']['output']['id']]);
-        if (!$dataset) {
-          throw new ErrorException($galaxy->getErrorMessage());
-        }
-        $misc_info = $dataset['misc_info'];
-      }
-    }
-
-    $job_id = $step['job_id'] ? $step['job_id'] : 'NULL';
-    $invocation_info[$step_index][$job_id] = [
-      'step_name' => $step_name,
-      'step_id' => $step['id'],
-      'job_id' => $job_id,
-      'state' => $job_state,
-      'stderr' => $stderr,
-      'stdout' => $stdout,
-      'misc_info' => $misc_info,
-    ];
-  } // end foreach ($invocation['steps'] as $step) { ...
-
-  $status = 'Waiting';
-  if (in_array('new', array_values($job_states))) {
-    $status = 'Waiting';
-  }
-  if (in_array('scheduled', array_values($job_states))) {
-    $status = 'Scheduled';
-  }
-  if (in_array('running', array_values($job_states))) {
-    $status = 'Running';
-  }
-  if (in_array('error', array_values($job_states))) {
-    $status = 'Error';
-  }
-  $num_jobs = count(array_keys($job_states));
-  if (count(preg_grep('/^ok$/', array_values($job_states))) == $num_jobs and $num_jobs > 0) {
-    $status = 'Completed';
-  }
-
-  // Now deal with the results if this is an error or a completed workflow.
-  if ($status == 'Error') {
-    print "Job Failed.\n";
-    $status = 'Error';
-    if (!$force) {
-      tripal_galaxy_send_submission_failed_mail($sid, $node->nid);
-    }
-  }
-
-
-
 
   // Find the History for this submission.
   $history_name = tripal_galaxy_get_history_name($submission, $node);
@@ -280,55 +173,53 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
   //    empty
   // if 'ok' state has value larger than 0 and all other states' values being 0,
   // then this history has completed successfully. We can set the $status = 'Completed'
+  $status = '';
   if ($history) {
     $history_info = $ghistories->show(['history_id' => $history['id']]);
     $state_details = array_filter($history_info['state_details']);
+    $status = json_encode($state_details);
+    // get history content is all states are 'ok'
     if (isset($state_details['ok']) and count($state_details) == 1) {
       $status = 'Completed';
+      $ghistory_contents = new GalaxyHistoryContents($galaxy);
+      $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
+
+      // Get more details about each history content item.
+      foreach ($history_contents as $index => $history_content) {
+        $history_contents[$index] = $ghistory_contents->show([
+          'id' => $history_content['id'],
+          'history_id' => $history['id'],
+        ]);
+        switch ($history_content['type']) {
+          case 'file':
+            $params = [];
+            $params['history_id'] = $history['id'];
+            $params['url_only'] = TRUE;
+            $params['history_content_id'] = $history_content['id'];
+            $link = $ghistory_contents->download_history_content($params);
+            $history_contents[$index]['content_link'] = $link;
+            break;
+          default:
+            break;
+        }
+      }
+
+      $invocation_info['history'] = $history;
+      $invocation_info['history_contents'] = $history_contents;
     }
   }
 
-
-  // Get the history contents if the job step status is 'Completed'.
-  if ($status == 'Completed') {
-
-    $ghistory_contents = new GalaxyHistoryContents($galaxy);
-    $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
-
-    // Get more details about each history content item.
-    foreach ($history_contents as $index => $history_content) {
-      $history_contents[$index] = $ghistory_contents->show([
-        'id' => $history_content['id'],
-        'history_id' => $history['id'],
-      ]);
-      switch ($history_content['type']) {
-        case 'file':
-          $params = [];
-          $params['history_id'] = $history['id'];
-          $params['url_only'] = TRUE;
-          $params['history_content_id'] = $history_content['id'];
-          $link = $ghistory_contents->download_history_content($params);
-          $history_contents[$index]['content_link'] = $link;
-          break;
-        default:
-          break;
-      }
-    }
-
-    $invocation_info['history'] = $history;
-    $invocation_info['history_contents'] = $history_contents;
-
-    // Now inform the user that the job is done!
-    $end_time = $update_time->getTimestamp();
-    if (!$force) {
-      tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
-    }
+  // Now inform the user that the job is done!
+  $end_time = $update_time->getTimestamp();
+  if (!$force) {
+    tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
   }
 
   $fields = [
     'status' => $status,
     'errors' => serialize($invocation_info),
   ];
+  print_r($fields);
   if ($end_time != NULL) {
     $fields['end_time'] = $end_time;
   }
