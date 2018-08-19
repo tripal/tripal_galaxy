@@ -164,12 +164,10 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
   $invocation_info = [];
   foreach ($invocation['steps'] as $step) {
     $step_index = $step['order_index'];
-    $step_state = '';
     $stderr = '';
     $stdout = '';
     $misc_info = '';
     $step_name = $step['workflow_step_label'];
-    $step_state = $step['state'];
     $job_state = '';
 
     // If this step has a job then get some additional information and
@@ -251,27 +249,51 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
       tripal_galaxy_send_submission_failed_mail($sid, $node->nid);
     }
   }
-  if ($status == 'Completed') {
-    // Get the history contents if the job step status is 'Completed'.
-    $history_contents = [];
 
-    // Find the History for this submission.
-    $history_name = tripal_galaxy_get_history_name($submission, $node);
-    $ghistories = new GalaxyHistories($galaxy);
-    $histories = $ghistories->index();
-    $history = '';
-    if ($histories) {
-      foreach ($histories as $index => $temp) {
-        if ($temp['name'] == $history_name) {
-          $history = $temp;
-        }
+
+
+
+  // Find the History for this submission.
+  $history_name = tripal_galaxy_get_history_name($submission, $node);
+  $ghistories = new GalaxyHistories($galaxy);
+  $histories = $ghistories->index();
+  $history = '';
+  if ($histories) {
+    foreach ($histories as $index => $temp) {
+      if ($temp['name'] == $history_name) {
+        $history = $temp;
       }
     }
+  }
 
-    if ($history) {
-      $ghistory_contents = new GalaxyHistoryContents($galaxy);
-      $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
+  // check state details for all jobs
+  // below are valid state names:
+  //    paused
+  //    ok
+  //    failed_metadata
+  //    upload
+  //    discarded
+  //    running
+  //    setting_metadata
+  //    error
+  //    queued
+  //    empty
+  // if 'ok' state has value larger than 0 and all other states' values being 0,
+  // then this history has completed successfully. We can set the $status = 'Completed'
+  if ($history) {
+    $history_info = $ghistories->show(['history_id' => $history['id']]);
+    $state_details = array_filter($history_info['state_details']);
+    if (isset($state_details['ok']) and count($state_details) == 1) {
+      $status = 'Completed';
     }
+  }
+
+
+  // Get the history contents if the job step status is 'Completed'.
+  if ($status == 'Completed') {
+
+    $ghistory_contents = new GalaxyHistoryContents($galaxy);
+    $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
 
     // Get more details about each history content item.
     foreach ($history_contents as $index => $history_content) {
