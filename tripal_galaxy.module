@@ -987,11 +987,11 @@ function tripal_galaxy_workflow_report($sid) {
         $step_content['history_content_' . $history_content['id'] . '_' . $index] = [
           '#type' => 'fieldset',
           '#title' => $history_content['name'],
-          '#collapsed' => TRUE,
+          '#collapsed' => FALSE,
           '#collapsible' => TRUE,
-          '#attributes' => [
-            'class' => ['collapsible', 'collapsed'],
-          ],
+//          '#attributes' => [
+//            'class' => ['collapsible', 'collapsed'],
+//          ],
           '#attached' => [
             'js' => ['misc/collapse.js', 'misc/form.js'],
           ],
