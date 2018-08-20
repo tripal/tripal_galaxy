@@ -989,9 +989,9 @@ function tripal_galaxy_workflow_report($sid) {
           '#title' => $history_content['name'],
           '#collapsed' => FALSE,
           '#collapsible' => TRUE,
-//          '#attributes' => [
-//            'class' => ['collapsible', 'collapsed'],
-//          ],
+          //          '#attributes' => [
+          //            'class' => ['collapsible', 'collapsed'],
+          //          ],
           '#attached' => [
             'js' => ['misc/collapse.js', 'misc/form.js'],
           ],
@@ -1069,7 +1069,7 @@ function tripal_galaxy_workflow_report($sid) {
           ];
         }
 
-        $step_name = $history_content['name'] . ' (' . $history_content['state']. ')';
+        $step_name = $history_content['hid'] . ': ' . $history_content['name'] . ' (' . $history_content['state'] . ')';
         $fieldset = [
           '#type' => 'fieldset',
           '#title' => $step_name,
