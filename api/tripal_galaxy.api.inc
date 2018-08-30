@@ -178,9 +178,8 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
     $history_info = $ghistories->show(['history_id' => $history['id']]);
     $state_details = array_filter($history_info['state_details']);
     $status = json_encode($state_details);
-    // get history content is all states are 'ok'
-    if (isset($state_details['ok']) or isset($state_details['error'])) {
-      $status = 'Completed';
+    // if no jobs are in the state of 'paused', 'running', or 'queued', the history is completed
+    if (!isset($state_details['paused']) and !isset($state_details['running']) and !isset($state_details['queued'])) {
       $ghistory_contents = new GalaxyHistoryContents($galaxy);
       $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
 
@@ -207,6 +206,7 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
       $invocation_info['history'] = $history;
       $invocation_info['history_contents'] = $history_contents;
       $invocation_info['history_info'] = $history_info;
+      $status = 'Completed';
     }
   }
 
