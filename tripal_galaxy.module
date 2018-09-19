@@ -526,7 +526,6 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
 
     // To be implemented more properly once inputs are generated
     $data = [
-      'sid' => $sid,
       'galaxy_workflow_id' => $workflow->galaxy_workflow_id,
       'errors' => '',
       'submit_date' => REQUEST_TIME,
@@ -534,7 +533,16 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
     ];
 
     // Now insert the submission into the database
-    drupal_write_record('tripal_galaxy_workflow_submission', $data);
+    $tg_workflow = db_insert('tripal_galaxy_workflow_submission')
+                    ->fields($data)
+                    ->execute();
+
+    // Linker table
+    $data = [
+      'wf_sid' => $sid,
+      'tg_sid' => $tg_workflow,
+    ];
+    drupal_write_record('tripal_galaxy_webform', $data);
 
     // For any files that were uploaded we want to set the usage for those
     // so that they are mapped to the correct submission.
@@ -547,7 +555,7 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
       }
     }
 
-    $args = [$sid];
+    $args = [$sid, [] ];
     $includes = [];
     $job_id = tripal_add_job("Galaxy Workflow #" . $sid, 'tripal_galaxy',
       'tripal_galaxy_invoke_workflow', $args, $user->uid, 10, $includes);

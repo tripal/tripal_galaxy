@@ -343,11 +343,12 @@ function tripal_galaxy_get_history_name($submission, $node) {
  *
  * @param $sid
  *   The submission ID
+ * @param $data
+ *    An array of the data for the workflow if not passing content from a webform.
  * @param $job
  *   A Tripal v3 Job object or a Tripal v2 job ID.
  */
-function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
-
+function tripal_galaxy_invoke_workflow($sid, $data, $job = NULL) {
   // Get the workflows that need execution
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
   $query->fields('tgws');
@@ -373,14 +374,27 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
   // The array where the workflow input parameters are stored.
   $parameters = [];
 
-  $query = db_select('webform_submitted_data', 'wsd');
-  $query->fields('wsd');
-  $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
-  $query->fields('wc', ['form_key', 'type', 'extra']);
-  $query->condition('wsd.sid', $submission->sid);
-  $query->condition('wc.nid', $submission->nid);
-  $query->orderBy('wsd.cid');
-  $submitted_data = $query->execute()->fetchAll();
+  if (empty($data)) {
+    // Get webform sid through the linker table.
+    $submission->sid;
+    $query = db_select('tripal_galaxy_webform', 'tgw');
+    $query->fields('tgw', array('wf_sid',));
+    $query->condition('tgw.tg_sid', $submission->sid, '=');
+    $wf_sid = $query->execute()->fetchAssoc();
+
+    $query = db_select('webform_submitted_data', 'wsd');
+    $query->fields('wsd');
+    $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
+    $query->fields('wc', ['form_key', 'type', 'extra']);
+    $query->condition('wsd.sid', $wf_sid);
+    $query->condition('wc.nid', $submission->nid);
+    $query->orderBy('wsd.cid');
+    $submitted_data = $query->execute()->fetchAll();
+  }
+  else {
+    $submitted_data = $data;
+  }
+
 
   // Get the history that we'll use for this submission.
   $error = [];
@@ -655,7 +669,13 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     _tripal_galaxy_workflow_invoke_build_values($current_values, $input_name, $value);
     $parameters[$step_index] = $current_values;
   }
-
+  if (key($parameters[0]) == 'vcf_input') {
+    $parameters[0]['Data File'] = $parameters[0]['vcf_input'];
+    $parameters[1]['vcf_input'] = $parameters[0]['vcf_input'];
+    // unset($parameters[0]['vcf_input']);
+    // $parameters[0]['vcf_input'] = $parameters[0]['Data File'];
+    // unset($parameters[0]['vcf_input']);
+  }
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
   $params = [
@@ -665,8 +685,12 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     'history_id' => $history['id'],
   ];
   $invocation = $gworkflows->invoke($params);
-  
-
+  print_r("params \n");
+  print_r($params);
+  print_r("\n");
+  print_r("invocation \n");
+  print_r($invocation);
+  print_r("\n");
   if (!$invocation) {
     $error = $galaxy->getError();
     drupal_set_message($error['message'], 'error');
@@ -677,7 +701,8 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
       ])
       ->condition('sid', $submission->sid)
       ->execute();
-    tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
+      print_r($error);
+    // tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
   }
   else {
     db_update('tripal_galaxy_workflow_submission')
@@ -689,7 +714,7 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
       ])
       ->condition('sid', $submission->sid)
       ->execute();
-    tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
+    // tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
   }
 
 }
@@ -793,6 +818,9 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
       $error = $galaxy->getError();
       throw new Exception($error['message']);
     }
+    print_r("upload file tool return \n");
+    print_r($tool);
+    print_r("\n");
     return $tool['outputs'][0];
   }
   else {
