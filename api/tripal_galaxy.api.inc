@@ -393,6 +393,7 @@ function tripal_galaxy_invoke_workflow($sid, $data, $job = NULL) {
   }
   else {
     $submitted_data = $data;
+    //TODO drupal_write_record serialize $data into the tripal_galaxy_webform table.
   }
 
 
