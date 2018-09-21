@@ -1063,3 +1063,388 @@ function tripal_galaxy_build_webform_get_step_defaults($defaults, $tool_input, &
     }
   }
 }
+
+
+/**
+ * Invoke a workflow provided by a webform submission.
+ * 
+ * @param $sid
+ *   The webform submission ID.
+ */
+function tripal_galaxy_invoke_webform_submission($sid) {
+  // Get the workflows that need execution
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws');
+  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+  $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
+  $query->condition('tgws.sid', $sid);
+  $submission = $query->execute()->fetchObject();
+  
+  if (!$submission) {
+    throw new Exception('The provided submission ID does not exist');
+  }
+  
+  // Get a connection to the remote galaxy instance.
+  $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
+  if (!$galaxy) {
+    $error = $galaxy->getError();
+    throw new Exception('Cannot connect to Galaxy server:' . $error['message']);
+  }
+  
+  // The node for this submission
+  $node = node_load($submission->nid);
+  
+  // The array where the workflow input parameters are stored.
+  $parameters = [];
+  
+  if (empty($data)) {
+    // Get webform sid through the linker table.
+    $submission->sid;
+    $query = db_select('tripal_galaxy_webform', 'tgw');
+    $query->fields('tgw', array('wf_sid',));
+    $query->condition('tgw.tg_sid', $submission->sid, '=');
+    $wf_sid = $query->execute()->fetchAssoc();
+    
+    $query = db_select('webform_submitted_data', 'wsd');
+    $query->fields('wsd');
+    $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
+    $query->fields('wc', ['form_key', 'type', 'extra']);
+    $query->condition('wsd.sid', $wf_sid);
+    $query->condition('wc.nid', $submission->nid);
+    $query->orderBy('wsd.cid');
+    $submitted_data = $query->execute()->fetchAll();
+  }
+  else {
+    $submitted_data = $data;
+    //TODO drupal_write_record serialize $data into the tripal_galaxy_webform table.
+  }
+  
+  
+  // Get the history that we'll use for this submission.
+  $error = [];
+  $history_name = tripal_galaxy_get_history_name($submission, $node);
+  $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
+  if (!$history) {
+    $error = $galaxy->getError();
+    throw new Exception($error['message']);
+  }
+  
+  // Get the history contents so we don't upload the same file more than once
+  // in the event that this invocation occurs more than once.
+  $ghistory_contents = new GalaxyHistoryContents($galaxy);
+  $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
+  if ($error['message']) {
+    $error = $galaxy->getError();
+    throw new Exception($error['message']);
+  }
+  
+  // Iterate through our submitted data to look for files that need uploading.
+  // For those in a dataset collection, create those collections as well.
+  $collections = [];
+  $inputs = [];
+  foreach ($submitted_data as $data) {
+    
+    // Handle a single file upload.
+    if ($data->type == 'galaxy_sfile') {
+      if ($data->no == 'data_collection' or $data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+        $fid = $data->data;
+        if ($fid) {
+          $file = tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
+          $inputs[$data->form_key] = $file;
+        }
+      }
+      else {
+        if ($data->no == 'site_wide') {
+          $fid = $data->data;
+          if ($fid) {
+            $swfile = db_select('tripal_galaxy_site_files', 'tgsf')
+              ->fields('tgsf')
+              ->condition('fid', $fid)
+              ->execute()
+              ->fetchObject();
+            if (!$swfile) {
+              throw new Exception('Cannot find site-wide file with fid: ' . $fid);
+            }
+            // If this is a remote file....
+            if ($swfile->url) {
+              
+            }
+            // not a remote file.
+            else {
+              $file = tripal_galaxy_upload_file($galaxy, $fid, $history['id'], $history_contents);
+              $inputs[$data->form_key] = $file;
+            }
+          }
+        }
+      }
+    }
+    else {
+      if ($data->type == 'galaxy_sflist') {
+        
+        if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+          $fids = $data->data;
+          if (!$fids) {
+            continue;
+          }
+          $set = explode('|', $fids);
+          
+          // Create the paired dataset.
+          $collections[$data->form_key] = [
+            'collection_type' => 'list',
+            'instance_type' => 'history',
+            'name' => $data->form_key,
+            'history_id' => $history['id'],
+            'element_identifiers' => [],
+          ];
+          
+          for ($i = 0; $i < count($set); $i++) {
+            // Upload each file.
+            if ($set[$i]) {
+              $dataset1 = tripal_galaxy_upload_file($galaxy, $set[$i], $history['id'], $history_contents);
+              
+              // Next add the element.
+              $collections[$data->form_key]['element_identifiers'][] = [
+                'id' => $dataset1['id'],
+                'name' => $dataset1['name'],
+                'src' => 'hda',
+              ];
+            }
+          } // end for ($i = 0; $i < count($set1); $i++) {
+        }
+      }
+      else {
+        if ($data->type == 'galaxy_pflist') {
+          if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+            $fids = $data->data;
+            if (!$fids) {
+              continue;
+            }
+            $set1 = [];
+            $set2 = [];
+            if ($fids) {
+              list($set1, $set2) = explode(',', $fids);
+              $set1 = explode('|', $set1);
+              $set2 = explode('|', $set2);
+            }
+            
+            // Create the paired dataset.
+            $collections[$data->form_key] = [
+              'collection_type' => 'list:paired',
+              'instance_type' => 'history',
+              'name' => $data->form_key,
+              'history_id' => $history['id'],
+              'element_identifiers' => [],
+            ];
+            
+            for ($i = 0; $i < count($set1); $i++) {
+              // Upload each file.
+              if ($set1[$i] and $set2[$i]) {
+                $dataset1 = tripal_galaxy_upload_file($galaxy, $set1[$i], $history['id'], $history_contents);
+                $dataset2 = tripal_galaxy_upload_file($galaxy, $set2[$i], $history['id'], $history_contents);
+                
+                // Next create the paired dataset collection array.
+                $collections[$data->form_key]['element_identifiers'][] = [
+                  'name' => $dataset1['name'] . ' and ' . $dataset2['name'],
+                  'collection_type' => 'paired',
+                  'src' => 'new_collection',
+                  'element_identifiers' => [
+                    [
+                      'id' => $dataset1['id'],
+                      'name' => 'forward',
+                      'src' => 'hda',
+                    ],
+                    [
+                      'id' => $dataset2['id'],
+                      'name' => 'reverse',
+                      'src' => 'hda',
+                    ],
+                  ],
+                ];
+              }
+            } // end for ($i = 0; $i < count($set1); $i++) {
+          } // end if ($data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
+        }
+      }
+    } // end else if($data->type == 'galaxy_pflist') {
+  } // foreach ($submitted_data as $data) {
+  
+  // Now create a dataset collections
+  foreach ($collections as $form_key => $ds_details) {
+    
+    // Check for the dataset in the history before trying to readd it.
+    $found_collection = FALSE;
+    foreach ($history_contents as $hcontent) {
+      if ($hcontent['name'] == $form_key and $hcontent['deleted'] == 0) {
+        $inputs[$form_key] = $hcontent;
+        $found_collection = TRUE;
+      }
+    }
+    if ($found_collection) {
+      $report = "Collection, $form_key, already exists.";
+      if (is_object($job)) {
+        $job->logMessage($report);
+      }
+      else {
+        print $report . "\n";
+      }
+      continue;
+    }
+    
+    // Create the collection!
+    $report = "Creating Collection: $form_key";
+    if (is_object($job)) {
+      $job->logMessage($report);
+    }
+    else {
+      print $report . "\n";
+    }
+    $gds_collection = new GalaxyDatasetCollections($galaxy);
+    $ds_collection = $gds_collection->create($ds_details);
+    if (!$ds_collection) {
+      $error = $galaxy->getError();
+      throw new Exception($error['message']);
+    }
+    $inputs[$form_key] = $ds_collection;
+  }
+  
+  // Next we need to re-get the history content to get the IDs of the new files.
+  $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
+  $input_datasets = [];
+  
+  // Iterate through the submitted data values and create an input aray
+  // for Galaxy workflow submission.
+  foreach ($submitted_data as $data) {
+    $value = '';
+    
+    // The component 'extra' data is serialized so we need to convert it.
+    $data->extra = unserialize($data->extra);
+    
+    // Get some step details.
+    $step_index = $data->extra['step_index'];
+    $input_name = $data->extra['input_full_name'];
+    
+    // Skip components that don't have an 'input_name' field as these
+    // don't correspond to workflow input components (e.g. fieldsets, and
+    // page separators).
+    if (!array_key_exists('input_name', $data->extra)) {
+      continue;
+    }
+    
+    // Input elements of type 'fixed_value' should not be provided as
+    // input for the Galaxy workflow because the defaults should be used
+    if ($data->type == 'fixed_value') {
+      $value = $data->data;
+      if (array_key_exists('linked', $data->extra) and $data->extra['linked']) {
+        list($source_step, $step_output) = explode('|', $data->data);
+        $value = [
+          'step_output' => $step_output,
+          'source_step' => $source_step,
+        ];
+      }
+    }
+    else {
+      if ($data->type == 'galaxy_sfile') {
+        $file = $inputs[$data->form_key];
+        foreach ($history_contents as $hcontent) {
+          if ($hcontent['name'] == $file['name']) {
+            $value = $hcontent['id'];
+            $input_datasets[$step_index] = [
+              'id' => $value,
+              'src' => 'hda',
+            ];
+          }
+        }
+      }
+      else {
+        if ($data->type == 'galaxy_sflist') {
+          $dataset = $inputs[$data->form_key];
+          $value = $dataset['id'];
+          $input_datasets[$step_index] = [
+            'id' => $value,
+            'src' => 'hdca',
+          ];
+        }
+        else {
+          if ($data->type == 'galaxy_pflist') {
+            $dataset = $inputs[$data->form_key];
+            $value = $dataset['id'];
+            $input_datasets[$step_index] = [
+              'id' => $value,
+              'src' => 'hdca',
+            ];
+          }
+          else {
+            $value = $data->data;
+          }
+        }
+      }
+    }
+    
+    // If we don't have a value then skip it and let the workflow use it's
+    // own defaults
+    if (!$value) {
+      continue;
+    }
+    if (!array_key_exists($step_index, $parameters)) {
+      $parameters[$step_index] = [];
+    }
+    $current_values = $parameters[$step_index];
+    
+    _tripal_galaxy_invoke_webform_build_values($current_values, $input_name, $value);
+    $parameters[$step_index] = $current_values;
+  }
+ 
+  if (key($parameters[0]) == 'vcf_input') {
+    $parameters[0]['Data File'] = $parameters[0]['vcf_input'];
+    $parameters[1]['vcf_input'] = $parameters[0]['vcf_input'];
+    // unset($parameters[0]['vcf_input']);
+    // $parameters[0]['vcf_input'] = $parameters[0]['Data File'];
+    // unset($parameters[0]['vcf_input']);
+  }
+  
+  // Call the Tripal Galaxy API function to invoke this workflow.
+  tripal_galaxy_invoke_workflow($submission->workflow_id, $parameters, 
+    $input_datasets, $history['id']);
+}
+
+/**
+ * A helper function for recursively building a values array.
+ *
+ * The values array is needed to invoke a Galaxy workflow.
+ *
+ * @param $values
+ *   The array into which the value will be placed.
+ * @param $input_full_name
+ *   The full name of the input paramter.
+ * @param $value
+ *   The value to add to the array.
+ */
+function _tripal_galaxy_invoke_webform_build_values(&$values, $input_full_name, $value) {
+  // Pop the first name off the list.
+  $names = explode('|', $input_full_name);
+  $name = array_shift($names);
+  
+  // As long as we have names in our "name path" then recurse.
+  if (count($names) > 0) {
+    $temp = [];
+    if (array_key_exists($name, $values)) {
+      $temp = $values[$name];
+    }
+    $next_name = implode("|", $names);
+    $had_value = _tripal_galaxy_workflow_invoke_build_values($temp, $next_name, $value);
+    if ($had_value) {
+      $values[$name] = $temp;
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+  else {
+    if ($value) {
+      $values[$name] = $value;
+      return TRUE;
+    }
+    return FALSE;
+  }
+}
