@@ -33,12 +33,12 @@ function tripal_galaxy_views_job_queue() {
   $view->human_name = 'Galaxy Job Queue';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = false; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Analysis Results';
-  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['use_more_always'] = false;
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['access']['perm'] = 'use galaxy';
   $handler->display->display_options['cache']['type'] = 'none';
@@ -114,7 +114,7 @@ function tripal_galaxy_views_job_queue() {
       'empty_column' => 0,
     ),
   );
-  $handler->display->display_options['style_options']['empty_table'] = TRUE;
+  $handler->display->display_options['style_options']['empty_table'] = true;
   /* Footer: Global: Text area */
   $handler->display->display_options['footer']['area']['id'] = 'area';
   $handler->display->display_options['footer']['area']['table'] = 'views';
@@ -128,7 +128,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['empty']['area_text_custom']['id'] = 'area_text_custom';
   $handler->display->display_options['empty']['area_text_custom']['table'] = 'views';
   $handler->display->display_options['empty']['area_text_custom']['field'] = 'area_text_custom';
-  $handler->display->display_options['empty']['area_text_custom']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area_text_custom']['empty'] = true;
   $handler->display->display_options['empty']['area_text_custom']['content'] = 'No jobs found';
   /* Relationship: Galaxy Workflow Submission: Submission ID */
   $handler->display->display_options['relationships']['sid']['id'] = 'sid';
@@ -161,7 +161,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['uid']['table'] = 'webform_submissions';
   $handler->display->display_options['fields']['uid']['field'] = 'uid';
   $handler->display->display_options['fields']['uid']['relationship'] = 'sid';
-  $handler->display->display_options['fields']['uid']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['uid']['exclude'] = true;
   /* Field: User: Name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'users';
@@ -197,7 +197,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['label'] = 'Results';
   $handler->display->display_options['fields']['nothing']['alter']['text'] = 'View';
-  $handler->display->display_options['fields']['nothing']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['nothing']['alter']['make_link'] = true;
   $handler->display->display_options['fields']['nothing']['alter']['path'] = 'admin/tripal/extension/galaxy/workflows/report/[sid]';
   /* Sort criterion: Galaxy Workflow Submission: Submission Time */
   $handler->display->display_options['sorts']['submit_date']['id'] = 'submit_date';
@@ -210,10 +210,10 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['title']['field'] = 'title';
   $handler->display->display_options['filters']['title']['relationship'] = 'sid';
   $handler->display->display_options['filters']['title']['group'] = 1;
-  $handler->display->display_options['filters']['title']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['title']['exposed'] = true;
   $handler->display->display_options['filters']['title']['expose']['operator_id'] = 'title_op';
   $handler->display->display_options['filters']['title']['expose']['label'] = 'Workflow';
-  $handler->display->display_options['filters']['title']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['title']['expose']['use_operator'] = true;
   $handler->display->display_options['filters']['title']['expose']['operator'] = 'title_op';
   $handler->display->display_options['filters']['title']['expose']['identifier'] = 'title';
   $handler->display->display_options['filters']['title']['expose']['remember_roles'] = array(
@@ -227,7 +227,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['name']['field'] = 'name';
   $handler->display->display_options['filters']['name']['relationship'] = 'uid';
   $handler->display->display_options['filters']['name']['group'] = 1;
-  $handler->display->display_options['filters']['name']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['name']['exposed'] = true;
   $handler->display->display_options['filters']['name']['expose']['operator_id'] = 'name_op';
   $handler->display->display_options['filters']['name']['expose']['label'] = 'User';
   $handler->display->display_options['filters']['name']['expose']['operator'] = 'name_op';
@@ -242,7 +242,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['status']['table'] = 'tripal_galaxy_workflow_submission';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['group'] = 1;
-  $handler->display->display_options['filters']['status']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['status']['exposed'] = true;
   $handler->display->display_options['filters']['status']['expose']['operator_id'] = 'status_op';
   $handler->display->display_options['filters']['status']['expose']['label'] = 'Submission Status';
   $handler->display->display_options['filters']['status']['expose']['operator'] = 'status_op';
@@ -265,53 +265,53 @@ function tripal_galaxy_views_job_queue() {
 
   /* Display: User Galaxy Job Queue */
   $handler = $view->new_display('page', 'User Galaxy Job Queue', 'page_1');
-  $handler->display->display_options['defaults']['header'] = FALSE;
+  $handler->display->display_options['defaults']['header'] = false;
   /* Header: Global: Text area */
   $handler->display->display_options['header']['area']['id'] = 'area';
   $handler->display->display_options['header']['area']['table'] = 'views';
   $handler->display->display_options['header']['area']['field'] = 'area';
   $handler->display->display_options['header']['area']['content'] = 'Below you can find the status of your submitted workflows.  Click the \'View\' link for more in-depth details about a submission. Use the fields just below to filter the job list.';
   $handler->display->display_options['header']['area']['format'] = 'filtered_html';
-  $handler->display->display_options['defaults']['fields'] = FALSE;
+  $handler->display->display_options['defaults']['fields'] = false;
   /* Field: Content: Nid */
   $handler->display->display_options['fields']['nid']['id'] = 'nid';
   $handler->display->display_options['fields']['nid']['table'] = 'node';
   $handler->display->display_options['fields']['nid']['field'] = 'nid';
   $handler->display->display_options['fields']['nid']['relationship'] = 'sid';
   $handler->display->display_options['fields']['nid']['label'] = '';
-  $handler->display->display_options['fields']['nid']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nid']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['nid']['exclude'] = true;
+  $handler->display->display_options['fields']['nid']['element_label_colon'] = false;
   /* Field: Galaxy Workflow Submission: Submission ID */
   $handler->display->display_options['fields']['sid']['id'] = 'sid';
   $handler->display->display_options['fields']['sid']['table'] = 'tripal_galaxy_workflow_submission';
   $handler->display->display_options['fields']['sid']['field'] = 'sid';
-  $handler->display->display_options['fields']['sid']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['sid']['exclude'] = true;
   /* Field: User: Name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'users';
   $handler->display->display_options['fields']['name']['field'] = 'name';
   $handler->display->display_options['fields']['name']['relationship'] = 'uid';
   $handler->display->display_options['fields']['name']['label'] = 'User';
-  $handler->display->display_options['fields']['name']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['name']['exclude'] = true;
   /* Field: Webform submissions: User */
   $handler->display->display_options['fields']['uid']['id'] = 'uid';
   $handler->display->display_options['fields']['uid']['table'] = 'webform_submissions';
   $handler->display->display_options['fields']['uid']['field'] = 'uid';
   $handler->display->display_options['fields']['uid']['relationship'] = 'sid';
-  $handler->display->display_options['fields']['uid']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['uid']['exclude'] = true;
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
   $handler->display->display_options['fields']['title']['relationship'] = 'sid';
   $handler->display->display_options['fields']['title']['label'] = 'Workflow';
-  $handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
+  $handler->display->display_options['fields']['title']['link_to_node'] = false;
   /* Field: Galaxy Server: Server Name */
   $handler->display->display_options['fields']['servername']['id'] = 'servername';
   $handler->display->display_options['fields']['servername']['table'] = 'tripal_galaxy';
   $handler->display->display_options['fields']['servername']['field'] = 'servername';
   $handler->display->display_options['fields']['servername']['label'] = 'Galaxy Server';
-  $handler->display->display_options['fields']['servername']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['servername']['exclude'] = true;
   /* Field: Galaxy Workflow Submission: Submission Time */
   $handler->display->display_options['fields']['submit_date']['id'] = 'submit_date';
   $handler->display->display_options['fields']['submit_date']['table'] = 'tripal_galaxy_workflow_submission';
@@ -330,75 +330,74 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['end_time']['field'] = 'end_time';
   $handler->display->display_options['fields']['end_time']['date_format'] = 'short';
   $handler->display->display_options['fields']['end_time']['second_date_format'] = 'long';
-  /* Field: Galaxy Workflow Submission: Submission Status */
+  /* Field: Galaxy Workflow Submission: Submission Status */  
   $handler->display->display_options['fields']['status']['id'] = 'status';
   $handler->display->display_options['fields']['status']['table'] = 'tripal_galaxy_workflow_submission';
   $handler->display->display_options['fields']['status']['field'] = 'status';
   $handler->display->display_options['fields']['status']['label'] = 'Status';
-  /* Field: Global: Custom text */
-  $handler->display->display_options['fields']['nothing_2']['id'] = 'nothing_2';
-  $handler->display->display_options['fields']['nothing_2']['table'] = 'views';
-  $handler->display->display_options['fields']['nothing_2']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing_2']['label'] = 'View Results';
-  $handler->display->display_options['fields']['nothing_2']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing_2']['alter']['text'] = 'View Results';
-  $handler->display->display_options['fields']['nothing_2']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing_2']['alter']['path'] = 'user/[uid]/galaxy-jobs/[sid]';
-  $handler->display->display_options['fields']['nothing_2']['element_label_colon'] = FALSE;
+  /* Field: Galaxy Workflow Submission: View Results */
+  $handler->display->display_options['fields']['view_results']['id'] = 'view_results';
+  $handler->display->display_options['fields']['view_results']['table'] = 'tripal_galaxy_workflow_submission';
+  $handler->display->display_options['fields']['view_results']['field'] = 'view_results';
+  $handler->display->display_options['fields']['view_results']['label'] = '';
+  $handler->display->display_options['fields']['view_results']['exclude'] = true;
+  $handler->display->display_options['fields']['view_results']['alter']['make_link'] = true;
+  $handler->display->display_options['fields']['view_results']['alter']['path'] = '/user/[uid]/galaxy-jobs/[sid]';
+  $handler->display->display_options['fields']['view_results']['element_label_colon'] = false;
   /* Field: Global: Custom text */
   $handler->display->display_options['fields']['nothing_3']['id'] = 'nothing_3';
   $handler->display->display_options['fields']['nothing_3']['table'] = 'views';
   $handler->display->display_options['fields']['nothing_3']['field'] = 'nothing';
   $handler->display->display_options['fields']['nothing_3']['label'] = 'View Details';
-  $handler->display->display_options['fields']['nothing_3']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['nothing_3']['exclude'] = true;
   $handler->display->display_options['fields']['nothing_3']['alter']['text'] = 'View Details';
-  $handler->display->display_options['fields']['nothing_3']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['nothing_3']['alter']['make_link'] = true;
   $handler->display->display_options['fields']['nothing_3']['alter']['path'] = 'node/[nid]/submission/[sid]';
-  $handler->display->display_options['fields']['nothing_3']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['nothing_3']['element_label_colon'] = false;
   /* Field: Global: Custom text */
   $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['table'] = 'views';
   $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['label'] = 'Re-run';
-  $handler->display->display_options['fields']['nothing']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['nothing']['exclude'] = true;
   $handler->display->display_options['fields']['nothing']['alter']['text'] = 'Re-run';
-  $handler->display->display_options['fields']['nothing']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['nothing']['alter']['make_link'] = true;
   $handler->display->display_options['fields']['nothing']['alter']['path'] = 'node/[nid]';
-  $handler->display->display_options['fields']['nothing']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['nothing']['element_label_colon'] = false;
   /* Field: Global: Custom text */
   $handler->display->display_options['fields']['nothing_1']['id'] = 'nothing_1';
   $handler->display->display_options['fields']['nothing_1']['table'] = 'views';
   $handler->display->display_options['fields']['nothing_1']['field'] = 'nothing';
   $handler->display->display_options['fields']['nothing_1']['label'] = 'Delete';
-  $handler->display->display_options['fields']['nothing_1']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['nothing_1']['exclude'] = true;
   $handler->display->display_options['fields']['nothing_1']['alter']['text'] = 'Delete';
-  $handler->display->display_options['fields']['nothing_1']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['nothing_1']['alter']['make_link'] = true;
   $handler->display->display_options['fields']['nothing_1']['alter']['path'] = 'node/[nid]/submission/[sid]/delete?destination=user/[uid]/galaxy-jobs';
-  $handler->display->display_options['fields']['nothing_1']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['nothing_1']['element_label_colon'] = false;
   /* Field: Global: Dropdown links */
   $handler->display->display_options['fields']['ctools_dropdown']['id'] = 'ctools_dropdown';
   $handler->display->display_options['fields']['ctools_dropdown']['table'] = 'views';
   $handler->display->display_options['fields']['ctools_dropdown']['field'] = 'ctools_dropdown';
   $handler->display->display_options['fields']['ctools_dropdown']['label'] = 'Actions';
   $handler->display->display_options['fields']['ctools_dropdown']['fields'] = array(
-    'nothing_2' => 'nothing_2',
     'nothing_3' => 'nothing_3',
     'nothing' => 'nothing',
     'nothing_1' => 'nothing_1',
+    'view_results' => 'view_results',
   );
   $handler->display->display_options['fields']['ctools_dropdown']['check_access'] = 0;
-  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
-  $handler->display->display_options['defaults']['filters'] = FALSE;
+  $handler->display->display_options['defaults']['filter_groups'] = false;
+  $handler->display->display_options['defaults']['filters'] = false;
   /* Filter criterion: Content: Title */
   $handler->display->display_options['filters']['title']['id'] = 'title';
   $handler->display->display_options['filters']['title']['table'] = 'node';
   $handler->display->display_options['filters']['title']['field'] = 'title';
   $handler->display->display_options['filters']['title']['relationship'] = 'sid';
   $handler->display->display_options['filters']['title']['group'] = 1;
-  $handler->display->display_options['filters']['title']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['title']['exposed'] = true;
   $handler->display->display_options['filters']['title']['expose']['operator_id'] = 'title_op';
   $handler->display->display_options['filters']['title']['expose']['label'] = 'Workflow';
-  $handler->display->display_options['filters']['title']['expose']['use_operator'] = TRUE;
+  $handler->display->display_options['filters']['title']['expose']['use_operator'] = true;
   $handler->display->display_options['filters']['title']['expose']['operator'] = 'title_op';
   $handler->display->display_options['filters']['title']['expose']['identifier'] = 'title';
   $handler->display->display_options['filters']['title']['expose']['remember_roles'] = array(
@@ -411,7 +410,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['status']['table'] = 'tripal_galaxy_workflow_submission';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['group'] = 1;
-  $handler->display->display_options['filters']['status']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['status']['exposed'] = true;
   $handler->display->display_options['filters']['status']['expose']['operator_id'] = 'status_op';
   $handler->display->display_options['filters']['status']['expose']['label'] = 'Submission Status';
   $handler->display->display_options['filters']['status']['expose']['operator'] = 'status_op';
@@ -421,7 +420,7 @@ function tripal_galaxy_views_job_queue() {
     1 => 0,
     3 => 0,
   );
-  /* Filter criterion: User: Current */
+  /* Filter criterion: User: Current */ 
   $handler->display->display_options['filters']['uid_current']['id'] = 'uid_current';
   $handler->display->display_options['filters']['uid_current']['table'] = 'users';
   $handler->display->display_options['filters']['uid_current']['field'] = 'uid_current';
@@ -434,7 +433,6 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['menu']['name'] = 'user-menu';
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
-
 
   return $view;
 }
