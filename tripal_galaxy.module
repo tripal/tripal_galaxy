@@ -195,7 +195,7 @@ function tripal_galaxy_menu() {
     'weight' => 10,
   ];
 
-    // Disable Workflows
+  // Disable Workflows
   $items['admin/tripal/extension/galaxy/workflows/disable/%'] = [
     'description' => 'Disable this workflow',
     'page callback' => 'tripal_galaxy_admin_disable_workflow',
@@ -207,7 +207,7 @@ function tripal_galaxy_menu() {
     'weight' => 10,
   ];
 
-    // Enable Workflows
+  // Enable Workflows
   $items['admin/tripal/extension/galaxy/workflows/enable/%'] = [
     'description' => 'Enable this workflow',
     'page callback' => 'tripal_galaxy_admin_enable_workflow',
@@ -366,7 +366,7 @@ function tripal_galaxy_menu() {
   ];
 
   // SETTINGS
-    // Available Workflows
+  // Available Workflows
   $items['admin/tripal/extension/galaxy/settings'] = [
     'title' => 'Settings',
     'description' => 'Galaxy Settings',
@@ -484,12 +484,14 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
       TRIPAL_ERROR);
     $form['actions']['next']['#disabled'] = TRUE;
   }
-  else if ($workflow and $workflow->status == 'disabled') {
-    drupal_set_message('Unfortunately, this wokflow is disabled and no longer
+  else {
+    if ($workflow and $workflow->status == 'disabled') {
+      drupal_set_message('Unfortunately, this wokflow is disabled and no longer
         avaliable for submissions.', 'error');
-    tripal_set_message('This form is disabled you may ' . 
-      l('enable the workflow here', 'admin/tripal/extension/galaxy') . '.',TRIPAL_ERROR);
-    $form['actions']['next']['#disabled'] = true;
+      tripal_set_message('This form is disabled you may ' .
+        l('enable the workflow here', 'admin/tripal/extension/galaxy') . '.', TRIPAL_ERROR);
+      $form['actions']['next']['#disabled'] = TRUE;
+    }
   }
 
 
@@ -804,9 +806,9 @@ function tripal_galaxy_workflow_report($sid) {
       '#description' => t('It appears this analysis result has been deleted from the galaxy server on which it was run. Please return to the previous page and delete this from your workflow listing.'),
     ];
     db_update('tripal_galaxy_workflow_submission')
-      ->fields(array(
-        'status' => 'deleted'
-      ))
+      ->fields([
+        'status' => 'deleted',
+      ])
       ->condition('sid', $submission->sid)
       ->execute();
     return $content;
@@ -928,7 +930,6 @@ function tripal_galaxy_workflow_report($sid) {
     ]),
   ];
 
-  $rows = [];
 
   $galaxy_server = db_select('tripal_galaxy', 'tg')
     ->fields('tg')
@@ -964,239 +965,127 @@ function tripal_galaxy_workflow_report($sid) {
     // If the workflow status is 'Completed' then there will be a history and
     // history contents.  We'll get those out and remove them so we
     // can more easily iterate through the steps.
-    if (array_key_exists('history', $submission->errors)) {
-      $history = $submission->errors['history'];
-      unset($submission->errors['history']);
-    }
     if (array_key_exists('history_contents', $submission->errors)) {
       $history_contents = $submission->errors['history_contents'];
-      unset($submission->errors['history_contents']);
     }
-    ksort($submission->errors);
-    foreach ($submission->errors as $step_index => $jobs) {
-      $has_step_results = FALSE;
+    if (array_key_exists('history_info', $submission->errors)) {
+      $history_info = $submission->errors['history_info'];
+    }
 
-      // Skip steps that have a NULL job.  These are the uploading steps.
-      if (count($jobs) == 1 and array_key_exists('NULL', $jobs)) {
-        continue;
-      }
+    if (isset($history_contents) and isset($history_info)) {
+      foreach ($history_contents as $index => $history_content) {
+        $has_any_results = TRUE;
 
-      // We've changed the way we store analysis results.  So for
-      // backwards compatibiity warn the user that then need to update their
-      // job status.
-      if (array_key_exists('history', $jobs)) {
-        if (user_access('administer galaxy')) {
-          $content['status_message'] = [
-            '#type' => 'markup',
-            '#markup' => '<div class="messages error">' .
-              t('The job report saved for this analysis is out-of-date. Please update using the following Drush command: ' .
-                '<br><br>drush trp-galaxy-status --submission=%sid --force=1 --root=%base_path',
-                ['%sid' => $submission->sid, '%base_path' => DRUPAL_ROOT]),
-          ];
+        // Skip history items that does not have 'ok' or 'error' state
+        if (!in_array($history_content['id'], array_merge($history_info['state_ids']['ok'], $history_info['state_ids']['error']))) {
+          continue;
         }
-        continue;
-      }
+        $has_step_results = TRUE;
+        $has_any_results = TRUE;
 
-      $step_content = [];
-      $job_index = 0;
-      foreach ($jobs as $job_id => $logs) {
-        $job_index++;
-
-        if ($logs['state'] == 'error') {
-          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error'] = [
-            '#type' => 'fieldset',
-            '#title' => $logs['step_name'] . ' on job ' . $job_index . ' (Error)',
-            '#collapsed' => TRUE,
-            '#collapsible' => TRUE,
-            '#attributes' => [
-              'class' => ['collapsible', 'collapsed'],
-            ],
-            '#attached' => [
-              'js' => ['misc/collapse.js', 'misc/form.js'],
-            ],
-          ];
-          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error']['status'] = [
-            '#type' => 'item',
-            '#title' => t('Status'),
-            '#markup' => $logs['state'],
-          ];
-          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error']['output_log'] = [
-            '#type' => 'item',
-            '#title' => t('Output Log'),
-            '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stdout'] . '</pre>',
-          ];
-          $step_content[$step_index . '_' . $job_id . '_' . $job_index . '_error']['error_log'] = [
-            '#type' => 'item',
-            '#title' => t('Error Log'),
-            '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stderr'] . '</pre>',
-          ];
-        }
-
-        // In previous versions of this module, the history was stored in
-        // every step.  This was inefficient, but for backwards compatibility
-        // we will check.
-        if (array_key_exists('history', $logs)) {
-          $history = $logs['history'];
-        }
-        if (array_key_exists('history_contents', $logs)) {
-          $history_contents = $logs['history_contents'];
-        }
-
-        // If we have history contents then we want to display it.
-        if (isset($history_contents)) {
-          foreach ($history_contents as $index => $history_content) {
-
-            // Skip history items that aren't for this job.
-            if ($history_content['creating_job'] != $job_id) {
-              continue;
-            }
-
-            $has_step_results = TRUE;
-            $has_any_results = TRUE;
-            $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index] = [
-              '#type' => 'fieldset',
-              '#title' => $history_content['name'],
-              '#collapsed' => TRUE,
-              '#collapsible' => TRUE,
-              '#attributes' => [
-                'class' => ['collapsible', 'collapsed'],
-              ],
-              '#attached' => [
-                'js' => ['misc/collapse.js', 'misc/form.js'],
-              ],
-            ];
-
-            switch ($history_content['type']) {
-              case 'file':
-                if (!isset($history_content['content_link'])) {
-                  break;
-                }
-                $link = $history_content['content_link'];
-                $proxy_id = tripal_galaxy_set_proxy_url($link, $galaxy, $history_content, $submission, $node);
-                $file_size = tripal_format_bytes($history_content['file_size']);
-                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['download_link'] = [
-                  '#type' => 'item',
-                  '#title' => t('Download Results'),
-                  '#markup' => l($history_content['name'], 'galaxy/download/' . $proxy_id) . ' (' . $file_size . ')',
-                ];
-                break;
-              default:
-                break;
-            }
-
-            switch ($history_content['extension']) {
-              case 'html':
-                $url = $galaxy_server->url . $history_content['download_url'];
-                $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
-                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
-                  '#type' => 'item',
-                  '#title' => t('View Results'),
-                  '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
-                  '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
-                ];
-                break;
-              default:
-                // Any files that are smaller than 1MB can be shown in a browser.
-                if ($history_content['file_size'] < pow(10, 6)) {
-                  $url = $galaxy_server->url . $history_content['download_url'];
-                  $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
-                  $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
-                    '#type' => 'item',
-                    '#title' => t('View Results'),
-                    '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
-                    '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
-                  ];
-                }
-                else {
-                  $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['html_view'] = [
-                    '#type' => 'item',
-                    '#title' => t('View Results'),
-                    '#markup' => 'Result file is too large to view. Please download.',
-                  ];
-                }
-                $step_content['history_content_' . $step_index . '_' . $job_id . '_' . $index]['peek'] = [
-                  '#type' => 'item',
-                  '#title' => ('Peek at the results'),
-                  '#description' => 'A view of the top of the output file.',
-                  '#markup' => $history_content['peek'],
-                ];
-                break;
-            } // end switch ($history_content['extension']) { ...
-          } // end foreach ($history_contents as $index => $history_content) { ...
-        } // if ($history_contents) { ....
-      } // foreach ($jobs as $job_id => $logs) { ...
-
-      if (!$has_step_results) {
-        $step_content['no_results'] = [
-          '#type' => 'markup',
-          '#markup' => t('There are currently no results for this step. The current state of this task is: %status', ['%status' => $logs['state']]),
-        ];
-      }
-
-      if (user_access('administer galaxy')) {
-        $step_content['run_summary'] = [
+        $step_content = [];
+        $step_content['history_content_' . $history_content['id'] . '_' . $index] = [
           '#type' => 'fieldset',
-          '#title' => 'Run Details',
-          '#collapsed' => TRUE,
+          '#title' => $history_content['name'],
+          '#collapsed' => FALSE,
           '#collapsible' => TRUE,
-          '#attributes' => [
-            'class' => ['collapsible', 'collapsed'],
-          ],
+          //          '#attributes' => [
+          //            'class' => ['collapsible', 'collapsed'],
+          //          ],
           '#attached' => [
             'js' => ['misc/collapse.js', 'misc/form.js'],
           ],
         ];
 
-        $step_content['run_summary']['step_id'] = [
-          '#type' => 'item',
-          '#title' => t('Step ID'),
-          '#markup' => $logs['step_id'],
-        ];
-        $step_content['run_summary']['job_id'] = [
-          '#type' => 'item',
-          '#title' => t('Job ID'),
-          '#markup' => $logs['job_id'] ? $logs['job_id'] : 'N/A',
-        ];
-        $step_content['run_summary']['state'] = [
-          '#type' => 'item',
-          '#title' => t('Job State'),
-          '#markup' => $logs['state'] == 'error' ? '<font color="red"><b>' . $logs['state'] . '</b></font>' : $logs['state'],
-        ];
-        $step_content['run_summary']['misc_info'] = [
-          '#type' => 'item',
-          '#title' => t('Misc Info'),
-          '#markup' => $logs['misc_info'],
-        ];
+        switch ($history_content['type']) {
+          case 'file':
+            if (!isset($history_content['content_link'])) {
+              break;
+            }
+            $link = $history_content['content_link'];
+            $proxy_id = tripal_galaxy_set_proxy_url($link, $galaxy, $history_content, $submission, $node);
+            $file_size = tripal_format_bytes($history_content['file_size']);
+            $step_content['history_content_' . $history_content['id'] . '_' . $index]['download_link'] = [
+              '#type' => 'item',
+              '#title' => t('Download Results'),
+              '#markup' => l($history_content['name'], 'galaxy/download/' . $proxy_id) . ' (' . $file_size . ')',
+            ];
+            break;
+          default:
+            break;
+        }
 
-        if ($logs['job_id']) {
-          $step_content['run_summary']['output_log'] = [
-            '#type' => 'item',
-            '#title' => t('Output Log'),
-            '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stdout'] . '</pre>',
-          ];
-          $step_content['run_summary']['error_log'] = [
-            '#type' => 'item',
-            '#title' => t('Error Log'),
-            '#markup' => '<pre class="tripal-galaxy-workflow-log">' . $logs['stderr'] . '</pre>',
+        switch ($history_content['extension']) {
+          case 'html':
+            $url = $galaxy_server->url . $history_content['download_url'];
+            $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
+            $step_content['history_content_' . $history_content['id'] . '_' . $index]['html_view'] = [
+              '#type' => 'item',
+              '#title' => t('View Results'),
+              '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
+              '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
+            ];
+            break;
+          default:
+            // Any files that are smaller than 1MB can be shown in a browser.
+            if ($history_content['file_size'] < pow(10, 6)) {
+              $url = $galaxy_server->url . $history_content['download_url'];
+              $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
+              $step_content['history_content_' . $history_content['id'] . '_' . $index]['html_view'] = [
+                '#type' => 'item',
+                '#title' => t('View Results'),
+                '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
+                '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
+              ];
+            }
+            else {
+              $step_content['history_content_' . $history_content['id'] . '_' . $index]['html_view'] = [
+                '#type' => 'item',
+                '#title' => t('View Results'),
+                '#markup' => 'Result file is too large to view. Please download.',
+              ];
+            }
+            $peek_title = 'Peek at the results';
+            if ($history_content['peek'] == NULL and isset($history_info)) {
+              $peek_title = 'Error message';
+              $history_content['peek'] = $history_content['misc_info'];
+            }
+            $step_content['history_content_' . $history_content['id'] . '_' . $index]['peek'] = [
+              '#type' => 'item',
+              '#title' => $peek_title,
+              '#description' => 'A view of the top of the output file.',
+              '#markup' => $history_content['peek'],
+            ];
+            break;
+        } // end switch ($history_content['extension']) { ...
+        // end foreach ($history_contents as $index => $history_content) { ...
+
+
+        if (!$has_step_results) {
+          $step_content['no_results'] = [
+            '#type' => 'markup',
+            '#markup' => t('There are currently no results for this step. The current state of this task is: %status',
+              ['%status' => json_decode($history_info['state_details'])]),
           ];
         }
+
+        $step_name = $history_content['hid'] . ': ' . $history_content['name'] . ' (' . $history_content['state'] . ')';
+        $fieldset = [
+          '#type' => 'fieldset',
+          '#title' => $step_name,
+          '#collapsed' => FALSE,
+          '#collapsible' => TRUE,
+          '#value' => render($step_content),
+          '#group' => 'result_tabs',
+          '#attributes' => [
+            'id' => 'tripal-galaxy-results-fieldset',
+          ],
+          '#attached' => [
+            'js' => ['misc/collapse.js', 'misc/form.js'],
+          ],
+        ];
+        $content['result_tabs']['#children'] .= render($fieldset);
       }
-      $step_name = $logs['step_name'];
-      $fieldset = [
-        '#type' => 'fieldset',
-        '#title' => $step_name,
-        '#collapsed' => FALSE,
-        '#collapsible' => TRUE,
-        '#value' => render($step_content),
-        '#group' => 'result_tabs',
-        '#attributes' => [
-          'id' => 'tripal-galaxy-results-fieldset',
-        ],
-        '#attached' => [
-          'js' => ['misc/collapse.js', 'misc/form.js'],
-        ],
-      ];
-      $content['result_tabs']['#children'] .= render($fieldset);
     }
   }
 
@@ -1258,53 +1147,54 @@ function tripal_galaxy_cron() {
       $results = db_query($sql);
 
       while ($result = $results->fetchObject()) {
-        $server_status = tripal_galaxy_test_connection(array('galaxy_id' => $result->galaxy_id));
+        $server_status = tripal_galaxy_test_connection(['galaxy_id' => $result->galaxy_id]);
         if ($server_status === FALSE) {
           // Update status in the db.
           db_update('tripal_galaxy')
-            ->fields(array(
+            ->fields([
               'serverstatus' => 'unavailable',
-            ))
+            ])
             ->condition('galaxy_id', $result->galaxy_id, '=')
             ->execute();
 
           // Put a message on the dashboard.
-          $title = t('Galaxy Server %servername was unreachable when tested at %time', 
-              array('%server' => $result->servername, '%time' => format_date(time())));
+          $title = t('Galaxy Server %servername was unreachable when tested at %time',
+            ['%server' => $result->servername, '%time' => format_date(time())]);
           $details = t('Galaxy Server %servername was unreachable when tested at %time ' .
-           'Please check the server status. If the server is down you may disable the workflows associated ' .
-           'with that server by going to the Tripal Galaxy admin page.', 
-            array('%server' => $result->servername, '%time' => format_date(time())));
+            'Please check the server status. If the server is down you may disable the workflows associated ' .
+            'with that server by going to the Tripal Galaxy admin page.',
+            ['%server' => $result->servername, '%time' => format_date(time())]);
           $actions['Disable Server\'s Workflows'] = 'admin/tripal/extension/galaxy/disable/' . $result->galaxy_id;
           $type = 'Tripal Galaxy';
           $submitter_id = 'tripal_galaxy' . $result->servername . time();
           tripal_add_notification($title, $details, $type, $actions, $submitter_id);
           // $result->servername,
           // $result->description,
-        } 
-        else if ($server_status === TRUE) {
-          db_update('tripal_galaxy')
-            ->fields(array(
-              'serverstatus' => 'available',
-            ))
-            ->condition('galaxy_id', $result->galaxy_id, '=')
-            ->execute();
-
-          //Make sure no notification is up about the server being down.
-          $submitter_id = 'tripal_galaxy' . $result->servername;
-          $note = db_select('tripal_admin_notfications', 'tan')
-            ->fields('tan')
-            ->condition('submitter_id', $submitter_id, '=')
-            ->execute()->fetchAll();
-          if ($note) {
-            db_delete('tripal_admin_notfications')
-              ->condition('submitter_id', $submitter_id)
+        }
+        else {
+          if ($server_status === TRUE) {
+            db_update('tripal_galaxy')
+              ->fields([
+                'serverstatus' => 'available',
+              ])
+              ->condition('galaxy_id', $result->galaxy_id, '=')
               ->execute();
-          }  
-        }   
+
+            //Make sure no notification is up about the server being down.
+            $submitter_id = 'tripal_galaxy' . $result->servername;
+            $note = db_select('tripal_admin_notfications', 'tan')
+              ->fields('tan')
+              ->condition('submitter_id', $submitter_id, '=')
+              ->execute()->fetchAll();
+            if ($note) {
+              db_delete('tripal_admin_notfications')
+                ->condition('submitter_id', $submitter_id)
+                ->execute();
+            }
+          }
+        }
       }
-    } 
-    catch (Exception $e) {
+    } catch (Exception $e) {
       drupal_set_message($e->getMessage(), 'error');
       drupal_set_message(t('Cannot disable the workflows'), 'error');
       watchdog_exception('tripal_galaxy', $e);
@@ -1315,8 +1205,7 @@ function tripal_galaxy_cron() {
     // Remove old histories from the remote tripal server.
     try {
       tripal_galaxy_delete_expired_histories();
-    } 
-    catch (Exception $e) {
+    } catch (Exception $e) {
       watchdog_exception('tripal_galaxy', $e);
       return;
     }
@@ -1570,7 +1459,7 @@ function tripal_galaxy_handle_uploaded_file($file, $type) {
 
   // Add another usage for this module.
   file_usage_add($file, 'tripal_galaxy', $form_key, $id);
- 
+
 }
 
 /**
@@ -1785,17 +1674,17 @@ function tripal_galaxy_node_access($node, $op, $account = NULL) {
 
 /**
  * Implements hook_views_pre_render().
- * 
- * Hook views pre render to hide the 'View Results', 'Re-Run', and 'View Details' 
- * links in the user workflow listing found on /user/#/galaxy-jobs.
+ *
+ * Hook views pre render to hide the 'View Results', 'Re-Run', and 'View
+ * Details' links in the user workflow listing found on /user/#/galaxy-jobs.
  */
 function tripal_galaxy_views_pre_render(&$view) {
 
   if ($view->name == 'galaxy_usage') {
     if (isset($view->result[0]) and $view->result[0]->tripal_galaxy_workflow_submission_status == 'deleted') {
-      $view->field['ctools_dropdown']->options['fields']['nothing_2'] = null;
-      $view->field['ctools_dropdown']->options['fields']['nothing_3'] = null;
-      $view->field['ctools_dropdown']->options['fields']['nothing'] = null;
+      $view->field['ctools_dropdown']->options['fields']['nothing_2'] = NULL;
+      $view->field['ctools_dropdown']->options['fields']['nothing_3'] = NULL;
+      $view->field['ctools_dropdown']->options['fields']['nothing'] = NULL;
     }
   }
 }
