@@ -1071,7 +1071,7 @@ function tripal_galaxy_build_webform_get_step_defaults($defaults, $tool_input, &
  * @param $sid
  *   The webform submission ID.
  */
-function tripal_galaxy_invoke_webform_submission($sid) {
+function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
   // Get the workflows that need execution
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
   $query->fields('tgws');
@@ -1096,30 +1096,16 @@ function tripal_galaxy_invoke_webform_submission($sid) {
   
   // The array where the workflow input parameters are stored.
   $parameters = [];
-  
-  if (empty($data)) {
-    // Get webform sid through the linker table.
-    $submission->sid;
-    $query = db_select('tripal_galaxy_webform', 'tgw');
-    $query->fields('tgw', array('wf_sid',));
-    $query->condition('tgw.tg_sid', $submission->sid, '=');
-    $wf_sid = $query->execute()->fetchAssoc();
-    
-    $query = db_select('webform_submitted_data', 'wsd');
-    $query->fields('wsd');
-    $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
-    $query->fields('wc', ['form_key', 'type', 'extra']);
-    $query->condition('wsd.sid', $wf_sid);
-    $query->condition('wc.nid', $submission->nid);
-    $query->orderBy('wsd.cid');
-    $submitted_data = $query->execute()->fetchAll();
-  }
-  else {
-    $submitted_data = $data;
-    //TODO drupal_write_record serialize $data into the tripal_galaxy_webform table.
-  }
-  
-  
+
+  $query = db_select('webform_submitted_data', 'wsd');
+  $query->fields('wsd');
+  $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
+  $query->fields('wc', ['form_key', 'type', 'extra']);
+  $query->condition('wsd.sid', $submission->sid);
+  $query->condition('wc.nid', $submission->nid);
+  $query->orderBy('wsd.cid');
+  $submitted_data = $query->execute()->fetchAll();
+
   // Get the history that we'll use for this submission.
   $error = [];
   $history_name = tripal_galaxy_get_history_name($submission, $node);
@@ -1403,8 +1389,8 @@ function tripal_galaxy_invoke_webform_submission($sid) {
   }
   
   // Call the Tripal Galaxy API function to invoke this workflow.
-  tripal_galaxy_invoke_workflow($submission->workflow_id, $parameters, 
-    $input_datasets, $history['id']);
+  tripal_galaxy_invoke_workflow($galaxy, $submission->workflow_id, $parameters, 
+    $input_datasets, $history['id'], $sid);
 }
 
 /**

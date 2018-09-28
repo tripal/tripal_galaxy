@@ -96,13 +96,25 @@ function tripal_galaxy_split_url($url) {
  *   quickly return and not check the status again.  Setting the $force
  *   argument to TRUE will force the function to check the status.
  */
-function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
+function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
 
   if (!$sid) {
-    throw new Exception('tripal_galaxy_check_submission_status(): Please provide an $sid argument');
+    // throw new Exception('tripal_galaxy_check_submission_status(): Please provide an $sid argument');
+    // Check all submissions if no $sid is passed.
+    $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+    $query->fields('tgws', [
+      'invocation_id',
+      'galaxy_workflow_id',
+      'sid',
+      'submit_date',
+      'status',
+    ]);
+    $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+    $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
+    $submissions = $query->execute()->fetchAll();
 
   }
-  if (!is_numeric($sid)) {
+  elseif ($sid && !is_numeric($sid)) {
     throw new Exception('tripal_galaxy_check_submission_status(): The $sid argument is not numeric');
   }
 
@@ -117,47 +129,47 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
   $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
   $query->condition('tgws.sid', $sid);
-  $submission = $query->execute()->fetchObject();
+  $submissions = $query->execute()->fetchAll();
 
-  // If the job hasn't yet been invoked then skip it.
-  if (!$submission->invocation_id) {
-    return;
-  }
-
-  // Get the node for this submission.
-  $node = node_load($submission->nid);
+  foreach ($submissions as $submission) {
+    // If the job hasn't yet been invoked then skip it.
+    if (!$submission->invocation_id) {
+      return;
+    }
+      // Get the node for this submission.
+    $node = node_load($submission->nid);
 
   // Connect to the Galaxy instance.
-  $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
-  if (!$galaxy) {
-    $error = $galaxy->getError();
-    drupal_set_message('Could not connect to Galaxy server. ' . $error['message'], 'error');
-    return false;
-  }
+    $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
+    if (!$galaxy) {
+      $error = $galaxy->getError();
+      drupal_set_message('Could not connect to Galaxy server. ' . $error['message'], 'error');
+      return false;
+    }
   // Get the invocation specified.
-  $gworkflows = new GalaxyWorkflows($galaxy);
-  $invocation = $gworkflows->showInvocations([
-    'workflow_id' => $submission->workflow_id,
-    'invocation_id' => $submission->invocation_id,
-  ]);
-  if (!$invocation) {
-    throw new Exception($galaxy->getErrorMessage());
-  }
-  $end_time = NULL;
-  $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
+    $gworkflows = new GalaxyWorkflows($galaxy);
+    $invocation = $gworkflows->showInvocations([
+      'workflow_id' => $submission->workflow_id,
+      'invocation_id' => $submission->invocation_id,
+    ]);
+    if (!$invocation) {
+      throw new Exception($galaxy->getErrorMessage());
+    }
+    $end_time = null;
+    $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
 
   // Find the History for this submission.
-  $history_name = tripal_galaxy_get_history_name($submission, $node);
-  $ghistories = new GalaxyHistories($galaxy);
-  $histories = $ghistories->index();
-  $history = '';
-  if ($histories) {
-    foreach ($histories as $index => $temp) {
-      if ($temp['name'] == $history_name) {
-        $history = $temp;
+    $history_name = tripal_galaxy_get_history_name($submission, $node);
+    $ghistories = new GalaxyHistories($galaxy);
+    $histories = $ghistories->index();
+    $history = '';
+    if ($histories) {
+      foreach ($histories as $index => $temp) {
+        if ($temp['name'] == $history_name) {
+          $history = $temp;
+        }
       }
     }
-  }
 
   // check state details for all jobs
   // below are valid state names:
@@ -173,60 +185,62 @@ function tripal_galaxy_check_submission_status($sid, $force = FALSE) {
   //    empty
   // if 'ok' state has value larger than 0 and all other states' values being 0,
   // then this history has completed successfully. We can set the $status = 'Completed'
-  $status = '';
-  if ($history) {
-    $history_info = $ghistories->show(['history_id' => $history['id']]);
-    $state_details = array_filter($history_info['state_details']);
-    $status = json_encode($state_details);
+    $status = '';
+    if ($history) {
+      $history_info = $ghistories->show(['history_id' => $history['id']]);
+      $state_details = array_filter($history_info['state_details']);
+      $status = json_encode($state_details);
     // if no jobs are in the state of 'paused', 'running', or 'queued', the history is completed
-    if (!isset($state_details['paused']) and !isset($state_details['running']) and !isset($state_details['queued'])) {
-      $ghistory_contents = new GalaxyHistoryContents($galaxy);
-      $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
+      if (!isset($state_details['paused']) and !isset($state_details['running']) and !isset($state_details['queued'])) {
+        $ghistory_contents = new GalaxyHistoryContents($galaxy);
+        $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
 
       // Get more details about each history content item.
-      foreach ($history_contents as $index => $history_content) {
-        $history_contents[$index] = $ghistory_contents->show([
-          'id' => $history_content['id'],
-          'history_id' => $history['id'],
-        ]);
-        switch ($history_content['type']) {
-          case 'file':
-            $params = [];
-            $params['history_id'] = $history['id'];
-            $params['url_only'] = TRUE;
-            $params['history_content_id'] = $history_content['id'];
-            $link = $ghistory_contents->download_history_content($params);
-            $history_contents[$index]['content_link'] = $link;
-            break;
-          default:
-            break;
+        foreach ($history_contents as $index => $history_content) {
+          $history_contents[$index] = $ghistory_contents->show([
+            'id' => $history_content['id'],
+            'history_id' => $history['id'],
+          ]);
+          switch ($history_content['type']) {
+            case 'file':
+              $params = [];
+              $params['history_id'] = $history['id'];
+              $params['url_only'] = true;
+              $params['history_content_id'] = $history_content['id'];
+              $link = $ghistory_contents->download_history_content($params);
+              $history_contents[$index]['content_link'] = $link;
+              break;
+            default:
+              break;
+          }
         }
-      }
 
-      $invocation_info['history'] = $history;
-      $invocation_info['history_contents'] = $history_contents;
-      $invocation_info['history_info'] = $history_info;
-      $status = 'Completed';
+        $invocation_info['history'] = $history;
+        $invocation_info['history_contents'] = $history_contents;
+        $invocation_info['history_info'] = $history_info;
+        $status = 'Completed';
+      }
     }
-  }
 
   // Now inform the user that the job is done!
-  $end_time = $update_time->getTimestamp();
-  if (!$force) {
-    tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
+    $end_time = $update_time->getTimestamp();
+    if (!$force) {
+      tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
+    }
+
+    $fields = [
+      'status' => $status,
+      'errors' => serialize($invocation_info),
+    ];
+    if ($end_time != null) {
+      $fields['end_time'] = $end_time;
+    }
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields($fields)
+      ->condition('sid', $sid)
+      ->execute();
   }
 
-  $fields = [
-    'status' => $status,
-    'errors' => serialize($invocation_info),
-  ];
-  if ($end_time != NULL) {
-    $fields['end_time'] = $end_time;
-  }
-  db_update('tripal_galaxy_workflow_submission')
-    ->fields($fields)
-    ->condition('sid', $sid)
-    ->execute();
   return TRUE;
 }
 
@@ -291,11 +305,12 @@ function tripal_galaxy_get_history_name($submission, $node) {
  *   file is used.
  * @param $history_id
  *   The ID of the history into which the workflow should be executed.
- * @param $job
+ * @param $sid
+ *    The unique identified from the tripal_galaxy_workflow_submission table.
  */
 function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters, 
-  $inputs, $history_id, $job = NULL) {
-
+  $inputs, $history_id, $sid) {
+  print_r($parameters);
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
   $params = [
@@ -305,12 +320,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
     'history_id' => $history_id,
   ];
   $invocation = $gworkflows->invoke($params);
-  print_r("params \n");
-  print_r($params);
-  print_r("\n");
-  print_r("invocation \n");
-  print_r($invocation);
-  print_r("\n");
+
   if (!$invocation) {
     $error = $galaxy->getError();
     drupal_set_message($error['message'], 'error');
@@ -319,7 +329,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
         'status' => 'Error',
         'errors' => $error['message'],
       ])
-      ->condition('sid', $submission->sid)
+      ->condition('sid', $sid)
       ->execute();
       print_r($error);
     // tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
@@ -332,7 +342,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
         'end_time' => NULL,
         'invocation_id' => $invocation['id'],
       ])
-      ->condition('sid', $submission->sid)
+      ->condition('sid', $sid)
       ->execute();
     // tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
   }
@@ -398,9 +408,6 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
       $error = $galaxy->getError();
       throw new Exception($error['message']);
     }
-    print_r("upload file tool return \n");
-    print_r($tool);
-    print_r("\n");
     return $tool['outputs'][0];
   }
   else {
