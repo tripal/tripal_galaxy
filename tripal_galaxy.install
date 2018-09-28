@@ -16,6 +16,7 @@ function tripal_galaxy_schema() {
   tripal_galaxy_add_workflow_table($schema);
   tripal_galaxy_add_workflow_submission_table($schema);
   tripal_galaxy_add_site_wide_files_table($schema);
+  tripal_galaxy_add_webform_table($schema);
 
   return $schema;
 }
@@ -89,7 +90,7 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
     'table' => 'tripal_galaxy_workflow_submission',
     'fields' => array (
       'sid' => array(
-        'type' => 'int',
+        'type' => 'serial',
         'not NULL' => TRUE
       ),
       'galaxy_workflow_id' => array(
@@ -240,6 +241,29 @@ function tripal_galaxy_add_site_wide_files_table(&$schema) {
 }
 
 /**
+ * Linker table between tripal_galaxy_workflow_submission and 
+ * webform_submissions.
+ */
+function tripal_galaxy_add_webform_table(&$schema) {
+  $schema['tripal_galaxy_webform'] = array (
+    'table' => 'tripal_galaxy_webform',
+    'fields' => array (
+      'wf_sid' => array(
+        'type' => 'int',
+        'not NULL' => TRUE,
+      ), 
+      'tg_sid' => array(
+        'type' => 'int',
+        'not NULL' => TRUE,
+      ),
+    ),
+    'primary key' => array(
+      0 => 'wf_sid'
+    ),
+  );
+}
+
+/**
  * Implements hook_requirements().
  */
 function tripal_galaxy_requirements($phase) {
@@ -263,6 +287,7 @@ function tripal_galaxy_uninstall () {
   db_drop_table('tripal_galaxy');
   db_drop_table('tripal_galaxy_workflow');
   db_drop_table('tripal_galaxy_workflow_submission');
+  db_drop_table('tripal_galaxy_webform');
 }
 
 
@@ -323,6 +348,96 @@ function tripal_galaxy_update_7103()
       'not NULL' => FALSE,
     );
     db_add_field('tripal_galaxy', 'serverstatus', $status);
+  } catch (\PDOException $e) {
+    $error = $e->getMessage();
+    throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
+  }
+}
+
+/**
+ * This update adds the tripal_galaxy_webform linker table and moves existing sids
+ * for backwards compatibility.
+ */
+function tripal_galaxy_update_7104() {
+  try {
+    $schema = array();
+    tripal_galaxy_add_webform_table($schema);
+    db_create_table('tripal_galaxy_webform', $schema['tripal_galaxy_webform']);
+
+    // Move the data over to the new table.
+    $sql = "SELECT * FROM tripal_galaxy_workflow_submission";
+    $entries = db_query($sql);
+    while ($entry = $entries->fetchObject()) {
+      if ($entry->sid === NULL) {
+        continue;
+      }
+      try {
+        db_insert('tripal_galaxy_webform')->fields(array(
+          'wf_sid' => $entry->sid,
+          'tg_sid' => $entry->sid
+        ))->execute();
+
+      } catch (\PDOException $e) {
+        $error = $e->getMessage();
+        throw new DrupalUpdateException('Could not copy the data into the new linker table: ' . $error);
+      }
+      
+    }
+
+    // Now that everything is moved change the existing sid field to a serial.
+    // On PostgreSQL, changing a field definition involves adding a new field 
+    // and dropping an old one.
+    try {
+      $holder = array(
+        'type' => 'int',
+        'length ' => 1024,
+        'not NULL' => false,
+      );
+      db_add_field('tripal_galaxy_workflow_submission', 'sid_linker', $holder);
+    } catch (\PDOException $e) {
+      $error = $e->getMessage();
+      throw new DrupalUpdateException('Could not insert the column into the tripal_galaxy_workflow_submission table: ' . $error);
+    }
+
+    // Copy the data into a holder column, delete old column, create new column,
+    // update tg_sid mapping. This should finish the update to that field.
+    try {
+      $copy_sql = "UPDATE tripal_galaxy_workflow_submission SET sid_linker = sid";
+      $copied = db_query($copy_sql); 
+      if ($copied) {
+        db_drop_field('tripal_galaxy_workflow_submission', 'sid');
+        if (!db_field_exists('tripal_galaxy_workflow_submission', 'sid')) {
+          $status = array(
+            'type' => 'serial',
+            'not NULL' => false,
+          );
+          db_add_field('tripal_galaxy_workflow_submission', 'sid', $status);
+        }
+        if (db_field_exists('tripal_galaxy_workflow_submission', 'sid')) {
+          // Now we need to update tripal_galaxy_webform.tg_sid field. 
+          $sql = "SELECT * FROM tripal_galaxy_workflow_submission";
+          $entries = db_query($sql);
+          while ($entry = $entries->fetchObject()) {
+            if ($entry->sid_linker === NULL) {
+              continue;
+            }
+            $updated_sid = db_update('tripal_galaxy_webform')
+              ->fields(array(
+                'tg_sid' => $entry->sid,
+                )
+              )
+              ->condition('wf_sid', $entry->sid_linker, '=' )
+              ->execute();
+          }
+        }
+        if ($copied) {
+          db_drop_field('tripal_galaxy_workflow_submission', 'sid_linker');
+        }
+      }
+    } catch (\PDOException $e) {
+      $error = $e->getMessage();
+      throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
+    }
   } catch (\PDOException $e) {
     $error = $e->getMessage();
     throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
