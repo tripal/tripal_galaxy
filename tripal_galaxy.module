@@ -379,18 +379,6 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 50,
   ];
-
-  // API Callback
-  // Hidden, internal callback for the API check status function.
-  $items['tripalgalaxy/all-submissions/check-status'] = [
-    'title' => 'Check status of all submissions',
-    'page callback' => 'tripal_galaxy_check_submission_status',
-    'access arguments' => ['check all submissions'],
-    'type' => MENU_CALLBACK,
-    'file' => 'api/tripal_galaxy.api.inc',
-    'file path' => drupal_get_path('module', 'tripal_galaxy'),
-  ];
-
   return $items;
 }
 

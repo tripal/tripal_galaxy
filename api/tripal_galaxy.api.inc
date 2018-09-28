@@ -114,22 +114,24 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
     $submissions = $query->execute()->fetchAll();
 
   }
+  elseif($sid) {
+    $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+    $query->fields('tgws', [
+      'invocation_id',
+      'galaxy_workflow_id',
+      'sid',
+      'submit_date',
+      'status',
+    ]);
+    $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+    $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
+    $query->condition('tgws.sid', $sid);
+    $submissions = $query->execute()->fetchAll();
+  }
   elseif ($sid && !is_numeric($sid)) {
     throw new Exception('tripal_galaxy_check_submission_status(): The $sid argument is not numeric');
   }
 
-  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', [
-    'invocation_id',
-    'galaxy_workflow_id',
-    'sid',
-    'submit_date',
-    'status',
-  ]);
-  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
-  $query->condition('tgws.sid', $sid);
-  $submissions = $query->execute()->fetchAll();
 
   foreach ($submissions as $submission) {
     // If the job hasn't yet been invoked then skip it.
