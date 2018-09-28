@@ -130,7 +130,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
   elseif ($sid && !is_numeric($sid)) {
     throw new Exception('tripal_galaxy_check_submission_status(): The $sid argument is not numeric');
   }
-print_r($submissions);
+
   foreach ($submissions as $submission) {
     // If the job hasn't yet been invoked then skip it.
     if (!$submission->invocation_id) {
@@ -336,8 +336,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
       ])
       ->condition('sid', $sid)
       ->execute();
-      print_r($error);
-    // tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
   }
   else {
     db_update('tripal_galaxy_workflow_submission')
@@ -349,7 +348,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
       ])
       ->condition('sid', $sid)
       ->execute();
-    // tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
   }
 
 }
