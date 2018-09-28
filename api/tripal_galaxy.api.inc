@@ -99,7 +99,6 @@ function tripal_galaxy_split_url($url) {
 function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
 
   if (!$sid) {
-    // throw new Exception('tripal_galaxy_check_submission_status(): Please provide an $sid argument');
     // Check all submissions if no $sid is passed.
     $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
     $query->fields('tgws', [
@@ -131,12 +130,11 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
   elseif ($sid && !is_numeric($sid)) {
     throw new Exception('tripal_galaxy_check_submission_status(): The $sid argument is not numeric');
   }
-
-
+print_r($submissions);
   foreach ($submissions as $submission) {
     // If the job hasn't yet been invoked then skip it.
     if (!$submission->invocation_id) {
-      return;
+      continue;
     }
       // Get the node for this submission.
     $node = node_load($submission->nid);
@@ -220,7 +218,12 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
         $invocation_info['history'] = $history;
         $invocation_info['history_contents'] = $history_contents;
         $invocation_info['history_info'] = $history_info;
-        $status = 'Completed';
+        if (isset($state_details['error'])) {
+          $status = 'Error';
+        }
+        else {
+          $status = 'Completed';
+        }
       }
     }
 
@@ -239,7 +242,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
     }
     db_update('tripal_galaxy_workflow_submission')
       ->fields($fields)
-      ->condition('sid', $sid)
+      ->condition('sid', $submission->sid)
       ->execute();
   }
 
@@ -312,7 +315,7 @@ function tripal_galaxy_get_history_name($submission, $node) {
  */
 function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters, 
   $inputs, $history_id, $sid) {
-  print_r($parameters);
+
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
   $params = [
