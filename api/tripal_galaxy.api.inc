@@ -560,6 +560,14 @@ function tripal_galaxy_invoke_workflow($sid, $job = NULL) {
     if (!$value) {
       continue;
     }
+
+    if ($value == $step_index) {
+      // if $value == $step_index, it means the input value is empty.
+      // (see line 656: $extra['items'] .= $step['id'] . "|" . $val[0] . "\n"; in tripal_galaxy.webform.inc
+      // Some tools accept empty input as valid input (e.g., the Galaxy hisat2 tool), we should not skip this value.
+      // let's change the value from $step_index back to empty.
+      $value = '';
+    }
     if (!array_key_exists($step_index, $parameters)) {
       $parameters[$step_index] = [];
     }
