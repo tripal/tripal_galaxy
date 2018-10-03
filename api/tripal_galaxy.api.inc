@@ -230,7 +230,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
   // Now inform the user that the job is done!
     $end_time = $update_time->getTimestamp();
     if (!$force) {
-      tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
+      tripal_galaxy_send_submission_ended_mail($sid, $node->uid);
     }
 
     $fields = [

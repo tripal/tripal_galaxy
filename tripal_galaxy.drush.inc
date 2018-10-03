@@ -66,11 +66,11 @@ function drush_tripal_galaxy_trp_galaxy_invoke() {
   }
   drush_print('Launching workflow...');
   try {
-    tripal_galaxy_invoke_workflow($sid);
+    tripal_galaxy_invoke_webform_submission($sid);
     drush_print('Done.');
   }
   catch (Exception $e) {
-    drush_set_error("Cannot lanuch workflow: " . $e->getMessage());
+    drush_set_error("Cannot launch workflow: " . $e->getMessage());
   }
 }
 

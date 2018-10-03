@@ -1417,7 +1417,7 @@ function _tripal_galaxy_invoke_webform_build_values(&$values, $input_full_name, 
       $temp = $values[$name];
     }
     $next_name = implode("|", $names);
-    $had_value = _tripal_galaxy_workflow_invoke_build_values($temp, $next_name, $value);
+    $had_value = _tripal_galaxy_invoke_webform_build_values($temp, $next_name, $value);
     if ($had_value) {
       $values[$name] = $temp;
       return TRUE;
