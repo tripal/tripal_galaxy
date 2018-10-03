@@ -7,6 +7,7 @@
 require('theme/tripal_galaxy.theme.inc');
 require('api/tripal_galaxy.api.inc');
 require('includes/tripal_galaxy.form_elements.inc');
+require('includes/tripal_galaxy.webform.inc');
 
 /**
  * Implementation of hook_init()
@@ -378,7 +379,6 @@ function tripal_galaxy_menu() {
     'file path' => drupal_get_path('module', 'tripal_galaxy'),
     'weight' => 50,
   ];
-
   return $items;
 }
 
@@ -528,7 +528,6 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
 
     // To be implemented more properly once inputs are generated
     $data = [
-      'sid' => $sid,
       'galaxy_workflow_id' => $workflow->galaxy_workflow_id,
       'errors' => '',
       'submit_date' => REQUEST_TIME,
@@ -536,7 +535,16 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
     ];
 
     // Now insert the submission into the database
-    drupal_write_record('tripal_galaxy_workflow_submission', $data);
+    $tg_workflow = db_insert('tripal_galaxy_workflow_submission')
+                    ->fields($data)
+                    ->execute();
+
+    // Linker table
+    $data = [
+      'wf_sid' => $sid,
+      'tg_sid' => $tg_workflow,
+    ];
+    drupal_write_record('tripal_galaxy_webform', $data);
 
     // For any files that were uploaded we want to set the usage for those
     // so that they are mapped to the correct submission.
@@ -552,8 +560,10 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
     $args = [$sid];
     $includes = [];
     $job_id = tripal_add_job("Galaxy Workflow #" . $sid, 'tripal_galaxy',
-      'tripal_galaxy_invoke_workflow', $args, $user->uid, 10, $includes, $ignore_duplicates= FALSE);
-    if ($job_id) {
+      'tripal_galaxy_invoke_webform_submission', $args, $user->uid, 10, $includes,
+      $ignore_duplicates = FALSE
+    );
+        if ($job_id) {
       drupal_set_message(t('Your job is successfully submitted to the job queue! You will be notified by email when your job begins and completes.'));
     }
     else {
@@ -1299,24 +1309,24 @@ function tripal_galaxy_mail($key, &$message, $params) {
 
   switch ($key) {
     case 'submission-started':
-      $message['subject'] = t("Your job at %site_name has started", ['%site_name' => $site_name]);
-      $message['body'][] = "You recently submitted a job titled  \"" . $node->title . "\". ";
+      $message['subject'] = t("Your job at !site_name has started", ['!site_name' => $site_name]);
+      $message['body'][] = t("You recently submitted a job titled \"!title\".", ['!title' => $node->title]);
       $message['body'][] = "This job has started.";
       $message['body'][] = "You may check the status of all submitted jobs in the " .
         l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
       $message['body'][] = "Thank you.";
       break;
     case 'submission-ended':
-      $message['subject'] = t("Your job at %site_name has completed", ['%site_name' => $site_name]);
-      $message['body'][] = "You recently submitted a job titled  \"" . $node->title . "\". ";
+      $message['subject'] = t("Your job at !site_name has completed", ['!site_name' => $site_name]);
+      $message['body'][] = t("You recently submitted a job titled \"!title\".", ['!title' => $node->title]);
       $message['body'][] = "This job has completed.";
       $message['body'][] = "You may obtain results of this job in the " .
         l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
       $message['body'][] = "Thank you.";
       break;
     case 'submission-failed':
-      $message['subject'] = t("Your job at %site_name has failed", ['%site_name' => $site_name]);
-      $message['body'][] = "You recently submitted a job titled  \"" . $node->title . "\". ";
+      $message['subject'] = t("Your job at !site_name has failed", ['!site_name' => $site_name]);
+      $message['body'][] = t("You recently submitted a job titled \"!title\".", ['!title' => $node->title]);
       $message['body'][] = "This job has failed.";
       $message['body'][] = "You may check the error logs of this job in the " .
         l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
@@ -1343,7 +1353,7 @@ function tripal_galaxy_send_submission_start_mail($sid, $uid) {
   // Specify 'to' and 'from' addresses.
   $to = $user->mail;
   $from = variable_get('site_mail', 'admin@localhost.localdomain');
-
+ 
   // "params" loads in additional context for email content completion in
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
@@ -1383,7 +1393,7 @@ function tripal_galaxy_send_submission_ended_mail($sid, $uid) {
   // Specify 'to' and 'from' addresses.
   $to = $user->mail;
   $from = variable_get('site_mail', 'admin@localhost.localdomain');
-
+  
   // "params" loads in additional context for email content completion in
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
@@ -1423,7 +1433,7 @@ function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
   // Specify 'to' and 'from' addresses.
   $to = $user->mail;
   $from = variable_get('site_mail', 'admin@localhost.localdomain');
-
+  
   // "params" loads in additional context for email content completion in
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].

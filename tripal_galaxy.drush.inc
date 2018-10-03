@@ -66,11 +66,11 @@ function drush_tripal_galaxy_trp_galaxy_invoke() {
   }
   drush_print('Launching workflow...');
   try {
-    tripal_galaxy_invoke_workflow($sid);
+    tripal_galaxy_invoke_webform_submission($sid);
     drush_print('Done.');
   }
   catch (Exception $e) {
-    drush_set_error("Cannot lanuch workflow: " . $e->getMessage());
+    drush_set_error("Cannot launch workflow: " . $e->getMessage());
   }
 }
 
@@ -85,13 +85,17 @@ function drush_tripal_galaxy_trp_galaxy_status() {
     $force = TRUE;
   }
 
-  if (!$sid) {
-    drush_set_error('Please provide a submission id (ie.g. --submission=512).');
+  if ($sid) {
+    drush_print('Updating status of workflow...');
+    tripal_galaxy_check_submission_status($sid, $force);
+    drush_print('Done.');
+    // drush_set_error('Please provide a submission id (ie.g. --submission=512).');
   }
-  drush_print('Updating status of workflow...');
-  tripal_galaxy_check_submission_status($sid, $force);
-  drush_print('Done.');
-
+  else {
+    drush_print('Updating status of all workflows...');
+    tripal_galaxy_check_submission_status(FALSE, $force);
+    drush_print('Done.');
+  }
 }
 
 
