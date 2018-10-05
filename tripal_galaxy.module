@@ -893,7 +893,7 @@ function tripal_galaxy_workflow_report($sid) {
       'data' => 'Galaxy Server',
       'header' => TRUE,
     ],
-    $galaxy->servername . '<br>' . $galaxy_logo,
+    $galaxy_instance->servername . '<br>' . $galaxy_logo,
   ];
 
   if ($submission->status == 'Error') {
