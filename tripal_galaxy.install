@@ -126,6 +126,11 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
         'length' => 128,
         'description' => 'Galaxy provides an invocation ID that can be used ' .
           'to check the status of a submitted workflow.'
+      ),
+      'email' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'description' => 'Flag if notification email has been sent'
       )
     ),
     'indexes' => array(
@@ -438,6 +443,24 @@ function tripal_galaxy_update_7104() {
       $error = $e->getMessage();
       throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
     }
+  } catch (\PDOException $e) {
+    $error = $e->getMessage();
+    throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
+  }
+}
+
+/**
+ * This update adds the email column to the tripal_galaxy_workflow submission table.
+ */
+function tripal_galaxy_update_7106()
+{
+  try {
+    $email = array(
+      'type' => 'varchar',
+      'length' => 128,
+      'description' => 'Flag if notification email has been sent',
+    );
+    db_add_field('tripal_galaxy_workflow_submission', 'email', $email);
   } catch (\PDOException $e) {
     $error = $e->getMessage();
     throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);

@@ -107,6 +107,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
       'sid',
       'submit_date',
       'status',
+      'email',
     ]);
     $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
     $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
@@ -121,6 +122,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
       'sid',
       'submit_date',
       'status',
+      'email',
     ]);
     $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
     $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
@@ -229,8 +231,8 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
 
   // Now inform the user that the job is done!
     $end_time = $update_time->getTimestamp();
-    if (!$force) {
-      tripal_galaxy_send_submission_ended_mail($sid, $node->uid);
+    if (!$force && $submission->email != 'SENT') {
+      tripal_galaxy_send_submission_ended_mail($submission->sid, $node->uid);
     }
 
     $fields = [
