@@ -792,6 +792,9 @@ function tripal_galaxy_workflow_report($sid) {
   $history_name = tripal_galaxy_get_history_name($submission, $node);
   $error = [];
   $history = tripal_galaxy_get_history($galaxy_instance, $history_name, $error);
+  // Get details about the galaxy server and the connection to Galaxy.
+  $galaxy_server = tripal_galaxy_get_server($submission->galaxy_id);
+  $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
 
   if ($history['deleted'] === TRUE) {
     $content['deleted'] = [
@@ -880,7 +883,7 @@ function tripal_galaxy_workflow_report($sid) {
       'data' => 'Galaxy Server',
       'header' => TRUE,
     ],
-    $galaxy_instance->servername . '<br>' . $galaxy_logo,
+    $galaxy_server->servername . '<br>' . $galaxy_logo,
   ];
 
   if ($submission->status == 'Error') {
@@ -926,8 +929,8 @@ function tripal_galaxy_workflow_report($sid) {
 
 
   // Get details about the galaxy server and the connection to Galaxy.
-  $galaxy_server = tripal_galaxy_get_server($submission->galaxy_id);
-  $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
+  // $galaxy_server = tripal_galaxy_get_server($submission->galaxy_id);
+  // $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
 
   $content['results'] = [
     '#type' => 'item',
