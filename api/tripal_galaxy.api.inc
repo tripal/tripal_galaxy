@@ -99,7 +99,6 @@ function tripal_galaxy_split_url($url) {
 function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
 
   if (!$sid) {
-    // throw new Exception('tripal_galaxy_check_submission_status(): Please provide an $sid argument');
     // Check all submissions if no $sid is passed.
     $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
     $query->fields('tgws', [
@@ -114,27 +113,28 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
     $submissions = $query->execute()->fetchAll();
 
   }
+  elseif($sid) {
+    $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+    $query->fields('tgws', [
+      'invocation_id',
+      'galaxy_workflow_id',
+      'sid',
+      'submit_date',
+      'status',
+    ]);
+    $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+    $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
+    $query->condition('tgws.sid', $sid);
+    $submissions = $query->execute()->fetchAll();
+  }
   elseif ($sid && !is_numeric($sid)) {
     throw new Exception('tripal_galaxy_check_submission_status(): The $sid argument is not numeric');
   }
 
-  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', [
-    'invocation_id',
-    'galaxy_workflow_id',
-    'sid',
-    'submit_date',
-    'status',
-  ]);
-  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
-  $query->condition('tgws.sid', $sid);
-  $submissions = $query->execute()->fetchAll();
-
   foreach ($submissions as $submission) {
     // If the job hasn't yet been invoked then skip it.
     if (!$submission->invocation_id) {
-      return;
+      continue;
     }
       // Get the node for this submission.
     $node = node_load($submission->nid);
@@ -218,14 +218,19 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
         $invocation_info['history'] = $history;
         $invocation_info['history_contents'] = $history_contents;
         $invocation_info['history_info'] = $history_info;
-        $status = 'Completed';
+        if (isset($state_details['error'])) {
+          $status = 'Error';
+        }
+        else {
+          $status = 'Completed';
+        }
       }
     }
 
   // Now inform the user that the job is done!
     $end_time = $update_time->getTimestamp();
     if (!$force) {
-      tripal_galaxy_send_submission_ended_mail($sid, $node->nid);
+      tripal_galaxy_send_submission_ended_mail($sid, $node->uid);
     }
 
     $fields = [
@@ -237,7 +242,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
     }
     db_update('tripal_galaxy_workflow_submission')
       ->fields($fields)
-      ->condition('sid', $sid)
+      ->condition('sid', $submission->sid)
       ->execute();
   }
 
@@ -310,7 +315,7 @@ function tripal_galaxy_get_history_name($submission, $node) {
  */
 function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters, 
   $inputs, $history_id, $sid) {
-  print_r($parameters);
+
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
   $params = [
@@ -331,8 +336,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
       ])
       ->condition('sid', $sid)
       ->execute();
-      print_r($error);
-    // tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
   }
   else {
     db_update('tripal_galaxy_workflow_submission')
@@ -344,7 +348,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
       ])
       ->condition('sid', $sid)
       ->execute();
-    // tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
   }
 
 }
