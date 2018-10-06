@@ -592,10 +592,12 @@ For loading files from your local Tripal site into Galaxy.
     }
   }
 
+For a an example of this function in use see the tripal_galaxy_invoke_webform_submission() function in tripal_galaxy.webform.inc. 
 
 Retrieving a history from Galaxy
 ----------------------  
 
+The history is the results from the invokation of the workflow. Tripal Galaxy builds history names in a specific format so that histories are easily accessible and renderable within the Tripal Galaxy interface.
 
 .. code-block:: php
 
@@ -644,9 +646,24 @@ Retrieving a history from Galaxy
     return $history;
   }
 
+This function is used frequently throughout the Tripal Galaxy module, here is an example of its use:
+
+.. code-block:: php  
+
+  // Get the history that we'll use for this submission.
+  $error = [];
+  $history_name = tripal_galaxy_get_history_name($submission, $node);
+  $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
+  if (!$history) {
+    $error = $galaxy->getError();
+    throw new Exception($error['message']);
+  }
+
 
 Test if a Galaxy server is accessible.
 ----------------------  
+
+Workflows are hosted and invoked on the external Galaxy servers so if a Galaxy server is not accessible no actions can be taken on the workflow including submissions, status updates, or results display. 
 
 .. code-block:: php
 
@@ -708,8 +725,10 @@ Test if a Galaxy server is accessible.
   }
 
 
-Tripal Galaxy file storage location locator
+Tripal Galaxy file storage locator
 ----------------------  
+
+Tripal Galaxy and Tripal store user files in different locations, this function returns the location of Tripal Galaxy user files. 
 
 .. code-block:: php
 
@@ -737,9 +756,36 @@ Tripal Galaxy file storage location locator
     return $site_dir;
   }
 
+Here is an exmaple of use within the tripal_galaxy.adin_files.inc file, lines 234-253:
 
-Delete all histories from Galaxy that are holder than a specified age
+.. code-block:: php
+
+  if ($file_upload) {
+    $fields['fid'] = $file_upload;
+    $file = file_load($file_upload);
+    $filename = $file->filename;
+    $fields['filename'] = $filename;
+    // Move the file out of the user upload directory that the Tripal
+    // upload tool uses and into a new directory that is site-specific
+    // rather than user-specific.
+    $site_dir = tripal_galaxy_get_files_dir();
+    if (!$site_dir) {
+      $message = 'Could not access the directory on the server for storing this file.';
+      drupal_json_output(array(
+        'status'  => 'failed',
+        'message' => $message,
+        'file_id' => '',
+      ));
+      return;
+    }
+    file_move($file, $site_dir . '/' . $filename);
+  }
+
+
+Delete all histories from Galaxy that are older than a specified age
 ----------------------  
+
+Within Tripal Galaxy (admin/tripal/extension/galaxy/settings) a maximum history age can be set. The default age is 60 days once histories are older than that they will be deleted from the remote Galaxy server and the local workflow invocation status will be changed to 'Deleted'. 
 
 .. code-block:: php
 
@@ -790,8 +836,10 @@ Delete all histories from Galaxy that are holder than a specified age
   }
 
 
-Delete a single history form Galaxy
+Delete a single history from Galaxy
 ----------------------  
+
+If a single history needs to be deleted from a remote Galaxy server this function should be used. It does not update the status of the workflow submission in the tripal_galaxy_worklow_submission table so it's important when calling this that table is updated to either completely remove that submission or update the submission status.
 
 .. code-block:: php
 
