@@ -222,6 +222,14 @@ function tripal_galaxy_views_data() {
     ),
   );
 
+  $data['tripal_galaxy_workflow_submission']['view_results'] = array(
+    'title' => t('View Results'),
+    'help' => t('Link to the submission result page.'),
+    'field' => array(
+      'handler' => 'views_handler_view_results_field',
+    ),
+  );
+
   // Joins
   $data['tripal_galaxy']['table']['join'] = array(
     'tripal_galaxy_workflow' => array(
