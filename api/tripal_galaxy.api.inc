@@ -122,6 +122,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
       'sid',
       'submit_date',
       'status',
+      'uid'
     ]);
     $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
     $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
