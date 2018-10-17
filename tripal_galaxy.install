@@ -97,6 +97,11 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
         'type' => 'int',
         'not NULL' => TRUE
       ),
+      'uid' => array(
+        'type' => 'int',
+        'not NULL' => TRUE,
+        'description' => 'Submitter user id',
+      ),
       'errors' => array(
         'type' => 'text',
       ),
@@ -241,7 +246,7 @@ function tripal_galaxy_add_site_wide_files_table(&$schema) {
 }
 
 /**
- * Linker table between tripal_galaxy_workflow_submission and 
+ * Linker table between tripal_galaxy_workflow_submission and
  * webform_submissions.
  */
 function tripal_galaxy_add_webform_table(&$schema) {
@@ -251,7 +256,7 @@ function tripal_galaxy_add_webform_table(&$schema) {
       'wf_sid' => array(
         'type' => 'int',
         'not NULL' => TRUE,
-      ), 
+      ),
       'tg_sid' => array(
         'type' => 'int',
         'not NULL' => TRUE,
@@ -381,11 +386,11 @@ function tripal_galaxy_update_7104() {
         $error = $e->getMessage();
         throw new DrupalUpdateException('Could not copy the data into the new linker table: ' . $error);
       }
-      
+
     }
 
     // Now that everything is moved change the existing sid field to a serial.
-    // On PostgreSQL, changing a field definition involves adding a new field 
+    // On PostgreSQL, changing a field definition involves adding a new field
     // and dropping an old one.
     try {
       $holder = array(
@@ -403,7 +408,7 @@ function tripal_galaxy_update_7104() {
     // update tg_sid mapping. This should finish the update to that field.
     try {
       $copy_sql = "UPDATE tripal_galaxy_workflow_submission SET sid_linker = sid";
-      $copied = db_query($copy_sql); 
+      $copied = db_query($copy_sql);
       if ($copied) {
         db_drop_field('tripal_galaxy_workflow_submission', 'sid');
         if (!db_field_exists('tripal_galaxy_workflow_submission', 'sid')) {
@@ -414,7 +419,7 @@ function tripal_galaxy_update_7104() {
           db_add_field('tripal_galaxy_workflow_submission', 'sid', $status);
         }
         if (db_field_exists('tripal_galaxy_workflow_submission', 'sid')) {
-          // Now we need to update tripal_galaxy_webform.tg_sid field. 
+          // Now we need to update tripal_galaxy_webform.tg_sid field.
           $sql = "SELECT * FROM tripal_galaxy_workflow_submission";
           $entries = db_query($sql);
           while ($entry = $entries->fetchObject()) {
@@ -442,4 +447,26 @@ function tripal_galaxy_update_7104() {
     $error = $e->getMessage();
     throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
   }
+}
+
+/**
+ * Add tripal galaxy workflow submission.
+ */
+function tripal_galaxy_add_uid_column_to_submission_table() {
+  if(!db_field_exists('tripal_galaxy_workflow_submission', 'uid')) {
+    $spec = array(
+      'type' => 'int',
+      'not NULL' => TRUE,
+      'description' => 'Submitter user id',
+    );
+    db_add_field('tripal_galaxy_workflow_submission', 'uid', $spec);
+  }
+}
+
+/**
+ * Add uid column to tripal_galaxy_workflow_submission table to allow
+ * emailing submitters.
+ */
+function tripal_galaxy_update_7105() {
+  tripal_galaxy_add_uid_column_to_submission_table();
 }

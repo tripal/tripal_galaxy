@@ -332,14 +332,6 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
     ->execute()
     ->fetchObject();
 
-  $workflow = db_select('tripal_galaxy_workflow', 'T')
-    ->fields('T')
-    ->condition('workflow_id', $workflow_id)
-    ->execute()
-    ->fetchObject();
-
-  $node = node_load($workflow->nid);
-
   if (!$invocation) {
     $error = $galaxy->getError();
     drupal_set_message($error['message'], 'error');
@@ -350,7 +342,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
       ])
       ->condition('sid', $sid)
       ->execute();
-    tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_failed_mail($submission->sid, $submission->uid);
   }
   else {
     db_update('tripal_galaxy_workflow_submission')
@@ -362,7 +354,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
       ])
       ->condition('sid', $sid)
       ->execute();
-    tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_start_mail($submission->sid, $submission->uid);
   }
 
 }

@@ -532,6 +532,7 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
       'errors' => '',
       'submit_date' => REQUEST_TIME,
       'status' => 'Waiting',
+      'uid' => $user->uid
     ];
 
     // Now insert the submission into the database
