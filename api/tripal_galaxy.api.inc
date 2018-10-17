@@ -102,6 +102,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
     // Check all submissions if no $sid is passed.
     $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
     $query->fields('tgws', [
+      'uid',
       'invocation_id',
       'galaxy_workflow_id',
       'sid',
@@ -230,7 +231,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
   // Now inform the user that the job is done!
     $end_time = $update_time->getTimestamp();
     if (!$force) {
-      tripal_galaxy_send_submission_ended_mail($sid, $node->uid);
+      tripal_galaxy_send_submission_ended_mail($sid, $submission->uid);
     }
 
     $fields = [
