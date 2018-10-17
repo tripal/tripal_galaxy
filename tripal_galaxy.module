@@ -1353,7 +1353,7 @@ function tripal_galaxy_send_submission_start_mail($sid, $uid) {
   // Specify 'to' and 'from' addresses.
   $to = $user->mail;
   $from = variable_get('site_mail', 'admin@localhost.localdomain');
- 
+
   // "params" loads in additional context for email content completion in
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
@@ -1393,7 +1393,7 @@ function tripal_galaxy_send_submission_ended_mail($sid, $uid) {
   // Specify 'to' and 'from' addresses.
   $to = $user->mail;
   $from = variable_get('site_mail', 'admin@localhost.localdomain');
-  
+
   // "params" loads in additional context for email content completion in
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
@@ -1433,7 +1433,7 @@ function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
   // Specify 'to' and 'from' addresses.
   $to = $user->mail;
   $from = variable_get('site_mail', 'admin@localhost.localdomain');
-  
+
   // "params" loads in additional context for email content completion in
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
