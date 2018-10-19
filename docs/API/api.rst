@@ -2,13 +2,14 @@ Tripal Galaxy API
 ==============================
 
 .. note::
-Use of these API functions is predicated on the installation of the Tripal Galaxy module and the blend4php library.
 
-The Tripal Galaxy API allows you to plugin to the integration between Tripal and Galaxy and customize some or all of the process.
+  Use of these API functions is predicated on the installation of the Tripal Galaxy module and the blend4php library.
+
+The Tripal Galaxy API allows you to plugin to the integration between Tripal and Galaxy and customize some or all of the process.  By default the Tripal Galaxy module provides an interface that allows a site to offer a step-by-step interface for a workflow, maintaining the look-and-feel of the site.  If that functionality is sufficient you will not need this API documentation.
 
 
 Open a Connection
-----------------------
+-----------------
 Before any communication between Tripal and Galaxy can happen a connection between the two must be made. The tripal_galaxy_get_connection($galaxy_id) retreives a GalaxyInstance objects using a galaxy_id thereby opening the required communication path.
 
 .. code-block:: php
@@ -61,7 +62,7 @@ Here is an example of this API function in use:
 
 The returned object, $galaxy from the example above, can then be used to tap into the GalaxyWorflows class from the blend4php library, like in this example where a workflow is invoked:
   
-  .. code-block:: php
+.. code-block:: php
 
   // Get the invocation specified.
   $gworkflows = new GalaxyWorkflows($galaxy);
@@ -74,8 +75,8 @@ The returned object, $galaxy from the example above, can then be used to tap int
   }
 
 
-Split a url
-----------------------
+Split a URL
+-----------
 To successfully connect to a Galaxy instance the url must be split into it's parts: host, port, and protocol.
 
 .. code-block:: php
@@ -146,7 +147,7 @@ Here is an example of this in use:
 
 
 Check the status of a workflow submission
-----------------------
+-----------------------------------------
 Communication between Galaxy and Tripal needs to be initiated and specific information needs to be requested. Given that, this function checks the status of a Galaxy workflow and updates the status tripal_galaxy_workflow_submission table with the results. A workflow on the Tripal Galaxy side will have one of 4 statuses: Waiting, Submitted, Completed or Error. 
 
 .. code-block:: php
@@ -310,7 +311,7 @@ Here is an example of this in use:
 
 
 Get a History Name
-----------------------
+------------------
 In Galaxy a History is the data and analysis results of a workflow. For more information on what histories are in Galaxy you can check out their tutorial page: https://galaxyproject.org/tutorials/histories/.
 
 When Tripal Galaxy creates a workflow within Galaxy it structures the History name as: "TG-NodeId-GalaxyWorflowID-SubmissionID-DateTimeOfSubmission". 
@@ -362,7 +363,7 @@ Here is an example of how to use it:
 
 
 Invoke a Workflow
-----------------------  
+-----------------
 Workflows are the multistep process through which data is submitted, analysed, processed, and then results provided. Workflows are created in Galaxy, they cannot be created in Tripal Galaxy. One workflow can and probably will have many different histories, a history is the data and results from a workflow.
 
 For more information on creating and editing workflows please see: https://galaxyproject.org/tutorials/g101/#creating-and-editing-a-workflow
@@ -512,10 +513,10 @@ The array elements map to steps in the workflow and the required information in 
     }
 
   }
-//TODO FROM HERE
+  //TODO FROM HERE
 
 Upload a file to Galaxy
-----------------------  
+-----------------------
 
 For loading files from your local Tripal site into Galaxy.
 
@@ -595,9 +596,9 @@ For loading files from your local Tripal site into Galaxy.
 For a an example of this function in use see the tripal_galaxy_invoke_webform_submission() function in tripal_galaxy.webform.inc. 
 
 Retrieving a history from Galaxy
-----------------------  
+--------------------------------
 
-The history is the results from the invokation of the workflow. Tripal Galaxy builds history names in a specific format so that histories are easily accessible and renderable within the Tripal Galaxy interface.
+The history is the results from the invocation of the workflow. Tripal Galaxy builds history names in a specific format so that histories are easily accessible and renderable within the Tripal Galaxy interface.
 
 .. code-block:: php
 
@@ -661,8 +662,7 @@ This function is used frequently throughout the Tripal Galaxy module, here is an
 
 
 Test if a Galaxy server is accessible.
-----------------------  
-
+--------------------------------------
 Workflows are hosted and invoked on the external Galaxy servers so if a Galaxy server is not accessible no actions can be taken on the workflow including submissions, status updates, or results display. 
 
 .. code-block:: php
@@ -726,8 +726,7 @@ Workflows are hosted and invoked on the external Galaxy servers so if a Galaxy s
 
 
 Tripal Galaxy file storage locator
-----------------------  
-
+----------------------------------
 Tripal Galaxy and Tripal store user files in different locations, this function returns the location of Tripal Galaxy user files. 
 
 .. code-block:: php
@@ -783,7 +782,7 @@ Here is an exmaple of use within the tripal_galaxy.adin_files.inc file, lines 23
 
 
 Delete all histories from Galaxy that are older than a specified age
-----------------------  
+--------------------------------------------------------------------
 
 Within Tripal Galaxy (admin/tripal/extension/galaxy/settings) a maximum history age can be set. The default age is 60 days once histories are older than that they will be deleted from the remote Galaxy server and the local workflow invocation status will be changed to 'Deleted'. 
 
@@ -837,7 +836,7 @@ Within Tripal Galaxy (admin/tripal/extension/galaxy/settings) a maximum history 
 
 
 Delete a single history from Galaxy
-----------------------  
+----------------------------------- 
 
 If a single history needs to be deleted from a remote Galaxy server this function should be used. It does not update the status of the workflow submission in the tripal_galaxy_worklow_submission table so it's important when calling this that table is updated to either completely remove that submission or update the submission status.
 
