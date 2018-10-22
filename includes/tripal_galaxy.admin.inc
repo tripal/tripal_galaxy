@@ -62,7 +62,7 @@ function tripal_galaxy_admin_home() {
       $result->description,
       $result->serverstatus,
       l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id) . ' | ' .
-      l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' | ' . 
+      l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' | ' .
       $status_link
     );
   }
@@ -248,7 +248,6 @@ function tripal_galaxy_admin_test_server($galaxy_id) {
  *   A galaxy server ID
  */
 function tripal_galaxy_admin_disable_workflows($galaxy_id) {
-
   try {
     $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE galaxy_id = $galaxy_id";
     $results = db_query($sql);
@@ -265,7 +264,6 @@ function tripal_galaxy_admin_disable_workflows($galaxy_id) {
     drupal_goto("/admin/tripal/extension/galaxy");
 
   } catch (Exception $e) {
-    $transaction->rollback();
     drupal_set_message($e->getMessage(), 'error');
     drupal_set_message(t('Cannot disable the workflows'), 'error');
     drupal_goto("/admin/tripal/extension/galaxy");
@@ -289,12 +287,11 @@ function tripal_galaxy_admin_disable_workflow($galaxy_workflow_id)
       ))
       ->condition('galaxy_workflow_id', $galaxy_workflow_id, '=')
       ->execute();
-    
+
     drupal_set_message(t('Workflow disabled'), 'status');
     drupal_goto("/admin/tripal/extension/galaxy/workflows");
 
   } catch (Exception $e) {
-    $transaction->rollback();
     drupal_set_message($e->getMessage(), 'error');
     drupal_set_message(t('Cannot disable the workflow'), 'error');
     drupal_goto("/admin/tripal/extension/galaxy/workflows");
@@ -325,7 +322,6 @@ function tripal_galaxy_admin_enable_workflows($galaxy_id) {
     drupal_goto("/admin/tripal/extension/galaxy");
 
   } catch (Exception $e) {
-    $transaction->rollback();
     drupal_set_message($e->getMessage(), 'error');
     drupal_set_message(t('Cannot disable the workflows'), 'error');
     drupal_goto("/admin/tripal/extension/galaxy");
@@ -348,12 +344,11 @@ function tripal_galaxy_admin_enable_workflow($galaxy_workflow_id)
       ))
       ->condition('galaxy_workflow_id', $galaxy_workflow_id, '=')
       ->execute();
-    
+
     drupal_set_message(t('Workflow enabled'), 'status');
     drupal_goto("/admin/tripal/extension/galaxy/workflows");
 
   } catch (Exception $e) {
-    $transaction->rollback();
     drupal_set_message($e->getMessage(), 'error');
     drupal_set_message(t('Cannot enable the workflow'), 'error');
     drupal_goto("/admin/tripal/extension/galaxy/workflows");

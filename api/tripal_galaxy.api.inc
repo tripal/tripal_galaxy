@@ -23,7 +23,7 @@ function tripal_galaxy_get_connection($galaxy_id) {
     drupal_set_message($library['error message'], 'error');
     return FALSE;
   }
-  
+
   $connect = tripal_galaxy_split_url($galaxy_server->url);
   $galaxy = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
   $galaxy->setAPIKey($galaxy_server->api_key);
@@ -278,7 +278,7 @@ function tripal_galaxy_get_history_name($submission, $node) {
  * This function can be called by the tripal Job system hence the $job
  * argument. For Tripal v2 the job_id is passed, for Tripal v3 a job
  * object is passed so we'll handle both cases.
- * 
+ *
  * @param $galaxy
  *   An instance of a GalaxyInstance object.
  * @param $workflow_id
@@ -295,7 +295,7 @@ function tripal_galaxy_get_history_name($submission, $node) {
  *   @endcode
  * @param $inputs
  *   An array of file inputs.  These files should already be uploaded to the
- *   history on the Galaxy server. This array contains a mapping of workflow 
+ *   history on the Galaxy server. This array contains a mapping of workflow
  *   inputs to datasets and dataset collections.
  *   The datasets source can be a LibraryDatasetDatasetAssociation (ldda),
  *   LibraryDataset (ld), HistoryDatasetAssociation (hda), or
@@ -321,12 +321,18 @@ function tripal_galaxy_get_history_name($submission, $node) {
  *  @param $uid
  *    The user id of the person who submitted the workflow.
  */
-function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters, 
+function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
   $inputs, $history_id, $sid, $uid) {
-  
+
+  $submission = db_select('tripal_galaxy_workflow_submission', 'TGWS')
+    ->fields('TGWS')
+    ->condition('sid', $sid)
+    ->execute()
+    ->fetchObject();
+
     // Get the node for this submission.
   $node = node_load($submission->nid);
-  
+
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
   $params = [
@@ -407,12 +413,7 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
     ];
     // Now upload the files.
     $report = "Uploading $file->filename...";
-    if (is_object($job)) {
-      $job->logMessage($report);
-    }
-    else {
-      print $report . "\n";
-    }
+    print $report . "\n";
     $gtool = new GalaxyTools($galaxy);
     $tool = $gtool->create([
       'tool_id' => 'upload1',
@@ -427,12 +428,7 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
   }
   else {
     $report = "File already exists in history: $file->filename...";
-    if (is_object($job)) {
-      $job->logMessage($report);
-    }
-    else {
-      print $report . "\n";
-    }
+    print $report . "\n";
     return $uploaded_file;
   }
 }
@@ -565,8 +561,8 @@ function tripal_galaxy_get_files_dir() {
 }
 
 /**
- * Walks through the tripal_galaxy_workflow_submission table and deletes any 
- * workflows older than specifed in the tripal_galaxy_history_age system 
+ * Walks through the tripal_galaxy_workflow_submission table and deletes any
+ * workflows older than specifed in the tripal_galaxy_history_age system
  * variable.
  *
  *
@@ -583,7 +579,7 @@ function tripal_galaxy_delete_expired_histories(){
     if($old_workflow->status == 'Deleted') {
       continue;
     }
-    
+
     $tp_workflow = db_select('tripal_galaxy_workflow', 'tgw')
       ->fields('tgw')
       ->condition('galaxy_workflow_id', $old_workflow->galaxy_workflow_id, '=')
@@ -593,7 +589,7 @@ function tripal_galaxy_delete_expired_histories(){
     $node = node_load($tp_workflow->nid);
     $history_name = tripal_galaxy_get_history_name($old_workflow, $node);
     $success = tripal_galaxy_delete_remote_history($tp_workflow->galaxy_id, $history_name);
-    
+
     if ($success) {
       drupal_set_message('Successfully deleted workflow invocation: ' . $old_workflow->invocation_id);
       //disable the workflow on the site.
@@ -615,11 +611,11 @@ function tripal_galaxy_delete_expired_histories(){
  *
  * @param $galaxy_id: A unique ID for the galaxy server. If this is provided no
  *        other arguments are needed.
- * 
+ *
  * @param $history_name
  *   The name of the history to retrieve. If the history doesn't exist then
  *   it will be created.
- * 
+ *
  */
 function tripal_galaxy_delete_remote_history($galaxy_id, $history_name) {
   $error = [];
