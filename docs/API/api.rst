@@ -5,26 +5,49 @@ Tripal Galaxy API
 
   Use of these API functions is predicated on the installation of the Tripal Galaxy module and the blend4php library.
 
-The Tripal Galaxy API allows you to plugin to the integration between Tripal and Galaxy and customize some or all of the process.  By default the Tripal Galaxy module provides an interface that allows a site to offer a step-by-step interface for a workflow, maintaining the look-and-feel of the site.  If that functionality is sufficient you will not need this API documentation.
+The Tripal Galaxy API allows you to integration Tripal and Galaxy and customize some or all of the process.  By default the Tripal Galaxy module provides an interface that allows a site to offer a step-by-step interface for a workflow, maintaining the look-and-feel of the site.  If that functionality is sufficient you will not need this API documentation.
 
+The blend4php library was specifically built to provide a native PHP interface to the Galaxy API such that any PHP application can connect to the RESTful web services of a remote Galaxy server.  While blend4php provides much of the functions needed, the Tripal Galaxy module does provide a few other functions that help with Tripal integration.  This document describes those functions.
 
-Open a Connection
+Connect to Galaxy
 -----------------
-Before any communication between Tripal and Galaxy can happen a connection between the two must be made. The tripal_galaxy_get_connection($galaxy_id) retreives a GalaxyInstance objects using a galaxy_id thereby opening the required communication path.
+Before any communication between Tripal and Galaxy can happen a connection between the two must be made.  Blend4php will allow you to connnect directly to a Galaxy instance if you know the URL. However, it is recommended that Tripal modules interact with the Tripal Galaxy module API to ensure consistency.  
 
-Here is an example of this API function in use:
+If the site admin has already added a Galaxy server using the web interface then you can connect to the Galaxy server by knowing it's internal ID.  You can query the `tripal_galaxy` table and retrieving the value of the `galaxy_id` column. Next, the `tripal_galaxy_get_connection` function can be used. It returns an instance of a  `GalaxyInstance`. 
+
+For example:
 
 .. code-block:: php
 
+  // Here we hard-code the server name as 'Local Galaxy'.  This is just an
+  // example. In practice you would provide the name of the desired Galaxy
+  // server.
+  $galaxy_id = db_select('tripal_galaxy', 'tg')
+     ->fields('tg', ['galaxy_id'])
+     ->condition('servername', 'Local Galaxy')
+     ->execute()
+     ->fetchField();
+
   // Connect to the Galaxy instance.
-  $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
   if (!$galaxy) {
     $error = $galaxy->getError();
     drupal_set_message('Could not connect to Galaxy server. ' . $error['message'], 'error');
     return false;
   }
 
-The returned object, $galaxy from the example above, can then be used to tap into the GalaxyWorflows class from the blend4php library, like in this example where a workflow is invoked:
+Test if a Galaxy server is accessible.
+--------------------------------------
+If a Galaxy server is not accessible no actions can be performed including workflow submissions, status updates, or results display. You can check the status of a galaxy workflow with the `tripal_galaxy_test_connection` function. For example, using the `$galaxy_id` obtained in the previous code example:
+
+.. code-block:: php
+
+  $server_status = tripal_galaxy_test_connection(['galaxy_id' => galaxy_id]);
+
+
+The GalaxyInstance Object
+-------------------------
+In the example code above above, the `tripal_galaxy_get_connection` function returns an instance of the `GalaxyInstance` class. This instance is used for all other functions used by blend4php to interact with Galaxy.  Here we not provide instructions for using the blend4php library. But, as a brief example, The `GalaxyInstnace` is used with the `GalaxyWorflows` class to retrieve a list of workflows. The example below shows this and an  also how to retrieve a the list of past invocations of that workflow.
   
 .. code-block:: php
 
@@ -39,46 +62,11 @@ The returned object, $galaxy from the example above, can then be used to tap int
   }
 
 
-Split a URL
------------
-To successfully connect to a Galaxy instance the url must be split into it's parts: host, port, and protocol. The tripal_galaxy_split_url($url) function accepts a $url variable and returns its part.
-
-Here is an example of this in use:
-
-.. code-block:: php
-
-  $connect = tripal_galaxy_split_url($galaxy_server->url);
-  $galaxy = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
-  $galaxy->setAPIKey($galaxy_server->api_key);
-  $error = $galaxy->getErrorType();
-  if ($error) {
-    return FALSE;
-  }
-
-
-Check the status of a workflow submission
------------------------------------------
-Communication between Galaxy and Tripal needs to be initiated and specific information needs to be requested. Given that, the tripal_galaxy_check_submission_status($sid, $force = FALSE) function checks the status of a Galaxy workflow and updates the status tripal_galaxy_workflow_submission table with the results. A workflow on the Tripal Galaxy side will have one of 4 statuses: Waiting, Submitted, Completed or Error. 
-
-Here is an example of this in use:
-
-.. code-block:: php
-
-  // Update the status of running workflows
-  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', ['sid']);
-  $query->condition('tgws.status', ['Error', 'Completed'], 'NOT IN');
-  $submissions = $query->execute();
-  foreach ($submissions as $submission) {
-    tripal_galaxy_check_submission_status($submission->sid);
-  }
-
-
 Get a History Name
 ------------------
-In Galaxy a History is the data and analysis results of a workflow. For more information on what histories are in Galaxy you can check out their tutorial page: https://galaxyproject.org/tutorials/histories/.
+All data in Galaxy is housed in a collection referred to as a History. Before workflows can be executed, input data must be placed in a history, and after workflow execution, resulting data is found in the history.  For more information on what histories are in Galaxy you can check out their tutorial page: https://galaxyproject.org/tutorials/histories/.
 
-When Tripal Galaxy creates a workflow within Galaxy it structures the History name as: "TG-NodeId-GalaxyWorflowID-SubmissionID-DateTimeOfSubmission". So the function tripal_galaxy_get_history_name($submission, $node) can build the name with just the $submission and $node objects. 
+When Tripal Galaxy invokes a workflow within Galaxy it will ensure that each invokation uses a unique history with a unique name.  By deafult the name of the history follows the scheme: "TG-[NodeId]-[GalaxyWorflowID]-[SubmissionID]-[DateTimeOfSubmission]". Where [NodeID] is the.... So the function tripal_galaxy_get_history_name($submission, $node) can build the name with just the $submission and $node objects. 
 
 Here is an example of how to use it:
 
@@ -174,6 +162,7 @@ The array elements map to steps in the workflow and the required information in 
 Here is an example from the function tripal_galaxy_invoke_webform_submission in the tripal_galaxy.webform.inc file of how to use it:
 
 .. code-block:: php
+
   // Call the Tripal Galaxy API function to invoke this workflow.
   tripal_galaxy_invoke_workflow($galaxy, $submission->workflow_id, $parameters, 
     $input_datasets, $history['id'], $sid);
@@ -186,6 +175,7 @@ For loading files from your local Tripal site into Galaxy use the tripal_galaxy_
 Here is an example of this function in use from the tripal_galaxy_invoke_webform_submission() function in tripal_galaxy.webform.inc file: 
 
 .. code-block:: php
+
   // Handle a single file upload.
   if ($data->type == 'galaxy_sfile') {
     if ($data->no == 'data_collection' or $data->no == 'existing' or preg_match('/^submitted_/', $data->no)) {
@@ -221,6 +211,24 @@ Here is an example of this function in use from the tripal_galaxy_invoke_webform
     }
   }
 
+Check the status of a workflow submission
+-----------------------------------------
+Communication between Galaxy and Tripal needs to be initiated and specific information needs to be requested. Given that, the tripal_galaxy_check_submission_status($sid, $force = FALSE) function checks the status of a Galaxy workflow and updates the status tripal_galaxy_workflow_submission table with the results. A workflow on the Tripal Galaxy side will have one of 4 statuses: Waiting, Submitted, Completed or Error. 
+
+Here is an example of this in use:
+
+.. code-block:: php
+
+  // Update the status of running workflows
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws', ['sid']);
+  $query->condition('tgws.status', ['Error', 'Completed'], 'NOT IN');
+  $submissions = $query->execute();
+  foreach ($submissions as $submission) {
+    tripal_galaxy_check_submission_status($submission->sid);
+  }
+
+
 Retrieving a history from Galaxy
 --------------------------------
 
@@ -242,19 +250,7 @@ Here is an example of how to use it:
   }
 
 
-Test if a Galaxy server is accessible.
---------------------------------------
-Workflows are hosted and invoked on the external Galaxy servers so if a Galaxy server is not accessible no actions can be taken on the workflow including submissions, status updates, or results display. 
 
-The function tripal_galaxy_test_connection($connect) will allow you to test the server status. 
-
-Here is an example of its use:
-  $sql = "SELECT * FROM {tripal_galaxy}";
-  $results = db_query($sql);
-
-  while ($result = $results->fetchObject()) {
-    $server_status = tripal_galaxy_test_connection(['galaxy_id' => $result->galaxy_id]);
-  }
 
 
 Tripal Galaxy file storage locator
@@ -295,6 +291,7 @@ Within Tripal Galaxy (admin/tripal/extension/galaxy/settings) a maximum history 
 Here is an example of it being used in the tripal_galaxy.module file in the tripal_galaxy_cron function:
 
 .. code-block:: php
+
   // Remove old histories from the remote tripal server.
   try {
     tripal_galaxy_delete_expired_histories();
@@ -312,6 +309,7 @@ If a single history needs to be deleted from a remote Galaxy server this functio
 Here is an example of it being used in the tripal_galaxy.api.inc file in the tripal_galaxy_delete_expired_histories function:
 
 .. code-block:: php
+
   while ($old_workflow = $old_workflows->fetchObject()) {
     ...
     $tp_workflow = db_select('tripal_galaxy_workflow', 'tgw')
@@ -324,4 +322,21 @@ Here is an example of it being used in the tripal_galaxy.api.inc file in the tri
     $history_name = tripal_galaxy_get_history_name($old_workflow, $node);
     $success = tripal_galaxy_delete_remote_history($tp_workflow->galaxy_id, $history_name);
     ...
+  }
+
+  
+  Connect to an Unknown Galaxy Server
+===================================
+While it is better to connect using a known server, we show an example for how to connect to an unknown Galaxy server.  This is provided here to demonstrate For this you must know the URL to the remote Galaxy server and the URL must be split into it's parts: host, port, and protocol. The `tripal_galaxy_split_url` can do this for you, and you can then create your own instance of the `GalaxyInstance` class.
+
+Here is an example of this in use:
+
+.. code-block:: php
+
+  $connect = tripal_galaxy_split_url($galaxy_server->url);
+  $galaxy = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
+  $galaxy->setAPIKey($galaxy_server->api_key);
+  $error = $galaxy->getErrorType();
+  if ($error) {
+    return FALSE;
   }
