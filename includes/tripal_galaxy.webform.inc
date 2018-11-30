@@ -635,7 +635,7 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
               $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
             }
             else {
-              $extra['items'] .= $step['id'] . "|" . $val[0] . "\n";
+              $extra['items'] .=  "--empty--|" . $val[0] . "\n";
             }
           }
         }
@@ -653,7 +653,7 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
             $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
           }
           else {
-            $extra['items'] .= $step['id'] . "|" . $val[0] . "\n";
+            $extra['items'] .=  "--empty--|" . $val[0] . "\n";
           }
         }
       }
@@ -1129,6 +1129,13 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
   $collections = [];
   $inputs = [];
   foreach ($submitted_data as $data) {
+    
+    // Webform select component doesn't like an option with an empty value 
+    // so we had to force one by using the special string '--empty--'. Before
+    // we invoke the workflow we must switch it back to an empty value.
+    if ($data->data == '--empty--') {
+      $data->data = '';
+    }
     
     // Handle a single file upload.
     if ($data->type == 'galaxy_sfile') {
