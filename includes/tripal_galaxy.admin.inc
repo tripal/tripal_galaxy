@@ -62,7 +62,7 @@ function tripal_galaxy_admin_home() {
       $result->description,
       $result->serverstatus,
       l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id) . ' | ' .
-      l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' | ' . 
+      l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' | ' .
       $status_link
     );
   }
@@ -248,7 +248,7 @@ function tripal_galaxy_admin_test_server($galaxy_id) {
  *   A galaxy server ID
  */
 function tripal_galaxy_admin_disable_workflows($galaxy_id) {
-
+  $transaction = db_transaction();
   try {
     $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE galaxy_id = $galaxy_id";
     $results = db_query($sql);
@@ -281,7 +281,7 @@ function tripal_galaxy_admin_disable_workflows($galaxy_id) {
  */
 function tripal_galaxy_admin_disable_workflow($galaxy_workflow_id)
 {
-
+  $transaction = db_transaction();
   try {
     db_update('tripal_galaxy_workflow')
       ->fields(array(
@@ -289,7 +289,7 @@ function tripal_galaxy_admin_disable_workflow($galaxy_workflow_id)
       ))
       ->condition('galaxy_workflow_id', $galaxy_workflow_id, '=')
       ->execute();
-    
+
     drupal_set_message(t('Workflow disabled'), 'status');
     drupal_goto("/admin/tripal/extension/galaxy/workflows");
 
@@ -309,6 +309,7 @@ function tripal_galaxy_admin_disable_workflow($galaxy_workflow_id)
  *   A galaxy server ID
  */
 function tripal_galaxy_admin_enable_workflows($galaxy_id) {
+  $transaction = db_transaction();
   try {
     $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE galaxy_id = $galaxy_id";
     $results = db_query($sql);
@@ -341,6 +342,7 @@ function tripal_galaxy_admin_enable_workflows($galaxy_id) {
  */
 function tripal_galaxy_admin_enable_workflow($galaxy_workflow_id)
 {
+  $transaction = db_transaction();
   try {
     $sucess = db_update('tripal_galaxy_workflow')
       ->fields(array(
@@ -348,7 +350,7 @@ function tripal_galaxy_admin_enable_workflow($galaxy_workflow_id)
       ))
       ->condition('galaxy_workflow_id', $galaxy_workflow_id, '=')
       ->execute();
-    
+
     drupal_set_message(t('Workflow enabled'), 'status');
     drupal_goto("/admin/tripal/extension/galaxy/workflows");
 
