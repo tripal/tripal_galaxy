@@ -39,8 +39,7 @@ function tripal_galaxy_admin_usage_page() {
     SELECT count(name) FROM (
     SELECT DISTINCT U.name
     FROM {tripal_galaxy_workflow_submission} TGWS
-      INNER JOIN {webform_submissions} WS ON TGWS.sid = WS.sid
-      INNER JOIN {users} U on U.uid = WS.uid ) as users
+      INNER JOIN {users} U on U.uid = TGWS.uid ) as users
   ";
   $result = db_query($sql);
   $rows[] = array(
@@ -85,8 +84,7 @@ function tripal_galaxy_admin_usage_page() {
   $sql = "
     SELECT U.name, count(*) as count
     FROM {tripal_galaxy_workflow_submission} TGWS
-      INNER JOIN {webform_submissions} WS ON TGWS.sid = WS.sid
-      INNER JOIN {users} U on U.uid = WS.uid
+      INNER JOIN {users} U on U.uid = TGWS.uid
     GROUP BY U.name
     LIMIT 10 OFFSET 0
   ";
@@ -101,11 +99,11 @@ function tripal_galaxy_admin_usage_page() {
 
   // Get the top 10 workflows.
   $sql = "
-    SELECT N.title as name, count(*) as count
+    SELECT TGW.workflow_name, N.title as name, count(*) as count
     FROM {tripal_galaxy_workflow_submission} TGWS
       INNER JOIN {tripal_galaxy_workflow} TGW ON TGWS.galaxy_workflow_id = TGW.galaxy_workflow_id
-      INNER JOIN {node} N on N.nid = TGW.nid
-    GROUP BY N.title
+      LEFT JOIN {node} N on N.nid = TGW.nid
+    GROUP BY TGW.workflow_name, N.title
     LIMIT 10 OFFSET 0
   ";
   $results = db_query($sql);

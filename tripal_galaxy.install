@@ -505,7 +505,7 @@ function tripal_galaxy_update_7107()
       $errors = unserialize($submission->errors);
       $history_name = $errors['history']['name'];
       $matches = [];
-      if (preg_match('/^TG-(\d+?)-.*$', $history_name, $matches)) {
+      if (preg_match('/^TG-(\d+?)-.*$/', $history_name, $matches)) {
         $uid = $matches[1];
         db_update('tripal_galaxy_workflow_submission') 
           ->fields(['uid' => $uid])
@@ -518,6 +518,8 @@ function tripal_galaxy_update_7107()
     // NULLs.
     db_change_field('tripal_galaxy_workflow_submission', 'uid', 'uid', [
       'not null' => TRUE,
+      'type' => 'int',
+      'description' => 'The Drupal User ID of the user submitting the workflow.',      
     ]);
   } 
   catch (\PDOException $e) {
