@@ -262,14 +262,14 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
  * @param $submission
  *    A submission object that contains the galaxy_workflow_id, sid,
  *    and submit_date properties.
- * @param $node
- *    The sumbission node object.
+ * @param $user
+ *    The Drupal user object containing the user that should own the history.
  *
  * @return
  *   The history name.
  */
-function tripal_galaxy_get_history_name($submission, $node) {
-  return "TG-" . $node->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s', $submission->submit_date);
+function tripal_galaxy_get_history_name($submission, $user) {
+  return "TG-" . $user->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s', $submission->submit_date);
 }
 
 /**
