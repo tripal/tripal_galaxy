@@ -1394,8 +1394,19 @@ function tripal_galaxy_send_submission_ended_mail($sid, $uid) {
   // message delivery; only that there were no PHP-related issues encountered
   // while sending.
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
+
   if ($result['result'] != TRUE) {
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields(array('email' => 'SENT', ))
+      ->condition('sid', $sid)
+      ->execute();
     watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), [], WATCHDOG_ERROR);
+  }
+  else {
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields(['email' => 'SENT', ])
+      ->condition('sid', $sid)
+      ->execute();
   }
 }
 
@@ -1436,6 +1447,12 @@ function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
   if ($result['result'] != TRUE) {
     watchdog('tripal_galaxy', t('There was a problem sending your message and it was not sent.'), [], WATCHDOG_ERROR);
+  } 
+  else {
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields(['email' => 'SENT', ])
+      ->condition('sid', $sid)
+      ->execute();
   }
 }
 

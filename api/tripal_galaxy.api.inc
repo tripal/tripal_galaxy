@@ -159,6 +159,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
       'sid',
       'submit_date',
       'status',
+      'email',
     ]);
     $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
     $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
@@ -173,6 +174,7 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
       'sid',
       'submit_date',
       'status',
+      'email',
     ]);
     $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
     $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
@@ -186,6 +188,10 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
   foreach ($submissions as $submission) {
     // If the job hasn't yet been invoked then skip it.
     if (!$submission->invocation_id) {
+      continue;
+    }
+    // If the job is complete skip it.
+    if ($submission->status == 'Completed') {
       continue;
     }
       // Get the node for this submission.
@@ -281,8 +287,8 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
 
   // Now inform the user that the job is done!
     $end_time = $update_time->getTimestamp();
-    if (!$force) {
-      tripal_galaxy_send_submission_ended_mail($sid, $node->uid);
+    if (!$force && $submission->email != 'SENT') {
+      tripal_galaxy_send_submission_ended_mail($submission->sid, $node->uid);
     }
 
     $fields = [
@@ -364,10 +370,15 @@ function tripal_galaxy_get_history_name($submission, $node) {
  *   The ID of the history into which the workflow should be executed.
  * @param $sid
  *    The unique identified from the tripal_galaxy_workflow_submission table.
+ *  @param $uid
+ *    The user id of the person who submitted the workflow.
  */
 function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters, 
-  $inputs, $history_id, $sid) {
-
+  $inputs, $history_id, $sid, $uid) {
+  
+    // Get the node for this submission.
+  $node = node_load($submission->nid);
+  
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
   $params = [
@@ -388,7 +399,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
       ])
       ->condition('sid', $sid)
       ->execute();
-    tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_failed_mail($submission->sid, $uid);
   }
   else {
     db_update('tripal_galaxy_workflow_submission')
@@ -400,7 +411,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
       ])
       ->condition('sid', $sid)
       ->execute();
-    tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_start_mail($submission->sid, $uid);
   }
 
 }
