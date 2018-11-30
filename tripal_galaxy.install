@@ -514,6 +514,16 @@ function tripal_galaxy_update_7107()
       }      
     }
     
+    // If there are any workflows that we can't find the user then we will
+    // just assign them to the admin user.  At the time of the writing of this
+    // update function very few folks are using this module so it should only
+    // be an issue, if at all for a few cases.
+    db_upate('tripal_galaxy_workflow_submission')
+      ->fields(['uid' => 1])
+      ->isNull('sid')
+      ->execute();
+    
+    
     // Now that we're all done we want to set the uid field to not allow 
     // NULLs.
     db_change_field('tripal_galaxy_workflow_submission', 'uid', 'uid', [
