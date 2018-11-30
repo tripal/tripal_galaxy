@@ -319,9 +319,9 @@ function tripal_galaxy_get_history_name($submission) {
  * 
  * @param $galaxy
  *   An instance of a GalaxyInstance object.
- * @param $workflow_id
- *   The workflow ID on the remote galaxy server for the workflow that is to
- *   be submitted.
+ * @param $submission
+ *   A Galaxy workflow submission object.  This object can be 
+ *   retrieved using the tripal_galaxy_get_submission() function.
  * @param $parameters
  *   A mapping of tool parameters that are non-datasets parameters. The map
  *   must be in the following format:
@@ -354,13 +354,14 @@ function tripal_galaxy_get_history_name($submission) {
  *   file is used.
  * @param $history_id
  *   The ID of the history into which the workflow should be executed.
- * @param $sid
- *    The unique identified from the tripal_galaxy_workflow_submission table.
- *  @param $uid
- *    The user id of the person who submitted the workflow.
  */
-function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters, 
-  $inputs, $history_id, $sid) {
+function tripal_galaxy_invoke_workflow($galaxy, $submission, $parameters, 
+  $inputs, $history_id) {
+  
+  // Create some handy vairables for working with this submission.
+  $workflow_id = $submission->workflow_id;
+  $uid = $submission->uid;
+  $sid = $submission->sid;
         
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);

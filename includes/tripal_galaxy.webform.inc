@@ -1381,8 +1381,8 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
   }
   
   // Call the Tripal Galaxy API function to invoke this workflow.
-  tripal_galaxy_invoke_workflow($galaxy, $submission->workflow_id, $parameters, 
-    $input_datasets, $history['id'], $sid, $submission->uid);
+  tripal_galaxy_invoke_workflow($galaxy, $submission, $parameters, 
+    $input_datasets, $history['id']);
 }
 
 /**
