@@ -61,39 +61,47 @@ In the example code above above, the `tripal_galaxy_get_connection` function ret
     throw new Exception($galaxy->getErrorMessage());
   }
 
-
-Get a History Name
-------------------
-All data in Galaxy is housed in a collection referred to as a History. Before workflows can be executed, input data must be placed in a history, and after workflow execution, resulting data is found in the history.  For more information on what histories are in Galaxy you can check out their tutorial page: https://galaxyproject.org/tutorials/histories/.
-
-When Tripal Galaxy invokes a workflow within Galaxy it will ensure that each invokation uses a unique history with a unique name.  By deafult the name of the history follows the scheme: "TG-[NodeId]-[GalaxyWorflowID]-[SubmissionID]-[DateTimeOfSubmission]". Where [NodeID] is the.... So the function tripal_galaxy_get_history_name($submission, $node) can build the name with just the $submission and $node objects. 
-
-Here is an example of how to use it:
+Import a Workflow
+--------------
+A site administrator can add new workflows to the Tripal using the Tripal Galaxy admin interface.  However, you can programmatically add a new workflow using the `tripal_galaxy_import_workflow` function.  To do this you must know have the ID of the galaxy server and the name of or workflow_id of the workflow.  You can obtain the name and the workflow_id from the Galaxy server. The following code example shows how to use this function:
 
 .. code-block:: php
 
-  // Retrieve the $submission object from the tripal_galaxy_workflow_table
-  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', [
-    'sid',
-    'galaxy_workflow_id',
-    'status',
-    'errors',
-    'submit_date',
-    'start_time',
-    'end_time',
-    'invocation_id',
-  ]);
-  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', ['nid', 'galaxy_id', 'workflow_id']);
-  $query->condition('tgws.sid', $sid);
-  $submission = $query->execute()->fetchObject();
+  $values = [
+     'workflow_id' => 'ebfb8f50c6abde6d',
+  ];
+  $workflow = tripal_galaxy_add_workflow($galaxy_id, $values, TRUE);
 
-  // Retrieve the $node oject
-  $node = node_load($submission->nid);
+The first argument to the `tripal_galaxy_add_workflow` indicates the ID of the galaxy server that houses the workflow.  The second argument provides searh criteria to specify the workflow.  This can use the `workflow_name` or the `workflow_id`. The third argument indicates that a web form should be created such that end-users can submit the workflow for execution using an online form on the Tripal site.  If you do not wish to expose the workflow to the end-user set this to FALSE.
 
-  // Now call the API function to get the history_name.
-  $history_name = tripal_galaxy_get_history_name($old_workflow, $node);
+Creating a Workflow Submission
+------------------------------
+tripal_galaxy_create_submission($workflow, $user)
+
+Get a History Name
+------------------
+All data in Galaxy is housed in a collection referred to as a "history". Before workflows can be executed, input data must be placed in a history, and after workflow execution, resulting data is found in the history.  For more information about histories in Galaxy you can view the tutorial page at https://galaxyproject.org/tutorials/histories/.
+
+When Tripal Galaxy invokes a workflow within Galaxy it will ensure that each invokation uses a unique history with a unique name.  By default Tripal Galaxy module uses a naming schema for histories: `TG-[UID]-[WID]-[SID]-[Date]`. 
+
+Where 
+
+- `[UID]` is the user ID of the Drupal user who is submitting/submitted the workflow 
+- `[WID]` is the Tripal Galaxy module's ID for the workflow 
+- `[SID]` is the Tripal Galaxy submission ID for the workflow submisiion and
+- `[Date]` is the date that the submission was made.  
+
+For example the following is history name that follows this scheme:  `TG-1-53-19-2018_10_03_09:31:02`
+
+Before invoking a workflow you will need to create the history with the Galaxy server and place input files and create file "collections" in the history. You can automatically generate the history name for your workflow submission using the `tripal_galaxy_get_history_name` function. For example:
+
+
+.. code-block:: php
+  // Retrieve the $submission object using a known submission ID.
+  $submission = tripal_galaxy_get_submission($sid);
+  
+  // Get the history name.
+  $history_name = tripal_galaxy_get_history_name($submission);
 
 
 Invoke a Workflow

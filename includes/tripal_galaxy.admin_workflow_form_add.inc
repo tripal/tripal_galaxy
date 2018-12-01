@@ -235,29 +235,23 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
       // Insert the new workflow into the db given the data from the add wd form
       $transaction = db_transaction();
       try {
-        $data = array(
-          'workflow_name' => $form_rows[$i]['workflow_name-server-' . $i],
+        
+        $galaxy_id = $form_state['values']['galaxy_id-server'];
+        $values = [
           'workflow_id' => $form_rows[$i]['workflow_id-server-' . $i],
-          'galaxy_id' => $form_state['values']['galaxy_id-server'],
-          'available' => $form_rows[$i]['available-' . $i],
-          'workflow_uuid' =>  $form_rows[$i]['workflow_uuid-' . $i],
-        );
+        ];
+        $workflow = tripal_galaxy_add_workflow($galaxy_id, $values, TRUE);
 
-        // Create the appropriate node for this workflow
-        module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.webform');
-        $nid = tripal_galaxy_build_webform($data['galaxy_id'], $data['workflow_id']);
+        $nid = $workflow->nid;
         if (!$nid) {
           throw new Exception('Could not create workflow');
         }
 
-        $data['nid'] = $nid;
-        $workflow = drupal_write_record('tripal_galaxy_workflow', $data);
-
         $instructions = array(
-          'the workflow title.',
-          'the instructions for the workflow.',
-          'the "About this step" field for each tool to help the user understand the workflow.',
-          'each tool setting descriptions as desired.',
+          'The workflow title.',
+          'The instructions for the workflow.',
+          'The "About this step" field for each tool to help the user understand the workflow.',
+          'Each tool setting descriptions as desired.',
         );
         $list = theme_item_list(array(
           'items' => $instructions,

@@ -87,6 +87,268 @@ function tripal_galaxy_split_url($url) {
 }
 
 /**
+ * Adds a remote Galaxy Workflow to Tripal.
+ * 
+ * @param $galaxy_id
+ *   An ID of the galaxy server.
+ * @param $values
+ *   An associative array used to specify the workflow. The workflow can
+ *   be identified using the Galaxy workflow ID provided using the
+ *   'workflow_id' key or using the workflow name provided using the 
+ *   'workflow_name' key.
+ * @param_$create_webform.
+ *   If TRUE, creates a webform for the end-user to submit this workflow
+ *   using the Tripal website.  It will automatically create a history
+ *   for this workflow on the remote Galaxy server as well.
+ *    
+ * @return
+ *   A workflow object or FALSE on error.  If the workflow has already
+ *   been added, then the workflow object is returned and no duplicate
+ *   record is added.
+ */
+function tripal_galaxy_add_workflow($galaxy_id, $values, $create_webform = TRUE) {
+  
+  $transaction = db_transaction();
+  try {
+    // Connect to the galaxy server.
+    $galaxy = tripal_galaxy_get_connection($galaxy_id);
+    
+    // Get the workflow details and see if this workflow exists
+    $gworkflows = new GalaxyWorkflows($galaxy);
+    $workflows = $gworkflows->index();
+    if (!$workflows) {
+      $error = $galaxy->getError();
+      if (empty($error['message'])) {
+        $error['message'] = 'No workflow using the criteria provided was found in this Galaxy server.';
+      }
+      drupal_set_message($error['message'], 'error');
+      return FALSE;
+    }  
+    
+    // Loop through each workflow to add it to the form
+    $found_workflow = NULL;
+    foreach ($workflows as $workflow) {
+      if (array_key_exists('workflow_name', $values) and 
+          $workflow['name'] == $values['workflow_name']) {
+        $found_workflow = $workflow;
+      }
+      if (array_key_exists('workflow_id', $values) and
+          $workflow['id'] == $values['workflow_id']) {
+        $found_workflow = $workflow;
+      }
+    }
+    
+    if (!$found_workflow){
+      drupal_set_message('No workflow using the criteria provided was found in this Galaxy server.', 'error');
+      return FALSE;
+    }
+    
+    // Now let's check to see if this workflow exists in the database, If it 
+    // exists then just return it.
+    $workflow = db_select('tripal_galaxy_workflow', 'tgw')
+      ->fields('tgw')
+      ->condition('tgw.workflow_id', $found_workflow['id'])
+      ->condition('tgw.galaxy_id', $galaxy_id)
+      ->execute()
+      ->fetchObject();
+    if ($workflow) {
+      return $workflow;
+    }  
+    
+    // Insert the workflow.
+    $data = [
+      'workflow_name' => $found_workflow['name'],
+      'workflow_id' => $found_workflow['id'],
+      'galaxy_id' => $galaxy_id,
+      'workflow_uuid' => $found_workflow['latest_workflow_uuid']
+    ];
+    $success = drupal_write_record('tripal_galaxy_workflow', $data);
+    if ($success) {
+      $workflows = tripal_galaxy_get_workflows([
+        'workflow_id' => $found_workflow['id'],
+        'galaxy_id' => $galaxy_id,
+      ]);
+      $workflow = $workflows[0];
+    }
+    else {
+      drupal_set_message('Could not add the workflow.', 'error');
+      return FALSE;
+    }
+    
+    // If the user wants to create the webform for end-users to submit.
+    if ($create_webform) {
+      module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.webform');      
+      $nid = tripal_galaxy_build_webform($galaxy_id, $workflow->workflow_id);
+      $num_updated = db_update('tripal_galaxy_workflow')
+        ->fields(['nid' => $nid])
+        ->condition('workflow_id', $workflow->workflow_id)
+        ->condition('galaxy_id', $galaxy_id)
+        ->execute();
+      $workflow->nid = $nid;
+    }
+    
+    return $workflow;
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    tripal_report_error('tripal_galaxy', TRIPAL_ERROR,
+      'Unable to import Galaxy workflow');
+    return FALSE;
+  }
+}
+
+/**
+ * Retrieves a list of workflows matching the given criteria.
+ * 
+ * @param $values
+ *   An associative array used to find workflows.  The following keys are
+ *   supported:
+ *   - galaxy_id: finds all workflows that match the given galayx_id.
+ *   - id: finds the workflow with this specific workflow ID.
+ *   - workflow_id: the ID of the workflow on the remote Galaxy instance.
+ *   - name: finds the workflow with a given name.  Note: the workflow name is 
+ *     not guranteed to be unique. 
+ *   - status: finds all workflows whose status matches the value provided.
+ *   Any combination of the keys can be used.
+ *   
+ * @return 
+ *   An array of workflow objects.
+ */
+function tripal_galaxy_get_workflows($values = []) {
+  $workflows = [];
+  
+  $query = db_select('tripal_galaxy_workflow', 'tgw');
+  $query->fields('tgw');
+  if (array_key_exists('galaxy_id', $values)) {
+    $query->condition('tgw.galaxy_id', $values['galaxy_id']);
+  }
+  if (array_key_exists('id', $values)) {
+    $query->condition('tgw.galaxy_workflow_id', $values['id']);
+  }
+  if (array_key_exists('name', $values)) {
+    $query->condition('tgw.workflow_name', $values['name']);
+  }
+  if (array_key_exists('workflow_id', $values)) {
+    $query->condition('tgw.workflow_id', $values['workflow_id']);
+  }
+  if (array_key_exists('status', $values)) {
+    $query->condition('tgw.status', $values['status']);
+  }
+  $results = $query->execute();
+  
+  while($workflow = $results->fetchObject()) {
+    $workflows[] = $workflow;
+  }
+  
+  return $workflows;
+}
+
+/**
+ * Creates a new workflow submission record.
+ * 
+ * This function creates the record for the submission.  
+ * 
+ * @param $workflow
+ *   An Tripal Galaxy workflow object as generated by the 
+ *   tripal_galaxy_get_workflow() function.
+ * @param $user
+ *   The Drupal User object. This is the user who owns the submission.
+ */
+function tripal_galaxy_create_submission($workflow, $user) {
+
+  $transaction = db_transaction();
+  
+  try {
+    $data = [
+      'galaxy_workflow_id' => $workflow->galaxy_workflow_id,
+      'errors' => '',
+      'submit_date' => REQUEST_TIME,
+      'status' => 'Waiting',
+      'uid' => $user->uid,
+    ];
+  
+    // Now insert the submission into the database
+    $sid = db_insert('tripal_galaxy_workflow_submission')
+      ->fields($data)
+      ->execute();
+    
+
+    return $sid;
+    
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    tripal_report_error('tripal_galaxy', TRIPAL_ERROR,
+      'Unable to create Galaxy workflow submission');
+    return FALSE;
+  }
+}
+
+/**
+ * Retrieves a workflow submission object using the submission ID.
+ * 
+ * @param $sid
+ *   The submission ID of the workflow.
+ *   
+ * @return
+ *   An object containing the submisssion information.
+ */
+function tripal_galaxy_get_submission($sid) {
+  
+    $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+    $query->fields('tgws', [
+      'invocation_id',
+      'galaxy_workflow_id',
+      'sid',
+      'submit_date',
+      'status',
+      'email',
+      'uid',
+    ]);
+    $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+    $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid', 'workflow_name']);
+    // Do a left-join on the node to get the title for the webform but in
+    // the event this submission did not use a webform the left join will
+    // proivde a NULL value for the webform title.
+    $query->leftJoin('node', 'n', '(n.nid = tgw.nid)');
+    $query->addField('n', 'title', 'webform_title');
+    $query->condition('tgws.sid', $sid);    
+    $submission = $query->execute()->fetchObject();
+    return $submission;
+}
+
+/**
+ * Retrieves a list of all workflow submissions that have not completed.
+ * 
+ * @return
+ *   An array of submission objects.
+ */
+function tripal_galaxy_get_active_submissions() {
+  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+  $query->fields('tgws', [
+    'invocation_id',
+    'galaxy_workflow_id',
+    'sid',
+    'submit_date',
+    'status',
+    'email',
+    'uid',
+  ]);
+  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
+  $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
+  $query->leftJoin('node', 'n', '(n.nid = tgw.nid)');
+  $query->addField('n', 'title', 'webform_title');  
+  $query->condition('tgws.status', ['Error', 'Completed'], 'NOT IN');
+  $results = $query->execute();
+  
+  $submissions = [];
+  while($submission = $results->fetchObject()) {
+    $submissions[] = $submission;
+  }
+  return $submissions;
+}
+
+/**
  * Checks and updates the status of a Galaxy workflow.
  *
  * @param $sid
@@ -98,37 +360,15 @@ function tripal_galaxy_split_url($url) {
  */
 function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
 
+  $submissions = [];
   if (!$sid) {
-    // Check all submissions if no $sid is passed.
-    $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-    $query->fields('tgws', [
-      'invocation_id',
-      'galaxy_workflow_id',
-      'sid',
-      'submit_date',
-      'status',
-    ]);
-    $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-    $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
-    $submissions = $query->execute()->fetchAll();
-
-  }
-  elseif($sid) {
-    $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-    $query->fields('tgws', [
-      'invocation_id',
-      'galaxy_workflow_id',
-      'sid',
-      'submit_date',
-      'status',
-    ]);
-    $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-    $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
-    $query->condition('tgws.sid', $sid);
-    $submissions = $query->execute()->fetchAll();
+    $submissions = tripal_galaxy_get_active_submissions();
   }
   elseif ($sid && !is_numeric($sid)) {
     throw new Exception('tripal_galaxy_check_submission_status(): The $sid argument is not numeric');
+  }
+  elseif($sid) {
+    $submissions[] = tripal_galaxy_get_submission($sid);
   }
 
   foreach ($submissions as $submission) {
@@ -136,17 +376,19 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
     if (!$submission->invocation_id) {
       continue;
     }
-      // Get the node for this submission.
-    $node = node_load($submission->nid);
+    // If the job is complete skip it.
+    if ($submission->status == 'Completed') {
+      continue;
+    }
 
-  // Connect to the Galaxy instance.
+    // Connect to the Galaxy instance.
     $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
     if (!$galaxy) {
       $error = $galaxy->getError();
       drupal_set_message('Could not connect to Galaxy server. ' . $error['message'], 'error');
       return false;
     }
-  // Get the invocation specified.
+    // Get the invocation specified.
     $gworkflows = new GalaxyWorkflows($galaxy);
     $invocation = $gworkflows->showInvocations([
       'workflow_id' => $submission->workflow_id,
@@ -158,8 +400,8 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
     $end_time = null;
     $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
 
-  // Find the History for this submission.
-    $history_name = tripal_galaxy_get_history_name($submission, $node);
+    // Find the History for this submission.
+    $history_name = tripal_galaxy_get_history_name($submission);
     $ghistories = new GalaxyHistories($galaxy);
     $histories = $ghistories->index();
     $history = '';
@@ -171,31 +413,31 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
       }
     }
 
-  // check state details for all jobs
-  // below are valid state names:
-  //    paused
-  //    ok
-  //    failed_metadata
-  //    upload
-  //    discarded
-  //    running
-  //    setting_metadata
-  //    error
-  //    queued
-  //    empty
-  // if 'ok' state has value larger than 0 and all other states' values being 0,
-  // then this history has completed successfully. We can set the $status = 'Completed'
+    // check state details for all jobs
+    // below are valid state names:
+    //    paused
+    //    ok
+    //    failed_metadata
+    //    upload
+    //    discarded
+    //    running
+    //    setting_metadata
+    //    error
+    //    queued
+    //    empty
+    // if 'ok' state has value larger than 0 and all other states' values being 0,
+    // then this history has completed successfully. We can set the $status = 'Completed'
     $status = '';
     if ($history) {
       $history_info = $ghistories->show(['history_id' => $history['id']]);
       $state_details = array_filter($history_info['state_details']);
       $status = json_encode($state_details);
-    // if no jobs are in the state of 'paused', 'running', or 'queued', the history is completed
+      // if no jobs are in the state of 'paused', 'running', or 'queued', the history is completed
       if (!isset($state_details['paused']) and !isset($state_details['running']) and !isset($state_details['queued'])) {
         $ghistory_contents = new GalaxyHistoryContents($galaxy);
         $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
 
-      // Get more details about each history content item.
+        // Get more details about each history content item.
         foreach ($history_contents as $index => $history_content) {
           $history_contents[$index] = $ghistory_contents->show([
             'id' => $history_content['id'],
@@ -227,10 +469,10 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
       }
     }
 
-  // Now inform the user that the job is done!
+    // Now inform the user that the job is done!
     $end_time = $update_time->getTimestamp();
-    if (!$force) {
-      tripal_galaxy_send_submission_ended_mail($sid, $node->uid);
+    if (!$force && $submission->email != 'SENT') {
+      tripal_galaxy_send_submission_ended_mail($submission->sid, $node->uid);
     }
 
     $fields = [
@@ -256,14 +498,14 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
  * @param $submission
  *    A submission object that contains the galaxy_workflow_id, sid,
  *    and submit_date properties.
- * @param $node
- *    The sumbission node object.
+ * @param $user
+ *    The Drupal user object containing the user that should own the history.
  *
  * @return
  *   The history name.
  */
-function tripal_galaxy_get_history_name($submission, $node) {
-  return "TG-" . $node->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s', $submission->submit_date);
+function tripal_galaxy_get_history_name($submission) {
+  return "TG-" . $submission->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s', $submission->submit_date);
 }
 
 /**
@@ -275,9 +517,9 @@ function tripal_galaxy_get_history_name($submission, $node) {
  * 
  * @param $galaxy
  *   An instance of a GalaxyInstance object.
- * @param $workflow_id
- *   The workflow ID on the remote galaxy server for the workflow that is to
- *   be submitted.
+ * @param $submission
+ *   A Galaxy workflow submission object.  This object can be 
+ *   retrieved using the tripal_galaxy_get_submission() function.
  * @param $parameters
  *   A mapping of tool parameters that are non-datasets parameters. The map
  *   must be in the following format:
@@ -310,12 +552,15 @@ function tripal_galaxy_get_history_name($submission, $node) {
  *   file is used.
  * @param $history_id
  *   The ID of the history into which the workflow should be executed.
- * @param $sid
- *    The unique identified from the tripal_galaxy_workflow_submission table.
  */
-function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters, 
-  $inputs, $history_id, $sid) {
-
+function tripal_galaxy_invoke_workflow($galaxy, $submission, $parameters, 
+  $inputs, $history_id) {
+  
+  // Create some handy vairables for working with this submission.
+  $workflow_id = $submission->workflow_id;
+  $uid = $submission->uid;
+  $sid = $submission->sid;
+        
   // Invoke the workflow and check for errors
   $gworkflows = new GalaxyWorkflows($galaxy);
   $params = [
@@ -324,19 +569,29 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
     'inputs' => $inputs,
     'history_id' => $history_id,
   ];
+
   $invocation = $gworkflows->invoke($params);
 
   if (!$invocation) {
     $error = $galaxy->getError();
-    drupal_set_message($error['message'], 'error');
+    $error_msg = 'ERROR: ' . $error['message'];
+    
+    // If the message is an array than we'll convert it into a string.
+    if (is_array($error['message'])) {
+      $error_msg = 'ERROR: ';
+      foreach ($error['message'] as $key => $value) {        
+        $error_msg .= $key . ': ' . $value;
+      }
+    }
+    drupal_set_message($error_msg, 'error');
     db_update('tripal_galaxy_workflow_submission')
       ->fields([
         'status' => 'Error',
-        'errors' => $error['message'],
+        'errors' => $error_msg,
       ])
       ->condition('sid', $sid)
       ->execute();
-    tripal_galaxy_send_submission_failed_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_failed_mail($sid);
   }
   else {
     db_update('tripal_galaxy_workflow_submission')
@@ -348,7 +603,7 @@ function tripal_galaxy_invoke_workflow($galaxy, $workflow_id, $parameters,
       ])
       ->condition('sid', $sid)
       ->execute();
-    tripal_galaxy_send_submission_start_mail($submission->sid, $node->uid);
+    tripal_galaxy_send_submission_start_mail($sid);
   }
 
 }
@@ -554,11 +809,11 @@ function tripal_galaxy_get_files_dir() {
 }
 
 /**
+ * Deletes expired histories.
+ * 
  * Walks through the tripal_galaxy_workflow_submission table and deletes any 
- * workflows older than specifed in the tripal_galaxy_history_age system 
+ * workflows older than specified in the tripal_galaxy_history_age system 
  * variable.
- *
- *
  */
 function tripal_galaxy_delete_expired_histories(){
   $max_history_age = time() - variable_get('tripal_galaxy_history_age');

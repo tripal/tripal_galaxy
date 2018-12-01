@@ -93,6 +93,11 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
         'type' => 'serial',
         'not NULL' => TRUE
       ),
+      'uid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The Drupal User ID of the user submitting the workflow.'
+      ),
       'galaxy_workflow_id' => array(
         'type' => 'int',
         'not NULL' => TRUE
@@ -126,6 +131,11 @@ function tripal_galaxy_add_workflow_submission_table(&$schema){
         'length' => 128,
         'description' => 'Galaxy provides an invocation ID that can be used ' .
           'to check the status of a submitted workflow.'
+      ),
+      'email' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'description' => 'Flag if notification email has been sent'
       )
     ),
     'indexes' => array(
@@ -348,7 +358,8 @@ function tripal_galaxy_update_7103()
       'not NULL' => FALSE,
     );
     db_add_field('tripal_galaxy', 'serverstatus', $status);
-  } catch (\PDOException $e) {
+  } 
+  catch (\PDOException $e) {
     $error = $e->getMessage();
     throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
   }
@@ -377,7 +388,8 @@ function tripal_galaxy_update_7104() {
           'tg_sid' => $entry->sid
         ))->execute();
 
-      } catch (\PDOException $e) {
+      } 
+      catch (\PDOException $e) {
         $error = $e->getMessage();
         throw new DrupalUpdateException('Could not copy the data into the new linker table: ' . $error);
       }
@@ -394,7 +406,8 @@ function tripal_galaxy_update_7104() {
         'not NULL' => false,
       );
       db_add_field('tripal_galaxy_workflow_submission', 'sid_linker', $holder);
-    } catch (\PDOException $e) {
+    } 
+    catch (\PDOException $e) {
       $error = $e->getMessage();
       throw new DrupalUpdateException('Could not insert the column into the tripal_galaxy_workflow_submission table: ' . $error);
     }
@@ -434,11 +447,93 @@ function tripal_galaxy_update_7104() {
           db_drop_field('tripal_galaxy_workflow_submission', 'sid_linker');
         }
       }
-    } catch (\PDOException $e) {
+    } 
+    catch (\PDOException $e) {
       $error = $e->getMessage();
       throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
     }
-  } catch (\PDOException $e) {
+  } 
+  catch (\PDOException $e) {
+    $error = $e->getMessage();
+    throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
+  }
+}
+
+/**
+ * This update adds the email column to the tripal_galaxy_workflow submission table.
+ */
+function tripal_galaxy_update_7106()
+{
+  try {
+    $email = array(
+      'type' => 'varchar',
+      'length' => 128,
+      'description' => 'Flag if notification email has been sent',
+    );
+    db_add_field('tripal_galaxy_workflow_submission', 'email', $email);
+  } 
+  catch (\PDOException $e) {
+    $error = $e->getMessage();
+    throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
+  }
+}
+
+/**
+ * This update adds the uid column to the tripal_galaxy_workflow submission table.
+ */
+function tripal_galaxy_update_7107()
+{
+  $transaction = db_transaction();
+  try {
+    
+    // Add the field but don't allow it to have null's for now. We'll try to
+    // add those in.
+    $uid = array(
+      'type' => 'int',
+      'description' => 'The Drupal User ID of the user submitting the workflow.',
+    );
+    db_add_field('tripal_galaxy_workflow_submission', 'uid', $uid);
+    
+    // Next try to find the UID for the submitted workflows. The UID is
+    // buried in the history name as the first element after the TG- prefix.
+    // We'll pull it out and store it in the field.
+    $results = db_select('tripal_galaxy_workflow_submission', 'tgws')
+      ->fields('tgws')
+      ->execute();
+    while ($submission = $results->fetchObject()) {
+      $sid = $submission->sid;
+      $errors = unserialize($submission->errors);
+      $history_name = $errors['history']['name'];
+      $matches = [];
+      if (preg_match('/^TG-(\d+?)-.*$/', $history_name, $matches)) {
+        $uid = $matches[1];
+        db_update('tripal_galaxy_workflow_submission') 
+          ->fields(['uid' => $uid])
+          ->condition('sid', $sid)
+          ->execute();
+      }      
+    }
+    
+    // If there are any workflows that we can't find the user then we will
+    // just assign them to the admin user.  At the time of the writing of this
+    // update function very few folks are using this module so it should only
+    // be an issue, if at all for a few cases.
+    db_upate('tripal_galaxy_workflow_submission')
+      ->fields(['uid' => 1])
+      ->isNull('sid')
+      ->execute();
+    
+    
+    // Now that we're all done we want to set the uid field to not allow 
+    // NULLs.
+    db_change_field('tripal_galaxy_workflow_submission', 'uid', 'uid', [
+      'not null' => TRUE,
+      'type' => 'int',
+      'description' => 'The Drupal User ID of the user submitting the workflow.',      
+    ]);
+  } 
+  catch (\PDOException $e) {
+    $transaction->rollback();
     $error = $e->getMessage();
     throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
   }
