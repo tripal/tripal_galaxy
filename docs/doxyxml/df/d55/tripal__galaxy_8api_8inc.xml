@@ -1,0 +1,1496 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="df/d55/tripal__galaxy_8api_8inc" kind="file" language="PHP">
+    <compoundname>tripal_galaxy.api.inc</compoundname>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="df/d55/tripal__galaxy_8api_8inc_1aacb891320fd91b82e7d7e5ec738a38cb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>_tripal_galaxy_get_workflow_defaults</definition>
+        <argsstring>($tool_inputs, &amp;$parameters, $step_inputs, $step_input_key)</argsstring>
+        <name>_tripal_galaxy_get_workflow_defaults</name>
+        <param>
+          <declname>$tool_inputs</declname>
+        </param>
+        <param>
+          <type>&amp;</type>
+          <declname>$parameters</declname>
+        </param>
+        <param>
+          <declname>$step_inputs</declname>
+        </param>
+        <param>
+          <declname>$step_input_key</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A recursive helper function for tripal_galaxy_get_workflow_defaults.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$tool_inputs</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The &apos;tool_inputs&apos; array for the step, or the sub elements on a recursive call. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$parameters</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A pass-by-reference of the $parameters array. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$step_inputs</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The &apos;input_steps&apos; array for the step. This is always passed as is at every recursion level. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$step_input_key</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The key used to lookup up if an element has a key in the $step_inputs. For nested keys they are concatenated. with a &apos;|&apos; separating each level. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="708" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="708" bodyend="744"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gae97fef880ca09f1392670dd28baadc09" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_add_galaxy</definition>
+        <argsstring>($values)</argsstring>
+        <name>tripal_galaxy_add_galaxy</name>
+        <param>
+          <declname>$values</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Adds a new Galaxy server to Tripal.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$values</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An associative array containing the following key/value pairs:<itemizedlist>
+<listitem><para>servername: A human-readable name for the Galaxy server. The servername must be unique and not already present.</para></listitem><listitem><para>description: (optional) a description about this server.</para></listitem><listitem><para>url: The full URL for the server (e.g. <ulink url="https://usegalaxy.org/">https://usegalaxy.org/</ulink>)</para></listitem><listitem><para>username: The name of the user to connect as.</para></listitem><listitem><para>api_key: The API key of the user. This allows Tripal to access the Galaxy server&apos;s RESTful API services.</para></listitem><listitem><para>uid: The Drupal User ID who created this record.</para></listitem></itemizedlist>
+</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The newly created Galaxy object or FALSE on error. If the record already exists the object is returned and no duplicated record is added. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="417" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="417" bodyend="451"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga0d913c40d82e9435a36338a103f9f16c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_add_workflow</definition>
+        <argsstring>($galaxy_id, $values, $create_webform=TRUE)</argsstring>
+        <name>tripal_galaxy_add_workflow</name>
+        <param>
+          <declname>$galaxy_id</declname>
+        </param>
+        <param>
+          <declname>$values</declname>
+        </param>
+        <param>
+          <declname>$create_webform</declname>
+          <defval>TRUE</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Adds a remote Galaxy Workflow to Tripal.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$galaxy_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An ID of the galaxy server. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$values</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An associative array used to specify the workflow. The workflow can be identified using the Galaxy workflow ID provided using the &apos;workflow_id&apos; key or using the workflow name provided using the &apos;workflow_name&apos; key. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$create_webform</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If TRUE, creates a webform for the end-user to submit this workflow using the Tripal website. It will automatically create a history for this workflow on the remote Galaxy server as well.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A workflow object or FALSE on error. If the workflow has already been added, then the workflow object is returned and no duplicate record is added. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="128" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="128" bodyend="217"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gac2339b55bada9b76d7663aa131ae7f11" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_check_submission_status</definition>
+        <argsstring>($sid=false, $force=FALSE)</argsstring>
+        <name>tripal_galaxy_check_submission_status</name>
+        <param>
+          <declname>$sid</declname>
+          <defval>false</defval>
+        </param>
+        <param>
+          <declname>$force</declname>
+          <defval>FALSE</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Checks and updates the status of a Galaxy workflow.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$sid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The submission ID of the workflow. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$force</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>. If a workflow submission is already completed this function will quickly return and not check the status again. Setting the $force argument to TRUE will force the function to check the status. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="498" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="498" bodyend="629"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_delete_expired_histories</definition>
+        <argsstring>()</argsstring>
+        <name>tripal_galaxy_delete_expired_histories</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Deletes expired histories.</para><para>Walks through the tripal_galaxy_workflow_submission table and deletes any workflows older than specified in the tripal_galaxy_history_age system variable. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1071" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1071" bodyend="1108"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga7c370bcf34de913a6282e4d0356eeb4f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_delete_remote_history</definition>
+        <argsstring>($galaxy_id, $history_name)</argsstring>
+        <name>tripal_galaxy_delete_remote_history</name>
+        <param>
+          <declname>$galaxy_id</declname>
+        </param>
+        <param>
+          <declname>$history_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Deletes a single remote history from the remote galaxy server.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$galaxy_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A unique ID for the galaxy server. If this is provided no other arguments are needed.</para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$history_name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The name of the history to retrieve. If the history doesn&apos;t exist then it will be created. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1122" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1122" bodyend="1145"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab25d14cbae238d1d2375db470d39fe42" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_active_submissions</definition>
+        <argsstring>()</argsstring>
+        <name>tripal_galaxy_get_active_submissions</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a list of all workflow submissions that have not completed.</para><para><simplesect kind="return"><para>An array of submission objects. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="461" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="461" bodyend="484"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga6c9b43d1467a9a49ac9f7d67df256ce6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_connection</definition>
+        <argsstring>($galaxy_id)</argsstring>
+        <name>tripal_galaxy_get_connection</name>
+        <param>
+          <declname>$galaxy_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retreives a GalaxyInstance objects using a galaxy_id</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$galaxy_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The ID of a galaxy server.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>GalaxyInstance A galaxyInstance object or FALSE on error. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="30" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="30" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga8c44bcb1d8e06449fe1be78ef21f622b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_files_dir</definition>
+        <argsstring>()</argsstring>
+        <name>tripal_galaxy_get_files_dir</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Returns the URI where the Tripal Galaxy module stores files.</para><para>This function also ensures that the path exists by creating it.</para><para><simplesect kind="return"><para>A Drupal URI indicating the location where Galaxy files are housed. Returns FALSE if the location does not exist or cannot be created. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1047" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1047" bodyend="1060"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_galaxies</definition>
+        <argsstring>()</argsstring>
+        <name>tripal_galaxy_get_galaxies</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a list of Galaxy servers that are known to Tripal.</para><para><simplesect kind="return"><para>An associative array of galaxy server objects. Note, the returned objects are different from the GalaxyInstance objects provided by blend4php. These objects house the information that Tripal maintains about each of these servers. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="356" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="356" bodyend="367"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga26692f8599b7984eca8dcbfc4b87b4d0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_galaxy</definition>
+        <argsstring>($galaxy_id)</argsstring>
+        <name>tripal_galaxy_get_galaxy</name>
+        <param>
+          <declname>$galaxy_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a Galaxy object.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$galaxy_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The ID of the galaxy server to retrieve. A list of all galxy servers known to Tripal can be retrieved using the <ref refid="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" kindref="member">tripal_galaxy_get_galaxies()</ref> function.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A galaxy object Note, the returned object is different from the GalaxyInstance object provided by blend4php. This objects house the information that Tripal maintains about each the servers. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="385" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="385" bodyend="395"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga5cbbc1c0c36b1bde0e5756d645a26b9a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_history</definition>
+        <argsstring>(GalaxyInstance $galaxy, $history_name, &amp;$error)</argsstring>
+        <name>tripal_galaxy_get_history</name>
+        <param>
+          <type>GalaxyInstance</type>
+          <declname>$galaxy</declname>
+        </param>
+        <param>
+          <declname>$history_name</declname>
+        </param>
+        <param>
+          <type>&amp;</type>
+          <declname>$error</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a history by name from Galaxy.</para><para>If the history does not exist then one is created.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$galaxy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A GalaxyInstance object </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$history_name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The name of the history to retrieve. If the history doesn&apos;t exist then it will be created. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$error</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An empty array into which the error type and message will be placed if an error occurs.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>A history array for the specified history. If a failure occured then FALSE is returned and the $error argument is set. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="947" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="947" bodyend="974"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_history_name</definition>
+        <argsstring>($submission)</argsstring>
+        <name>tripal_galaxy_get_history_name</name>
+        <param>
+          <declname>$submission</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructs the history name for a given submission.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$submission</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A submission object that contains the galaxy_workflow_id, sid, and submit_date properties.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The history name. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="644" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="644" bodyend="646"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga9eeedd1b682280b12d2e48b0e7cd6412" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_submission</definition>
+        <argsstring>($sid)</argsstring>
+        <name>tripal_galaxy_get_submission</name>
+        <param>
+          <declname>$sid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a workflow submission object using the submission ID.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$sid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The submission ID of the workflow.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An object containing the submisssion information. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="321" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="321" bodyend="343"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga0a3589ac29c7f8439ccabcc90981eb55" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_workflow_defaults</definition>
+        <argsstring>($galaxy, $workflow_id)</argsstring>
+        <name>tripal_galaxy_get_workflow_defaults</name>
+        <param>
+          <declname>$galaxy</declname>
+        </param>
+        <param>
+          <declname>$workflow_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves an array of settings used by the workflow.</para><para>This is a helpful function to help a developer understand how the $parameters array should be structured when passing into the <ref refid="de/db0/group__tripal__galaxy__api_1gac87d35c273e0642f699c1bfa18d7de6f" kindref="member">tripal_galaxy_invoke_workflow()</ref> function.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$galaxy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A GalaxyInstance object. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$workflow_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The ID of the workflow to retrieve settings for. This is the Galaxy ID for the workflow.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An array compatible with the $parameters argument for the tripal_galaxy_invoke_wokflow(). Values are populatd with appropriate defaults. Returns FALSE if the workflow settings could not be retrieved. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="668" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="668" bodyend="691"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga469133431e5ae5c43a32c257b5c3b183" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_workflows</definition>
+        <argsstring>($values=[])</argsstring>
+        <name>tripal_galaxy_get_workflows</name>
+        <param>
+          <declname>$values</declname>
+          <defval>[]</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a list of workflows matching the given criteria.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$values</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An associative array used to find workflows. The following keys are supported:<itemizedlist>
+<listitem><para>galaxy_id: finds all workflows that match the given galayx_id.</para></listitem><listitem><para>id: finds the workflow with this specific workflow ID.</para></listitem><listitem><para>workflow_id: the ID of the workflow on the remote Galaxy instance.</para></listitem><listitem><para>name: finds the workflow with a given name. Note: the workflow name is not guranteed to be unique.</para></listitem><listitem><para>status: finds all workflows whose status matches the value provided. Any combination of the keys can be used.</para></listitem></itemizedlist>
+</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An array of workflow objects. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="238" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="238" bodyend="265"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga402915ec024f4de2df5d437c901e69da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_init_submission</definition>
+        <argsstring>($workflow, $user)</argsstring>
+        <name>tripal_galaxy_init_submission</name>
+        <param>
+          <declname>$workflow</declname>
+        </param>
+        <param>
+          <declname>$user</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Initializes a new workflow submission record.</para><para>This function creates the record for the submission.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$workflow</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An workflow object as generated by the tripal_galaxy_get_workflow() function. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$user</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The Drupal User object. This is the user who owns the submission. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="280" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="280" bodyend="308"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gac87d35c273e0642f699c1bfa18d7de6f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_invoke_workflow</definition>
+        <argsstring>($galaxy, $submission, $parameters, $inputs, $history)</argsstring>
+        <name>tripal_galaxy_invoke_workflow</name>
+        <param>
+          <declname>$galaxy</declname>
+        </param>
+        <param>
+          <declname>$submission</declname>
+        </param>
+        <param>
+          <declname>$parameters</declname>
+        </param>
+        <param>
+          <declname>$inputs</declname>
+        </param>
+        <param>
+          <declname>$history</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Invokes all submitted workflows that are in the &apos;Waiting&apos; state.</para><para>This function can be called by the tripal Job system hence the $job argument. For Tripal v2 the job_id is passed, for Tripal v3 a job object is passed so we&apos;ll handle both cases.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$galaxy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An instance of a GalaxyInstance object. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$submission</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A Galaxy workflow submission object. This object can be retrieved using the <ref refid="de/db0/group__tripal__galaxy__api_1ga9eeedd1b682280b12d2e48b0e7cd6412" kindref="member">tripal_galaxy_get_submission()</ref> function. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$parameters</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A mapping of tool parameters that are non-datasets parameters. The map must be in the following format: <programlisting><codeline><highlight class="normal">[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>{step_id_or_UUID}<sp/>=&gt;<sp/>[{param_name}<sp/>=&gt;<sp/>{value}],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>{step_id_or_UUID}<sp/>=&gt;<sp/>[{param_name}<sp/>=&gt;<sp/>{value}]</highlight></codeline>
+<codeline><highlight class="normal">];</highlight></codeline>
+</programlisting> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$inputs</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An array of file inputs. These files should already be uploaded to the history on the Galaxy server. This array contains a mapping of workflow inputs to datasets and dataset collections. The datasets source can be a LibraryDatasetDatasetAssociation (ldda), LibraryDataset (ld), HistoryDatasetAssociation (hda), or HistoryDatasetCollectionAssociation (hdca). The map must be in the following format <programlisting><codeline><highlight class="normal">[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>{step<sp/>index}<sp/>=&gt;<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;id&apos;<sp/>=&gt;<sp/>{encoded<sp/>dataset<sp/>ID},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;src&apos;<sp/>=&gt;<sp/>{&apos;ldda&apos;|&apos;ld&apos;|&apos;hda&apos;|&apos;hdca&apos;}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>],</highlight></codeline>
+<codeline><highlight class="normal">];</highlight></codeline>
+</programlisting> The id&apos;s are data set IDs and can be found using the data set class&apos;s index() function. The data set must be present in a history, and the data set &apos;state&apos; must be &apos;ok&apos; and &apos;deleted&apos; must be set to FALSE. The {step index&gt; is the numeric value of the step in the workflow where the file is used. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$history</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A history record as returned by the function <ref refid="de/db0/group__tripal__galaxy__api_1ga5cbbc1c0c36b1bde0e5756d645a26b9a" kindref="member">tripal_galaxy_get_history()</ref>. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="793" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="793" bodyend="849"/>
+      </memberdef>
+      <memberdef kind="function" id="df/d55/tripal__galaxy_8api_8inc_1aa0cf0df821cd8cdb1ed07841f8fc786c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_split_url</definition>
+        <argsstring>($url)</argsstring>
+        <name>tripal_galaxy_split_url</name>
+        <param>
+          <declname>$url</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Splits a URL to a Galaxy server into the host, port and if HTTPS is required.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$url</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The URL for the remote galaxy instance.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An array with three keys: host, port and use_https. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="63" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="63" bodyend="104"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gabbf94f504e5d366a915df319b640a26e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_test_connection</definition>
+        <argsstring>($connect)</argsstring>
+        <name>tripal_galaxy_test_connection</name>
+        <param>
+          <declname>$connect</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Tests if a Galaxy server is accessible.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$connect</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An array of the following:<itemizedlist>
+<listitem><para>galaxy_id: A unique ID for the galaxy server. If this is provided no other arguments are needed.</para></listitem><listitem><para>host: The DNS hostname of the galaxy server.</para></listitem><listitem><para>port: The TCP port for the server.</para></listitem><listitem><para>use_https: Set to TRUE of the server uses HTTPS</para></listitem></itemizedlist>
+</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Returns TRUE if accessible. FALSE otherwise. A Drupal message is also provided that indicates if the test was successful. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="993" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="993" bodyend="1033"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gacabd6157d02963862ae6e017030f4957" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_upload_file</definition>
+        <argsstring>($galaxy, $fid, $history_id, $history_contents)</argsstring>
+        <name>tripal_galaxy_upload_file</name>
+        <param>
+          <declname>$galaxy</declname>
+        </param>
+        <param>
+          <declname>$fid</declname>
+        </param>
+        <param>
+          <declname>$history_id</declname>
+        </param>
+        <param>
+          <declname>$history_contents</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Uploads a file to a given history on Galaxy.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>$galaxy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An instance of a Galaxy server object. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$fid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The Drupal managed file ID. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$history_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The history ID. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>$history_contents</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The Galaxy history contents array as returned by the GalaxyHistoryContents::index function.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="exception"><parameteritem>
+<parameternamelist>
+<parametername>Exception</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An array of the dataset details from Galaxy for the uploaded file. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="872" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="872" bodyend="925"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides an application programming interface (API) for the Tripal Galaxy module. </para>    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal">&lt;?php</highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30" refid="de/db0/group__tripal__galaxy__api_1ga6c9b43d1467a9a49ac9f7d67df256ce6" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga6c9b43d1467a9a49ac9f7d67df256ce6" kindref="member">tripal_galaxy_get_connection</ref>($galaxy_id)<sp/>{</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>the<sp/>galaxy<sp/>server<sp/>for<sp/>this<sp/>workflow</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/>$galaxy_server<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tg&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;fields(</highlight><highlight class="stringliteral">&apos;tg&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">,<sp/>$galaxy_id)</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;execute()</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;fetchObject();</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/>$library<sp/>=<sp/>libraries_load(</highlight><highlight class="stringliteral">&apos;blend4php&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">,<sp/>$library))<sp/>{</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>drupal_set_message($library[</highlight><highlight class="stringliteral">&apos;error<sp/>message&apos;</highlight><highlight class="normal">],<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/>$connect<sp/>=<sp/><ref refid="df/d55/tripal__galaxy_8api_8inc_1aa0cf0df821cd8cdb1ed07841f8fc786c" kindref="member">tripal_galaxy_split_url</ref>($galaxy_server-&gt;url);</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/>$galaxy<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyInstance($connect[</highlight><highlight class="stringliteral">&apos;host&apos;</highlight><highlight class="normal">],<sp/>$connect[</highlight><highlight class="stringliteral">&apos;port&apos;</highlight><highlight class="normal">],<sp/>$connect[</highlight><highlight class="stringliteral">&apos;use_https&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/>$galaxy-&gt;setAPIKey($galaxy_server-&gt;api_key);</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getErrorType();</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($error)<sp/>{</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$galaxy;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63" refid="df/d55/tripal__galaxy_8api_8inc_1aa0cf0df821cd8cdb1ed07841f8fc786c" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="df/d55/tripal__galaxy_8api_8inc_1aa0cf0df821cd8cdb1ed07841f8fc786c" kindref="member">tripal_galaxy_split_url</ref>($url)<sp/>{</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>TODO:<sp/>should<sp/>this<sp/>go<sp/>into<sp/>blend4php?</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>First<sp/>check<sp/>a<sp/>URL<sp/>with<sp/>a<sp/>port</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/>$matches<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(preg_match(</highlight><highlight class="stringliteral">&apos;/^(.*)\:\/\/(.+?)\:(\d+)\/*$/&apos;</highlight><highlight class="normal">,<sp/>$url,<sp/>$matches))<sp/>{</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/>$protocol<sp/>=<sp/>$matches[1];</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/>$host<sp/>=<sp/>$matches[2];</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>$port<sp/>=<sp/>$matches[3];</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/>$use_https<sp/>=<sp/>FALSE;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($protocol<sp/>==<sp/></highlight><highlight class="stringliteral">&apos;https&apos;</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$use_https<sp/>=<sp/>TRUE;</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>Next<sp/>check<sp/>a<sp/>URL<sp/>without<sp/>a<sp/>port</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(preg_match(</highlight><highlight class="stringliteral">&apos;/^(.*)\:\/\/(.+?)\/*$/&apos;</highlight><highlight class="normal">,<sp/>$url,<sp/>$matches))<sp/>{</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$protocol<sp/>=<sp/>$matches[1];</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$host<sp/>=<sp/>$matches[2];</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$use_https<sp/>=<sp/>FALSE;</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$port<sp/>=<sp/>80;</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($protocol<sp/>==<sp/></highlight><highlight class="stringliteral">&apos;https&apos;</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$use_https<sp/>=<sp/>TRUE;</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$port<sp/>=<sp/>443;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>for<sp/>simple<sp/>url<sp/>w/port<sp/>ie.<sp/>localhost:8080</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(preg_match(</highlight><highlight class="stringliteral">&apos;/(.*)\:(\d+)\/*$/&apos;</highlight><highlight class="normal">,<sp/>$url,<sp/>$matches))<sp/>{</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$use_https<sp/>=<sp/>FALSE;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$host<sp/>=<sp/>$matches[1];</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$port<sp/>=<sp/>$matches[2];</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>[</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;host&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$host,</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;port&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$port,</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;use_https&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$use_https,</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/>];</highlight></codeline>
+<codeline lineno="104"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128" refid="de/db0/group__tripal__galaxy__api_1ga0d913c40d82e9435a36338a103f9f16c" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga0d913c40d82e9435a36338a103f9f16c" kindref="member">tripal_galaxy_add_workflow</ref>($galaxy_id,<sp/>$values,<sp/>$create_webform<sp/>=<sp/>TRUE)<sp/>{</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/>$transaction<sp/>=<sp/>db_transaction();</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">try</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Connect<sp/>to<sp/>the<sp/>galaxy<sp/>server.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/>$galaxy<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga6c9b43d1467a9a49ac9f7d67df256ce6" kindref="member">tripal_galaxy_get_connection</ref>($galaxy_id);</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>the<sp/>workflow<sp/>details<sp/>and<sp/>see<sp/>if<sp/>this<sp/>workflow<sp/>exists</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/>$gworkflows<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyWorkflows($galaxy);</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/>$workflows<sp/>=<sp/>$gworkflows-&gt;index();</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$workflows)<sp/>{</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(empty($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]))<sp/>{</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;No<sp/>workflow<sp/>using<sp/>the<sp/>criteria<sp/>provided<sp/>was<sp/>found<sp/>in<sp/>this<sp/>Galaxy<sp/>server.&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>drupal_set_message($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">],<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/><sp/></highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Loop<sp/>through<sp/>each<sp/>workflow<sp/>to<sp/>add<sp/>it<sp/>to<sp/>the<sp/>form</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/>$found_workflow<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($workflows<sp/>as<sp/>$workflow)<sp/>{</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;workflow_name&apos;</highlight><highlight class="normal">,<sp/>$values)<sp/>and<sp/></highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$workflow[</highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal">]<sp/>==<sp/>$values[</highlight><highlight class="stringliteral">&apos;workflow_name&apos;</highlight><highlight class="normal">])<sp/>{</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$found_workflow<sp/>=<sp/>$workflow;</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal">,<sp/>$values)<sp/>and</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$workflow[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">]<sp/>==<sp/>$values[</highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal">])<sp/>{</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$found_workflow<sp/>=<sp/>$workflow;</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$found_workflow){</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>drupal_set_message(</highlight><highlight class="stringliteral">&apos;No<sp/>workflow<sp/>using<sp/>the<sp/>criteria<sp/>provided<sp/>was<sp/>found<sp/>in<sp/>this<sp/>Galaxy<sp/>server.&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Now<sp/>let&apos;s<sp/>check<sp/>to<sp/>see<sp/>if<sp/>this<sp/>workflow<sp/>exists<sp/>in<sp/>the<sp/>database,<sp/>If<sp/>it<sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>exists<sp/>then<sp/>just<sp/>return<sp/>it.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/>$workflow<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fields(</highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;tgw.workflow_id&apos;</highlight><highlight class="normal">,<sp/>$found_workflow[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">])</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;tgw.galaxy_id&apos;</highlight><highlight class="normal">,<sp/>$galaxy_id)</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;execute()</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fetchObject();</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($workflow)<sp/>{</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$workflow;</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/><sp/></highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Insert<sp/>the<sp/>workflow.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/>$data<sp/>=<sp/>[</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;workflow_name&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$found_workflow[</highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$found_workflow[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$galaxy_id,</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;workflow_uuid&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$found_workflow[</highlight><highlight class="stringliteral">&apos;latest_workflow_uuid&apos;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/>];</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/>$success<sp/>=<sp/>drupal_write_record(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow&apos;</highlight><highlight class="normal">,<sp/>$data);</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($success)<sp/>{</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$workflows<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga469133431e5ae5c43a32c257b5c3b183" kindref="member">tripal_galaxy_get_workflows</ref>([</highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$found_workflow[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$galaxy_id,</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>]);</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$workflow<sp/>=<sp/>$workflows[0];</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>drupal_set_message(</highlight><highlight class="stringliteral">&apos;Could<sp/>not<sp/>add<sp/>the<sp/>workflow.&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>If<sp/>the<sp/>user<sp/>wants<sp/>to<sp/>create<sp/>the<sp/>webform<sp/>for<sp/>end-users<sp/>to<sp/>submit.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="198"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($create_webform)<sp/>{</highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>module_load_include(</highlight><highlight class="stringliteral">&apos;inc&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;includes/tripal_galaxy.webform&apos;</highlight><highlight class="normal">);<sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$nid<sp/>=<sp/>tripal_galaxy_build_webform($galaxy_id,<sp/>$workflow-&gt;workflow_id);</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$num_updated<sp/>=<sp/>db_update(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fields([</highlight><highlight class="stringliteral">&apos;nid&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$nid])</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal">,<sp/>$workflow-&gt;workflow_id)</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">,<sp/>$galaxy_id)</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;execute();</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$workflow-&gt;nid<sp/>=<sp/>$nid;</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$workflow;</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">catch</highlight><highlight class="normal"><sp/>(Exception<sp/>$e)<sp/>{</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/>$transaction-&gt;rollback();</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"><sp/><sp/><sp/><sp/>tripal_report_error(</highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/>TRIPAL_ERROR,</highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;Unable<sp/>to<sp/>import<sp/>Galaxy<sp/>workflow&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="216"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="217"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"></highlight></codeline>
+<codeline lineno="238" refid="de/db0/group__tripal__galaxy__api_1ga469133431e5ae5c43a32c257b5c3b183" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga469133431e5ae5c43a32c257b5c3b183" kindref="member">tripal_galaxy_get_workflows</ref>($values<sp/>=<sp/>[])<sp/>{</highlight></codeline>
+<codeline lineno="239"><highlight class="normal"><sp/><sp/>$workflows<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/>$query<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/>$query-&gt;fields(</highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="243"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">,<sp/>$values))<sp/>{</highlight></codeline>
+<codeline lineno="244"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;condition(</highlight><highlight class="stringliteral">&apos;tgw.galaxy_id&apos;</highlight><highlight class="normal">,<sp/>$values[</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="245"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="246"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">,<sp/>$values))<sp/>{</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;condition(</highlight><highlight class="stringliteral">&apos;tgw.galaxy_workflow_id&apos;</highlight><highlight class="normal">,<sp/>$values[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="248"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal">,<sp/>$values))<sp/>{</highlight></codeline>
+<codeline lineno="250"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;condition(</highlight><highlight class="stringliteral">&apos;tgw.workflow_name&apos;</highlight><highlight class="normal">,<sp/>$values[</highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="251"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="252"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal">,<sp/>$values))<sp/>{</highlight></codeline>
+<codeline lineno="253"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;condition(</highlight><highlight class="stringliteral">&apos;tgw.workflow_id&apos;</highlight><highlight class="normal">,<sp/>$values[</highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="255"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;status&apos;</highlight><highlight class="normal">,<sp/>$values))<sp/>{</highlight></codeline>
+<codeline lineno="256"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;condition(</highlight><highlight class="stringliteral">&apos;tgw.status&apos;</highlight><highlight class="normal">,<sp/>$values[</highlight><highlight class="stringliteral">&apos;status&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="257"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="258"><highlight class="normal"><sp/><sp/>$results<sp/>=<sp/>$query-&gt;execute();</highlight></codeline>
+<codeline lineno="259"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="260"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal">($workflow<sp/>=<sp/>$results-&gt;fetchObject())<sp/>{</highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/><sp/><sp/>$workflows[]<sp/>=<sp/>$workflow;</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$workflows;</highlight></codeline>
+<codeline lineno="265"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="266"><highlight class="normal"></highlight></codeline>
+<codeline lineno="280" refid="de/db0/group__tripal__galaxy__api_1ga402915ec024f4de2df5d437c901e69da" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga402915ec024f4de2df5d437c901e69da" kindref="member">tripal_galaxy_init_submission</ref>($workflow,<sp/>$user)<sp/>{</highlight></codeline>
+<codeline lineno="281"><highlight class="normal"></highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><sp/><sp/>$transaction<sp/>=<sp/>db_transaction();</highlight></codeline>
+<codeline lineno="283"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="284"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">try</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="285"><highlight class="normal"><sp/><sp/><sp/><sp/>$data<sp/>=<sp/>[</highlight></codeline>
+<codeline lineno="286"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;galaxy_workflow_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$workflow-&gt;galaxy_workflow_id,</highlight></codeline>
+<codeline lineno="287"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;errors&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/></highlight><highlight class="stringliteral">&apos;&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="288"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;submit_date&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>REQUEST_TIME,</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;status&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/></highlight><highlight class="stringliteral">&apos;Waiting&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="290"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;uid&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$user-&gt;uid,</highlight></codeline>
+<codeline lineno="291"><highlight class="normal"><sp/><sp/><sp/><sp/>];</highlight></codeline>
+<codeline lineno="292"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="293"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Now<sp/>insert<sp/>the<sp/>submission<sp/>into<sp/>the<sp/>database</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="294"><highlight class="normal"><sp/><sp/><sp/><sp/>$sid<sp/>=<sp/>db_insert(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow_submission&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="295"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fields($data)</highlight></codeline>
+<codeline lineno="296"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;execute();</highlight></codeline>
+<codeline lineno="297"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="298"><highlight class="normal"></highlight></codeline>
+<codeline lineno="299"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$sid;</highlight></codeline>
+<codeline lineno="300"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="301"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="302"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">catch</highlight><highlight class="normal"><sp/>(Exception<sp/>$e)<sp/>{</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/>$transaction-&gt;rollback();</highlight></codeline>
+<codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/>tripal_report_error(</highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/>TRIPAL_ERROR,</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;Unable<sp/>to<sp/>create<sp/>Galaxy<sp/>workflow<sp/>submission&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="307"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="308"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="309"><highlight class="normal"></highlight></codeline>
+<codeline lineno="321" refid="de/db0/group__tripal__galaxy__api_1ga9eeedd1b682280b12d2e48b0e7cd6412" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga9eeedd1b682280b12d2e48b0e7cd6412" kindref="member">tripal_galaxy_get_submission</ref>($sid)<sp/>{</highlight></codeline>
+<codeline lineno="322"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="323"><highlight class="normal"><sp/><sp/><sp/><sp/>$query<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow_submission&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgws&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="324"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;fields(</highlight><highlight class="stringliteral">&apos;tgws&apos;</highlight><highlight class="normal">,<sp/>[</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;invocation_id&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="326"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;galaxy_workflow_id&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="327"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;sid&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;submit_date&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="329"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;status&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="330"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;email&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="331"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;uid&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="332"><highlight class="normal"><sp/><sp/><sp/><sp/>]);</highlight></codeline>
+<codeline lineno="333"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;join(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgw.galaxy_workflow_id<sp/>=<sp/>tgws.galaxy_workflow_id&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="334"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;fields(</highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">,<sp/>[</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;nid&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;workflow_name&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="335"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Do<sp/>a<sp/>left-join<sp/>on<sp/>the<sp/>node<sp/>to<sp/>get<sp/>the<sp/>title<sp/>for<sp/>the<sp/>webform<sp/>but<sp/>in</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="336"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>the<sp/>event<sp/>this<sp/>submission<sp/>did<sp/>not<sp/>use<sp/>a<sp/>webform<sp/>the<sp/>left<sp/>join<sp/>will</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="337"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>proivde<sp/>a<sp/>NULL<sp/>value<sp/>for<sp/>the<sp/>webform<sp/>title.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="338"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;leftJoin(</highlight><highlight class="stringliteral">&apos;node&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="charliteral">&apos;n&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;(n.nid<sp/>=<sp/>tgw.nid)&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="339"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;addField(</highlight><highlight class="charliteral">&apos;n&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;title&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;webform_title&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="340"><highlight class="normal"><sp/><sp/><sp/><sp/>$query-&gt;condition(</highlight><highlight class="stringliteral">&apos;tgws.sid&apos;</highlight><highlight class="normal">,<sp/>$sid);<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="341"><highlight class="normal"><sp/><sp/><sp/><sp/>$submission<sp/>=<sp/>$query-&gt;execute()-&gt;fetchObject();</highlight></codeline>
+<codeline lineno="342"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$submission;</highlight></codeline>
+<codeline lineno="343"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="344"><highlight class="normal"></highlight></codeline>
+<codeline lineno="356" refid="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" kindref="member">tripal_galaxy_get_galaxies</ref>()<sp/>{</highlight></codeline>
+<codeline lineno="357"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="358"><highlight class="normal"><sp/><sp/>$galaxies<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="359"><highlight class="normal"><sp/><sp/>$results<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tg&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="360"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;fields(</highlight><highlight class="stringliteral">&apos;tg&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="361"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;execute();</highlight></codeline>
+<codeline lineno="362"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="363"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>($galaxy<sp/>=<sp/>$results-&gt;fetchObject())<sp/>{</highlight></codeline>
+<codeline lineno="364"><highlight class="normal"><sp/><sp/><sp/><sp/>$galaxies[]<sp/>=<sp/>$galaxy;</highlight></codeline>
+<codeline lineno="365"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="366"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$galaxies;</highlight></codeline>
+<codeline lineno="367"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="368"><highlight class="normal"></highlight></codeline>
+<codeline lineno="385" refid="de/db0/group__tripal__galaxy__api_1ga26692f8599b7984eca8dcbfc4b87b4d0" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga26692f8599b7984eca8dcbfc4b87b4d0" kindref="member">tripal_galaxy_get_galaxy</ref>($galaxy_id)<sp/>{</highlight></codeline>
+<codeline lineno="386"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="387"><highlight class="normal"><sp/><sp/>$galaxies<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="388"><highlight class="normal"><sp/><sp/>$galaxy<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tg&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="389"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;fields(</highlight><highlight class="stringliteral">&apos;tg&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="390"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">,<sp/>$galaxy_id)</highlight></codeline>
+<codeline lineno="391"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;execute()</highlight></codeline>
+<codeline lineno="392"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;fetchObject();</highlight></codeline>
+<codeline lineno="393"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="394"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$galaxy;</highlight></codeline>
+<codeline lineno="395"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="396"><highlight class="normal"></highlight></codeline>
+<codeline lineno="417" refid="de/db0/group__tripal__galaxy__api_1gae97fef880ca09f1392670dd28baadc09" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1gae97fef880ca09f1392670dd28baadc09" kindref="member">tripal_galaxy_add_galaxy</ref>($values)<sp/>{</highlight></codeline>
+<codeline lineno="418"><highlight class="normal"></highlight></codeline>
+<codeline lineno="419"><highlight class="normal"><sp/><sp/>$required_args<sp/>=<sp/>[</highlight><highlight class="stringliteral">&apos;servername&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;url&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;username&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;api_key&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;uid&apos;</highlight><highlight class="normal">];</highlight></codeline>
+<codeline lineno="420"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($required_args<sp/>as<sp/>$key)<sp/>{</highlight></codeline>
+<codeline lineno="421"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!array_key_exists($key,<sp/>$values))<sp/>{</highlight></codeline>
+<codeline lineno="422"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>tripal_report_error(</highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/>TRIPAL_ERROR,</highlight></codeline>
+<codeline lineno="423"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;tripal_galaxy_add_galaxy:<sp/>missing<sp/>required<sp/>field<sp/>&quot;&apos;</highlight><highlight class="normal"><sp/>.<sp/>$key<sp/>.<sp/></highlight><highlight class="charliteral">&apos;&quot;&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="424"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="425"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="426"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="427"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="428"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>The<sp/>servername<sp/>can&apos;t<sp/>already<sp/>exist.<sp/></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="429"><highlight class="normal"><sp/><sp/>$exists<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tg&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="430"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>-&gt;fields(</highlight><highlight class="stringliteral">&apos;tg&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="431"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;servername&apos;</highlight><highlight class="normal">,<sp/>$values[</highlight><highlight class="stringliteral">&apos;servername&apos;</highlight><highlight class="normal">])</highlight></codeline>
+<codeline lineno="432"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>-&gt;execute()</highlight></codeline>
+<codeline lineno="433"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/>-&gt;fetchObject();</highlight></codeline>
+<codeline lineno="434"><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($exists)<sp/>{</highlight></codeline>
+<codeline lineno="435"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$exists;</highlight></codeline>
+<codeline lineno="436"><highlight class="normal"><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="437"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="438"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="439"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>Create<sp/>the<sp/>element.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="440"><highlight class="normal"><sp/><sp/>$data<sp/>=<sp/>array(</highlight></codeline>
+<codeline lineno="441"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;servername&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$values[</highlight><highlight class="stringliteral">&apos;servername&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="442"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;description&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$values[</highlight><highlight class="stringliteral">&apos;description&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="443"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;url&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$values[</highlight><highlight class="stringliteral">&apos;url&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="444"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;username&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$values[</highlight><highlight class="stringliteral">&apos;username&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="445"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;api_key&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$values[</highlight><highlight class="stringliteral">&apos;api_key&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="446"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;uid&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$values[</highlight><highlight class="stringliteral">&apos;uid&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="447"><highlight class="normal"><sp/><sp/>);</highlight></codeline>
+<codeline lineno="448"><highlight class="normal"><sp/><sp/>drupal_write_record(</highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/>$data);</highlight></codeline>
+<codeline lineno="449"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="450"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga26692f8599b7984eca8dcbfc4b87b4d0" kindref="member">tripal_galaxy_get_galaxy</ref>($data[</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="451"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="452"><highlight class="normal"></highlight></codeline>
+<codeline lineno="461" refid="de/db0/group__tripal__galaxy__api_1gab25d14cbae238d1d2375db470d39fe42" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1gab25d14cbae238d1d2375db470d39fe42" kindref="member">tripal_galaxy_get_active_submissions</ref>()<sp/>{</highlight></codeline>
+<codeline lineno="462"><highlight class="normal"><sp/><sp/>$query<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow_submission&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgws&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="463"><highlight class="normal"><sp/><sp/>$query-&gt;fields(</highlight><highlight class="stringliteral">&apos;tgws&apos;</highlight><highlight class="normal">,<sp/>[</highlight></codeline>
+<codeline lineno="464"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;invocation_id&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="465"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;galaxy_workflow_id&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="466"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;sid&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="467"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;submit_date&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="468"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;status&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="469"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;email&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="470"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;uid&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="471"><highlight class="normal"><sp/><sp/>]);</highlight></codeline>
+<codeline lineno="472"><highlight class="normal"><sp/><sp/>$query-&gt;join(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgw.galaxy_workflow_id<sp/>=<sp/>tgws.galaxy_workflow_id&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="473"><highlight class="normal"><sp/><sp/>$query-&gt;fields(</highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">,<sp/>[</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;nid&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="474"><highlight class="normal"><sp/><sp/>$query-&gt;leftJoin(</highlight><highlight class="stringliteral">&apos;node&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="charliteral">&apos;n&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;(n.nid<sp/>=<sp/>tgw.nid)&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="475"><highlight class="normal"><sp/><sp/>$query-&gt;addField(</highlight><highlight class="charliteral">&apos;n&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;title&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;webform_title&apos;</highlight><highlight class="normal">);<sp/><sp/></highlight></codeline>
+<codeline lineno="476"><highlight class="normal"><sp/><sp/>$query-&gt;condition(</highlight><highlight class="stringliteral">&apos;tgws.status&apos;</highlight><highlight class="normal">,<sp/>[</highlight><highlight class="stringliteral">&apos;Error&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;Completed&apos;</highlight><highlight class="normal">],<sp/></highlight><highlight class="stringliteral">&apos;NOT<sp/>IN&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="477"><highlight class="normal"><sp/><sp/>$results<sp/>=<sp/>$query-&gt;execute();</highlight></codeline>
+<codeline lineno="478"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="479"><highlight class="normal"><sp/><sp/>$submissions<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="480"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal">($submission<sp/>=<sp/>$results-&gt;fetchObject())<sp/>{</highlight></codeline>
+<codeline lineno="481"><highlight class="normal"><sp/><sp/><sp/><sp/>$submissions[]<sp/>=<sp/>$submission;</highlight></codeline>
+<codeline lineno="482"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="483"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$submissions;</highlight></codeline>
+<codeline lineno="484"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="485"><highlight class="normal"></highlight></codeline>
+<codeline lineno="498" refid="de/db0/group__tripal__galaxy__api_1gac2339b55bada9b76d7663aa131ae7f11" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1gac2339b55bada9b76d7663aa131ae7f11" kindref="member">tripal_galaxy_check_submission_status</ref>($sid<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">,<sp/>$force<sp/>=<sp/>FALSE)<sp/>{</highlight></codeline>
+<codeline lineno="499"><highlight class="normal"></highlight></codeline>
+<codeline lineno="500"><highlight class="normal"><sp/><sp/>$submissions<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="501"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$sid)<sp/>{</highlight></codeline>
+<codeline lineno="502"><highlight class="normal"><sp/><sp/><sp/><sp/>$submissions<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1gab25d14cbae238d1d2375db470d39fe42" kindref="member">tripal_galaxy_get_active_submissions</ref>();</highlight></codeline>
+<codeline lineno="503"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="504"><highlight class="normal"><sp/><sp/>elseif<sp/>($sid<sp/>&amp;&amp;<sp/>!is_numeric($sid))<sp/>{</highlight></codeline>
+<codeline lineno="505"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>Exception(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_check_submission_status():<sp/>The<sp/>$sid<sp/>argument<sp/>is<sp/>not<sp/>numeric&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="506"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="507"><highlight class="normal"><sp/><sp/>elseif($sid)<sp/>{</highlight></codeline>
+<codeline lineno="508"><highlight class="normal"><sp/><sp/><sp/><sp/>$submissions[]<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga9eeedd1b682280b12d2e48b0e7cd6412" kindref="member">tripal_galaxy_get_submission</ref>($sid);</highlight></codeline>
+<codeline lineno="509"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="510"><highlight class="normal"></highlight></codeline>
+<codeline lineno="511"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($submissions<sp/>as<sp/>$submission)<sp/>{</highlight></codeline>
+<codeline lineno="512"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>If<sp/>the<sp/>job<sp/>hasn&apos;t<sp/>yet<sp/>been<sp/>invoked<sp/>then<sp/>skip<sp/>it.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="513"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$submission-&gt;invocation_id)<sp/>{</highlight></codeline>
+<codeline lineno="514"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">continue</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="515"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="516"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>If<sp/>the<sp/>job<sp/>is<sp/>complete<sp/>skip<sp/>it.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="517"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($submission-&gt;status<sp/>==<sp/></highlight><highlight class="stringliteral">&apos;Completed&apos;</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="518"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">continue</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="519"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="520"><highlight class="normal"></highlight></codeline>
+<codeline lineno="521"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Connect<sp/>to<sp/>the<sp/>Galaxy<sp/>instance.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="522"><highlight class="normal"><sp/><sp/><sp/><sp/>$galaxy<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga6c9b43d1467a9a49ac9f7d67df256ce6" kindref="member">tripal_galaxy_get_connection</ref>($submission-&gt;galaxy_id);</highlight></codeline>
+<codeline lineno="523"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$galaxy)<sp/>{</highlight></codeline>
+<codeline lineno="524"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="525"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>drupal_set_message(</highlight><highlight class="stringliteral">&apos;Could<sp/>not<sp/>connect<sp/>to<sp/>Galaxy<sp/>server.<sp/>&apos;</highlight><highlight class="normal"><sp/>.<sp/>$error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">],<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="526"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="527"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="528"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>the<sp/>invocation<sp/>specified.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="529"><highlight class="normal"><sp/><sp/><sp/><sp/>$gworkflows<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyWorkflows($galaxy);</highlight></codeline>
+<codeline lineno="530"><highlight class="normal"><sp/><sp/><sp/><sp/>$invocation<sp/>=<sp/>$gworkflows-&gt;showInvocations([</highlight></codeline>
+<codeline lineno="531"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$submission-&gt;workflow_id,</highlight></codeline>
+<codeline lineno="532"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;invocation_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$submission-&gt;invocation_id,</highlight></codeline>
+<codeline lineno="533"><highlight class="normal"><sp/><sp/><sp/><sp/>]);</highlight></codeline>
+<codeline lineno="534"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$invocation)<sp/>{</highlight></codeline>
+<codeline lineno="535"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>Exception($galaxy-&gt;getErrorMessage());</highlight></codeline>
+<codeline lineno="536"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="537"><highlight class="normal"><sp/><sp/><sp/><sp/>$end_time<sp/>=<sp/>null;</highlight></codeline>
+<codeline lineno="538"><highlight class="normal"><sp/><sp/><sp/><sp/>$update_time<sp/>=<sp/>date_create_from_format(</highlight><highlight class="stringliteral">&apos;Y-m-d*G:i:s.ue&apos;</highlight><highlight class="normal">,<sp/>$invocation[</highlight><highlight class="stringliteral">&apos;update_time&apos;</highlight><highlight class="normal">]<sp/>.<sp/></highlight><highlight class="stringliteral">&apos;UTC&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="539"><highlight class="normal"></highlight></codeline>
+<codeline lineno="540"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Find<sp/>the<sp/>History<sp/>for<sp/>this<sp/>submission.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="541"><highlight class="normal"><sp/><sp/><sp/><sp/>$history_name<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" kindref="member">tripal_galaxy_get_history_name</ref>($submission);</highlight></codeline>
+<codeline lineno="542"><highlight class="normal"><sp/><sp/><sp/><sp/>$ghistories<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyHistories($galaxy);</highlight></codeline>
+<codeline lineno="543"><highlight class="normal"><sp/><sp/><sp/><sp/>$histories<sp/>=<sp/>$ghistories-&gt;index();</highlight></codeline>
+<codeline lineno="544"><highlight class="normal"><sp/><sp/><sp/><sp/>$history<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="545"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($histories)<sp/>{</highlight></codeline>
+<codeline lineno="546"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($histories<sp/>as<sp/>$index<sp/>=&gt;<sp/>$temp)<sp/>{</highlight></codeline>
+<codeline lineno="547"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($temp[</highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal">]<sp/>==<sp/>$history_name)<sp/>{</highlight></codeline>
+<codeline lineno="548"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$history<sp/>=<sp/>$temp;</highlight></codeline>
+<codeline lineno="549"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="550"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="551"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="552"><highlight class="normal"></highlight></codeline>
+<codeline lineno="553"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>check<sp/>state<sp/>details<sp/>for<sp/>all<sp/>jobs</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="554"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>below<sp/>are<sp/>valid<sp/>state<sp/>names:</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="555"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>paused</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="556"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>ok</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="557"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>failed_metadata</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="558"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>upload</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="559"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>discarded</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="560"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>running</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="561"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>setting_metadata</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="562"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>error</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="563"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>queued</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="564"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/><sp/><sp/><sp/>empty</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="565"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>if<sp/>&apos;ok&apos;<sp/>state<sp/>has<sp/>value<sp/>larger<sp/>than<sp/>0<sp/>and<sp/>all<sp/>other<sp/>states&apos;<sp/>values<sp/>being<sp/>0,</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="566"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>then<sp/>this<sp/>history<sp/>has<sp/>completed<sp/>successfully.<sp/>We<sp/>can<sp/>set<sp/>the<sp/>$status<sp/>=<sp/>&apos;Completed&apos;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="567"><highlight class="normal"><sp/><sp/><sp/><sp/>$status<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="568"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($history)<sp/>{</highlight></codeline>
+<codeline lineno="569"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$history_info<sp/>=<sp/>$ghistories-&gt;show([</highlight><highlight class="stringliteral">&apos;history_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$history[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">]]);</highlight></codeline>
+<codeline lineno="570"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$state_details<sp/>=<sp/>array_filter($history_info[</highlight><highlight class="stringliteral">&apos;state_details&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="571"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$status<sp/>=<sp/>json_encode($state_details);</highlight></codeline>
+<codeline lineno="572"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>if<sp/>no<sp/>jobs<sp/>are<sp/>in<sp/>the<sp/>state<sp/>of<sp/>&apos;paused&apos;,<sp/>&apos;running&apos;,<sp/>or<sp/>&apos;queued&apos;,<sp/>the<sp/>history<sp/>is<sp/>completed</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="573"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!isset($state_details[</highlight><highlight class="stringliteral">&apos;paused&apos;</highlight><highlight class="normal">])<sp/>and<sp/>!isset($state_details[</highlight><highlight class="stringliteral">&apos;running&apos;</highlight><highlight class="normal">])<sp/>and<sp/>!isset($state_details[</highlight><highlight class="stringliteral">&apos;queued&apos;</highlight><highlight class="normal">]))<sp/>{</highlight></codeline>
+<codeline lineno="574"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$ghistory_contents<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyHistoryContents($galaxy);</highlight></codeline>
+<codeline lineno="575"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$history_contents<sp/>=<sp/>$ghistory_contents-&gt;index([</highlight><highlight class="stringliteral">&apos;history_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$history[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">]]);</highlight></codeline>
+<codeline lineno="576"><highlight class="normal"></highlight></codeline>
+<codeline lineno="577"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Get<sp/>more<sp/>details<sp/>about<sp/>each<sp/>history<sp/>content<sp/>item.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="578"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($history_contents<sp/>as<sp/>$index<sp/>=&gt;<sp/>$history_content)<sp/>{</highlight></codeline>
+<codeline lineno="579"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$history_contents[$index]<sp/>=<sp/>$ghistory_contents-&gt;show([</highlight></codeline>
+<codeline lineno="580"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$history_content[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="581"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;history_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$history[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="582"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>]);</highlight></codeline>
+<codeline lineno="583"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">switch</highlight><highlight class="normal"><sp/>($history_content[</highlight><highlight class="stringliteral">&apos;type&apos;</highlight><highlight class="normal">])<sp/>{</highlight></codeline>
+<codeline lineno="584"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&apos;file&apos;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="585"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$params<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="586"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$params[</highlight><highlight class="stringliteral">&apos;history_id&apos;</highlight><highlight class="normal">]<sp/>=<sp/>$history[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">];</highlight></codeline>
+<codeline lineno="587"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$params[</highlight><highlight class="stringliteral">&apos;url_only&apos;</highlight><highlight class="normal">]<sp/>=<sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="588"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$params[</highlight><highlight class="stringliteral">&apos;history_content_id&apos;</highlight><highlight class="normal">]<sp/>=<sp/>$history_content[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">];</highlight></codeline>
+<codeline lineno="589"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$link<sp/>=<sp/>$ghistory_contents-&gt;download_history_content($params);</highlight></codeline>
+<codeline lineno="590"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$history_contents[$index][</highlight><highlight class="stringliteral">&apos;content_link&apos;</highlight><highlight class="normal">]<sp/>=<sp/>$link;</highlight></codeline>
+<codeline lineno="591"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="592"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">default</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="593"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="594"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="595"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="596"><highlight class="normal"></highlight></codeline>
+<codeline lineno="597"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$invocation_info[</highlight><highlight class="stringliteral">&apos;history&apos;</highlight><highlight class="normal">]<sp/>=<sp/>$history;</highlight></codeline>
+<codeline lineno="598"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$invocation_info[</highlight><highlight class="stringliteral">&apos;history_contents&apos;</highlight><highlight class="normal">]<sp/>=<sp/>$history_contents;</highlight></codeline>
+<codeline lineno="599"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$invocation_info[</highlight><highlight class="stringliteral">&apos;history_info&apos;</highlight><highlight class="normal">]<sp/>=<sp/>$history_info;</highlight></codeline>
+<codeline lineno="600"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(isset($state_details[</highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">]))<sp/>{</highlight></codeline>
+<codeline lineno="601"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$status<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;Error&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="602"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="603"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="604"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$status<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;Completed&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="605"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="606"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="607"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="608"><highlight class="normal"></highlight></codeline>
+<codeline lineno="609"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Now<sp/>inform<sp/>the<sp/>user<sp/>that<sp/>the<sp/>job<sp/>is<sp/>done!</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="610"><highlight class="normal"><sp/><sp/><sp/><sp/>$end_time<sp/>=<sp/>$update_time-&gt;getTimestamp();</highlight></codeline>
+<codeline lineno="611"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$force<sp/>&amp;&amp;<sp/>$submission-&gt;email<sp/>!=<sp/></highlight><highlight class="stringliteral">&apos;SENT&apos;</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="612"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>tripal_galaxy_send_submission_ended_mail($submission-&gt;sid,<sp/>$node-&gt;uid);</highlight></codeline>
+<codeline lineno="613"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="614"><highlight class="normal"></highlight></codeline>
+<codeline lineno="615"><highlight class="normal"><sp/><sp/><sp/><sp/>$fields<sp/>=<sp/>[</highlight></codeline>
+<codeline lineno="616"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;status&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$status,</highlight></codeline>
+<codeline lineno="617"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;errors&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>serialize($invocation_info),</highlight></codeline>
+<codeline lineno="618"><highlight class="normal"><sp/><sp/><sp/><sp/>];</highlight></codeline>
+<codeline lineno="619"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($end_time<sp/>!=<sp/>null)<sp/>{</highlight></codeline>
+<codeline lineno="620"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$fields[</highlight><highlight class="stringliteral">&apos;end_time&apos;</highlight><highlight class="normal">]<sp/>=<sp/>$end_time;</highlight></codeline>
+<codeline lineno="621"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="622"><highlight class="normal"><sp/><sp/><sp/><sp/>db_update(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow_submission&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="623"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fields($fields)</highlight></codeline>
+<codeline lineno="624"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;sid&apos;</highlight><highlight class="normal">,<sp/>$submission-&gt;sid)</highlight></codeline>
+<codeline lineno="625"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;execute();</highlight></codeline>
+<codeline lineno="626"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="627"><highlight class="normal"></highlight></codeline>
+<codeline lineno="628"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>TRUE;</highlight></codeline>
+<codeline lineno="629"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="630"><highlight class="normal"></highlight></codeline>
+<codeline lineno="631"><highlight class="normal"></highlight></codeline>
+<codeline lineno="644" refid="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" kindref="member">tripal_galaxy_get_history_name</ref>($submission)<sp/>{</highlight></codeline>
+<codeline lineno="645"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;TG-&quot;</highlight><highlight class="normal"><sp/>.<sp/>$submission-&gt;uid<sp/>.<sp/></highlight><highlight class="stringliteral">&quot;-&quot;</highlight><highlight class="normal"><sp/>.<sp/>$submission-&gt;galaxy_workflow_id<sp/>.<sp/></highlight><highlight class="stringliteral">&quot;-&quot;</highlight><highlight class="normal"><sp/>.<sp/>$submission-&gt;sid<sp/>.<sp/></highlight><highlight class="charliteral">&apos;-&apos;</highlight><highlight class="normal"><sp/>.<sp/>date(</highlight><highlight class="stringliteral">&apos;Y_m_d_H:i:s&apos;</highlight><highlight class="normal">,<sp/>$submission-&gt;submit_date);</highlight></codeline>
+<codeline lineno="646"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="647"><highlight class="normal"></highlight></codeline>
+<codeline lineno="668" refid="de/db0/group__tripal__galaxy__api_1ga0a3589ac29c7f8439ccabcc90981eb55" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga0a3589ac29c7f8439ccabcc90981eb55" kindref="member">tripal_galaxy_get_workflow_defaults</ref>($galaxy,<sp/>$workflow_id)<sp/>{</highlight></codeline>
+<codeline lineno="669"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="670"><highlight class="normal"><sp/><sp/>$gworkflows<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyWorkflows($galaxy);</highlight></codeline>
+<codeline lineno="671"><highlight class="normal"><sp/><sp/>$workflow<sp/>=<sp/>$gworkflows-&gt;show([</highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$workflow_id]);</highlight></codeline>
+<codeline lineno="672"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="673"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$workflow)<sp/>{</highlight></codeline>
+<codeline lineno="674"><highlight class="normal"><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="675"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(empty($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]))<sp/>{</highlight></codeline>
+<codeline lineno="676"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;No<sp/>workflow<sp/>is<sp/>found<sp/>in<sp/>this<sp/>Galaxy<sp/>server<sp/>for<sp/>the<sp/>user<sp/>you<sp/>used</highlight></codeline>
+<codeline lineno="677"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>to<sp/>connect<sp/>to<sp/>the<sp/>Galaxy<sp/>server.&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="678"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="679"><highlight class="normal"><sp/><sp/><sp/><sp/>drupal_set_message($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">],<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="680"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="681"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="682"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="683"><highlight class="normal"><sp/><sp/>$parameters<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="684"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($workflow[</highlight><highlight class="stringliteral">&apos;steps&apos;</highlight><highlight class="normal">]<sp/>as<sp/>$step<sp/>=&gt;<sp/>$details)<sp/>{</highlight></codeline>
+<codeline lineno="685"><highlight class="normal"><sp/><sp/><sp/><sp/>$step_inputs<sp/>=<sp/>$details[</highlight><highlight class="stringliteral">&apos;input_steps&apos;</highlight><highlight class="normal">];</highlight></codeline>
+<codeline lineno="686"><highlight class="normal"><sp/><sp/><sp/><sp/>$step_input_key<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="687"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="df/d55/tripal__galaxy_8api_8inc_1aacb891320fd91b82e7d7e5ec738a38cb" kindref="member">_tripal_galaxy_get_workflow_defaults</ref>($details[</highlight><highlight class="stringliteral">&apos;tool_inputs&apos;</highlight><highlight class="normal">],<sp/>$parameters[$step],<sp/>$step_inputs,<sp/>$step_input_key);</highlight></codeline>
+<codeline lineno="688"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="689"><highlight class="normal"><sp/></highlight></codeline>
+<codeline lineno="690"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$parameters;</highlight></codeline>
+<codeline lineno="691"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="692"><highlight class="normal"></highlight></codeline>
+<codeline lineno="708" refid="df/d55/tripal__galaxy_8api_8inc_1aacb891320fd91b82e7d7e5ec738a38cb" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="df/d55/tripal__galaxy_8api_8inc_1aacb891320fd91b82e7d7e5ec738a38cb" kindref="member">_tripal_galaxy_get_workflow_defaults</ref>($tool_inputs,<sp/>&amp;$parameters,<sp/>$step_inputs,<sp/>$step_input_key)<sp/>{</highlight></codeline>
+<codeline lineno="709"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($tool_inputs<sp/>as<sp/>$key<sp/>=&gt;<sp/>$value)<sp/>{</highlight></codeline>
+<codeline lineno="710"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="711"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Skip<sp/>keys<sp/>that<sp/>are<sp/>just<sp/>internal<sp/>to<sp/>Galaxy.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="712"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(preg_match(</highlight><highlight class="stringliteral">&apos;/^__/&apos;</highlight><highlight class="normal">,<sp/>$key))<sp/>{</highlight></codeline>
+<codeline lineno="713"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">continue</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="714"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="715"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="716"><highlight class="normal"><sp/><sp/><sp/><sp/>$this_step_input_key<sp/>=<sp/>$step_input_key<sp/>.<sp/>$key;</highlight></codeline>
+<codeline lineno="717"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="718"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="719"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>If<sp/>this<sp/>is<sp/>an<sp/>array<sp/>then<sp/>we<sp/>want<sp/>to<sp/>recurse.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="720"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_array($value))<sp/>{</highlight></codeline>
+<codeline lineno="721"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$parameters[$key]<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="722"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="df/d55/tripal__galaxy_8api_8inc_1aacb891320fd91b82e7d7e5ec738a38cb" kindref="member">_tripal_galaxy_get_workflow_defaults</ref>($value,<sp/>$parameters[$key],<sp/>$step_inputs,<sp/>$this_step_input_key<sp/>.<sp/></highlight><highlight class="charliteral">&apos;|&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="723"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(empty($parameters[$key]))<sp/>{</highlight></codeline>
+<codeline lineno="724"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_array($step_inputs)<sp/>and<sp/>array_key_exists($this_step_input_key,<sp/>$step_inputs))<sp/>{</highlight></codeline>
+<codeline lineno="725"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$parameters[$key]<sp/>=<sp/>$step_inputs[$this_step_input_key];</highlight></codeline>
+<codeline lineno="726"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="727"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="728"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$parameters[$key]<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="729"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="730"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="731"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="732"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Otherwise<sp/>just<sp/>set<sp/>the<sp/>value.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="733"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="734"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>If<sp/>this<sp/>key<sp/>is<sp/>an<sp/>input<sp/>from<sp/>another<sp/>tool<sp/>we<sp/>need<sp/>to<sp/>get<sp/>that</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="735"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>information.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="736"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_array($step_inputs)<sp/>and<sp/>array_key_exists($this_step_input_key,<sp/>$step_inputs))<sp/>{</highlight></codeline>
+<codeline lineno="737"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$parameters[$key]<sp/>=<sp/>$step_inputs[$this_step_input_key];</highlight></codeline>
+<codeline lineno="738"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="739"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="740"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$parameters[$key]<sp/>=<sp/>$value;</highlight></codeline>
+<codeline lineno="741"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="742"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="743"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="744"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="745"><highlight class="normal"></highlight></codeline>
+<codeline lineno="793" refid="de/db0/group__tripal__galaxy__api_1gac87d35c273e0642f699c1bfa18d7de6f" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1gac87d35c273e0642f699c1bfa18d7de6f" kindref="member">tripal_galaxy_invoke_workflow</ref>($galaxy,<sp/>$submission,<sp/>$parameters,<sp/>$inputs,<sp/>$history)<sp/>{</highlight></codeline>
+<codeline lineno="794"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="795"><highlight class="normal"><sp/><sp/>$history_id<sp/>=<sp/>$history[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">];</highlight></codeline>
+<codeline lineno="796"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="797"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>Create<sp/>some<sp/>handy<sp/>vairables<sp/>for<sp/>working<sp/>with<sp/>this<sp/>submission.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="798"><highlight class="normal"><sp/><sp/>$workflow_id<sp/>=<sp/>$submission-&gt;workflow_id;</highlight></codeline>
+<codeline lineno="799"><highlight class="normal"><sp/><sp/>$uid<sp/>=<sp/>$submission-&gt;uid;</highlight></codeline>
+<codeline lineno="800"><highlight class="normal"><sp/><sp/>$sid<sp/>=<sp/>$submission-&gt;sid;</highlight></codeline>
+<codeline lineno="801"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="802"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>Invoke<sp/>the<sp/>workflow<sp/>and<sp/>check<sp/>for<sp/>errors</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="803"><highlight class="normal"><sp/><sp/>$gworkflows<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyWorkflows($galaxy);</highlight></codeline>
+<codeline lineno="804"><highlight class="normal"><sp/><sp/>$params<sp/>=<sp/>[</highlight></codeline>
+<codeline lineno="805"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;workflow_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$workflow_id,</highlight></codeline>
+<codeline lineno="806"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;parameters&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$parameters,</highlight></codeline>
+<codeline lineno="807"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;inputs&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$inputs,</highlight></codeline>
+<codeline lineno="808"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;history_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$history_id,</highlight></codeline>
+<codeline lineno="809"><highlight class="normal"><sp/><sp/>];</highlight></codeline>
+<codeline lineno="810"><highlight class="normal"><sp/><sp/></highlight></codeline>
+<codeline lineno="811"><highlight class="normal"><sp/><sp/>print_r($parameters);</highlight></codeline>
+<codeline lineno="812"><highlight class="normal"></highlight></codeline>
+<codeline lineno="813"><highlight class="normal"><sp/><sp/>$invocation<sp/>=<sp/>$gworkflows-&gt;invoke($params);</highlight></codeline>
+<codeline lineno="814"><highlight class="normal"></highlight></codeline>
+<codeline lineno="815"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$invocation)<sp/>{</highlight></codeline>
+<codeline lineno="816"><highlight class="normal"><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="817"><highlight class="normal"><sp/><sp/><sp/><sp/>$error_msg<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;ERROR:<sp/>&apos;</highlight><highlight class="normal"><sp/>.<sp/>$error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">];</highlight></codeline>
+<codeline lineno="818"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="819"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>If<sp/>the<sp/>message<sp/>is<sp/>an<sp/>array<sp/>than<sp/>we&apos;ll<sp/>convert<sp/>it<sp/>into<sp/>a<sp/>string.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="820"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_array($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]))<sp/>{</highlight></codeline>
+<codeline lineno="821"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$error_msg<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;ERROR:<sp/>&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="822"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]<sp/>as<sp/>$key<sp/>=&gt;<sp/>$value)<sp/>{<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="823"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>$error_msg<sp/>.=<sp/>$key<sp/>.<sp/></highlight><highlight class="stringliteral">&apos;:<sp/>&apos;</highlight><highlight class="normal"><sp/>.<sp/>$value;</highlight></codeline>
+<codeline lineno="824"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="825"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="826"><highlight class="normal"><sp/><sp/><sp/><sp/>drupal_set_message($error_msg,<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="827"><highlight class="normal"><sp/><sp/><sp/><sp/>db_update(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow_submission&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="828"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fields([</highlight></codeline>
+<codeline lineno="829"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;status&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/></highlight><highlight class="stringliteral">&apos;Error&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="830"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;errors&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$error_msg,</highlight></codeline>
+<codeline lineno="831"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>])</highlight></codeline>
+<codeline lineno="832"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;sid&apos;</highlight><highlight class="normal">,<sp/>$sid)</highlight></codeline>
+<codeline lineno="833"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;execute();</highlight></codeline>
+<codeline lineno="834"><highlight class="normal"><sp/><sp/><sp/><sp/>tripal_galaxy_send_submission_failed_mail($sid);</highlight></codeline>
+<codeline lineno="835"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="836"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="837"><highlight class="normal"><sp/><sp/><sp/><sp/>db_update(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow_submission&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="838"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fields([</highlight></codeline>
+<codeline lineno="839"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;status&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/></highlight><highlight class="stringliteral">&apos;Submitted&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="840"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;start_time&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>REQUEST_TIME,</highlight></codeline>
+<codeline lineno="841"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;end_time&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>NULL,</highlight></codeline>
+<codeline lineno="842"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;invocation_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$invocation[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="843"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>])</highlight></codeline>
+<codeline lineno="844"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;sid&apos;</highlight><highlight class="normal">,<sp/>$sid)</highlight></codeline>
+<codeline lineno="845"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;execute();</highlight></codeline>
+<codeline lineno="846"><highlight class="normal"><sp/><sp/><sp/><sp/>tripal_galaxy_send_submission_start_mail($sid);</highlight></codeline>
+<codeline lineno="847"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="848"><highlight class="normal"></highlight></codeline>
+<codeline lineno="849"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="850"><highlight class="normal"></highlight></codeline>
+<codeline lineno="851"><highlight class="normal"></highlight></codeline>
+<codeline lineno="852"><highlight class="normal"></highlight></codeline>
+<codeline lineno="872" refid="de/db0/group__tripal__galaxy__api_1gacabd6157d02963862ae6e017030f4957" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1gacabd6157d02963862ae6e017030f4957" kindref="member">tripal_galaxy_upload_file</ref>($galaxy,<sp/>$fid,<sp/>$history_id,<sp/>$history_contents)<sp/>{</highlight></codeline>
+<codeline lineno="873"><highlight class="normal"></highlight></codeline>
+<codeline lineno="874"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$fid)<sp/>{</highlight></codeline>
+<codeline lineno="875"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>Exception(</highlight><highlight class="stringliteral">&apos;Cannot<sp/>upload<sp/>a<sp/>file<sp/>without<sp/>an<sp/>fid&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="876"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="877"><highlight class="normal"></highlight></codeline>
+<codeline lineno="878"><highlight class="normal"><sp/><sp/>$file<sp/>=<sp/>file_load($fid);</highlight></codeline>
+<codeline lineno="879"><highlight class="normal"><sp/><sp/>$uploaded_file<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="880"><highlight class="normal"></highlight></codeline>
+<codeline lineno="881"><highlight class="normal"></highlight></codeline>
+<codeline lineno="882"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($history_contents<sp/>as<sp/>$hfile)<sp/>{</highlight></codeline>
+<codeline lineno="883"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$hfile[</highlight><highlight class="stringliteral">&apos;deleted&apos;</highlight><highlight class="normal">]<sp/>and<sp/>$hfile[</highlight><highlight class="stringliteral">&apos;state&apos;</highlight><highlight class="normal">]<sp/>==<sp/></highlight><highlight class="stringliteral">&apos;ok&apos;</highlight><highlight class="normal"><sp/>and<sp/>$hfile[</highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal">]<sp/>==<sp/>$file-&gt;filename)<sp/>{</highlight></codeline>
+<codeline lineno="884"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$uploaded_file<sp/>=<sp/>$hfile;</highlight></codeline>
+<codeline lineno="885"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="886"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="887"><highlight class="normal"></highlight></codeline>
+<codeline lineno="888"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>Only<sp/>upload<sp/>the<sp/>file<sp/>if<sp/>it<sp/>isn&apos;t<sp/>already<sp/>there.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="889"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$uploaded_file)<sp/>{</highlight></codeline>
+<codeline lineno="890"><highlight class="normal"><sp/><sp/><sp/><sp/>$file_list<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="891"><highlight class="normal"><sp/><sp/><sp/><sp/>$file_list[]<sp/>=<sp/>[</highlight></codeline>
+<codeline lineno="892"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$file-&gt;filename,</highlight></codeline>
+<codeline lineno="893"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;path&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>drupal_realpath($file-&gt;uri),</highlight></codeline>
+<codeline lineno="894"><highlight class="normal"><sp/><sp/><sp/><sp/>];</highlight></codeline>
+<codeline lineno="895"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Now<sp/>upload<sp/>the<sp/>files.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="896"><highlight class="normal"><sp/><sp/><sp/><sp/>$report<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;Uploading<sp/>$file-&gt;filename...&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="897"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_object($job))<sp/>{</highlight></codeline>
+<codeline lineno="898"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$job-&gt;logMessage($report);</highlight></codeline>
+<codeline lineno="899"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="900"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="901"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>print<sp/>$report<sp/>.<sp/></highlight><highlight class="stringliteral">&quot;\n&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="902"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="903"><highlight class="normal"><sp/><sp/><sp/><sp/>$gtool<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyTools($galaxy);</highlight></codeline>
+<codeline lineno="904"><highlight class="normal"><sp/><sp/><sp/><sp/>$tool<sp/>=<sp/>$gtool-&gt;create([</highlight></codeline>
+<codeline lineno="905"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;tool_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/></highlight><highlight class="stringliteral">&apos;upload1&apos;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="906"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;history_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$history_id,</highlight></codeline>
+<codeline lineno="907"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;files&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$file_list,</highlight></codeline>
+<codeline lineno="908"><highlight class="normal"><sp/><sp/><sp/><sp/>]);</highlight></codeline>
+<codeline lineno="909"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$tool)<sp/>{</highlight></codeline>
+<codeline lineno="910"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="911"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>Exception($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="912"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="913"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$tool[</highlight><highlight class="stringliteral">&apos;outputs&apos;</highlight><highlight class="normal">][0];</highlight></codeline>
+<codeline lineno="914"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="915"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="916"><highlight class="normal"><sp/><sp/><sp/><sp/>$report<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;File<sp/>already<sp/>exists<sp/>in<sp/>history:<sp/>$file-&gt;filename...&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="917"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(is_object($job))<sp/>{</highlight></codeline>
+<codeline lineno="918"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$job-&gt;logMessage($report);</highlight></codeline>
+<codeline lineno="919"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="920"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="921"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>print<sp/>$report<sp/>.<sp/></highlight><highlight class="stringliteral">&quot;\n&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="922"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="923"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$uploaded_file;</highlight></codeline>
+<codeline lineno="924"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="925"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="926"><highlight class="normal"></highlight></codeline>
+<codeline lineno="947" refid="de/db0/group__tripal__galaxy__api_1ga5cbbc1c0c36b1bde0e5756d645a26b9a" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga5cbbc1c0c36b1bde0e5756d645a26b9a" kindref="member">tripal_galaxy_get_history</ref>(GalaxyInstance<sp/>$galaxy,<sp/>$history_name,<sp/>&amp;$error)<sp/>{</highlight></codeline>
+<codeline lineno="948"><highlight class="normal"></highlight></codeline>
+<codeline lineno="949"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>TODO:<sp/>should<sp/>this<sp/>go<sp/>into<sp/>blend4php?</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="950"><highlight class="normal"></highlight></codeline>
+<codeline lineno="951"><highlight class="normal"><sp/><sp/>$ghistories<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyHistories($galaxy);</highlight></codeline>
+<codeline lineno="952"><highlight class="normal"></highlight></codeline>
+<codeline lineno="953"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>Look<sp/>through<sp/>existing<sp/>histories<sp/>to<sp/>find<sp/>what<sp/>we&apos;re<sp/>looking<sp/>for.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="954"><highlight class="normal"><sp/><sp/>$histories<sp/>=<sp/>$ghistories-&gt;index();</highlight></codeline>
+<codeline lineno="955"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$histories)<sp/>{</highlight></codeline>
+<codeline lineno="956"><highlight class="normal"><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="957"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>Exception($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="958"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="959"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">foreach</highlight><highlight class="normal"><sp/>($histories<sp/>as<sp/>$history)<sp/>{</highlight></codeline>
+<codeline lineno="960"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($history[</highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal">]<sp/>==<sp/>$history_name)<sp/>{</highlight></codeline>
+<codeline lineno="961"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$history;</highlight></codeline>
+<codeline lineno="962"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="963"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="964"><highlight class="normal"></highlight></codeline>
+<codeline lineno="965"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>If<sp/>we&apos;re<sp/>here<sp/>then<sp/>the<sp/>history<sp/>doesn&apos;t<sp/>exist,<sp/>so<sp/>create<sp/>one.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="966"><highlight class="normal"><sp/><sp/>$history<sp/>=<sp/>$ghistories-&gt;create([</highlight></codeline>
+<codeline lineno="967"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;name&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$history_name,</highlight></codeline>
+<codeline lineno="968"><highlight class="normal"><sp/><sp/>]);</highlight></codeline>
+<codeline lineno="969"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$history)<sp/>{</highlight></codeline>
+<codeline lineno="970"><highlight class="normal"><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="971"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="972"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="973"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$history;</highlight></codeline>
+<codeline lineno="974"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="975"><highlight class="normal"></highlight></codeline>
+<codeline lineno="993" refid="de/db0/group__tripal__galaxy__api_1gabbf94f504e5d366a915df319b640a26e" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1gabbf94f504e5d366a915df319b640a26e" kindref="member">tripal_galaxy_test_connection</ref>($connect)<sp/>{</highlight></codeline>
+<codeline lineno="994"><highlight class="normal"></highlight></codeline>
+<codeline lineno="995"><highlight class="normal"><sp/><sp/>$library<sp/>=<sp/>libraries_load(</highlight><highlight class="stringliteral">&apos;blend4php&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="996"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">,<sp/>$library))<sp/>{</highlight></codeline>
+<codeline lineno="997"><highlight class="normal"><sp/><sp/><sp/><sp/>drupal_set_message($library[</highlight><highlight class="stringliteral">&apos;error<sp/>message&apos;</highlight><highlight class="normal">],<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="998"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="999"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1000"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1001"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(array_key_exists(</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">,<sp/>$connect))<sp/>{</highlight></codeline>
+<codeline lineno="1002"><highlight class="normal"><sp/><sp/><sp/><sp/>$galaxy_id<sp/>=<sp/>$connect[</highlight><highlight class="stringliteral">&apos;galaxy_id&apos;</highlight><highlight class="normal">];</highlight></codeline>
+<codeline lineno="1003"><highlight class="normal"><sp/><sp/><sp/><sp/>$galaxy<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga6c9b43d1467a9a49ac9f7d67df256ce6" kindref="member">tripal_galaxy_get_connection</ref>($galaxy_id);</highlight></codeline>
+<codeline lineno="1004"><highlight class="normal"><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="1005"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">])<sp/>{</highlight></codeline>
+<codeline lineno="1006"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>drupal_set_message(</highlight><highlight class="stringliteral">&apos;Could<sp/>not<sp/>connect:<sp/>&apos;</highlight><highlight class="normal"><sp/>.<sp/>$error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">],<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="1007"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="1008"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1009"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1010"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1011"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Create<sp/>a<sp/>new<sp/>galaxy<sp/>instance<sp/>using<sp/>the<sp/>obtained<sp/>hostname<sp/>and<sp/>port</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1012"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Then<sp/>Authenticate</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1013"><highlight class="normal"><sp/><sp/><sp/><sp/>$galaxy<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyInstance($connect[</highlight><highlight class="stringliteral">&apos;host&apos;</highlight><highlight class="normal">],<sp/>$connect[</highlight><highlight class="stringliteral">&apos;port&apos;</highlight><highlight class="normal">],<sp/>$connect[</highlight><highlight class="stringliteral">&apos;use_https&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="1014"><highlight class="normal"><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="1015"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">])<sp/>{</highlight></codeline>
+<codeline lineno="1016"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>drupal_set_message(</highlight><highlight class="stringliteral">&apos;Could<sp/>not<sp/>connect:<sp/>&apos;</highlight><highlight class="normal"><sp/>.<sp/>$error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">],<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="1017"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="1018"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1019"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1020"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1021"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>Tell<sp/>the<sp/>user<sp/>whether<sp/>the<sp/>connection<sp/>was<sp/>successful<sp/>based<sp/>on</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1022"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">//<sp/>getVersion()</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1023"><highlight class="normal"><sp/><sp/>$version<sp/>=<sp/>$galaxy-&gt;getVersion();</highlight></codeline>
+<codeline lineno="1024"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($version<sp/>==<sp/>NULL)<sp/>{</highlight></codeline>
+<codeline lineno="1025"><highlight class="normal"><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="1026"><highlight class="normal"><sp/><sp/><sp/><sp/>drupal_set_message(</highlight><highlight class="stringliteral">&apos;Could<sp/>not<sp/>connect:<sp/>&apos;</highlight><highlight class="normal"><sp/>.<sp/>$error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">],<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="1027"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="1028"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1029"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1030"><highlight class="normal"><sp/><sp/><sp/><sp/>drupal_set_message(t(</highlight><highlight class="stringliteral">&apos;Successful<sp/>connection<sp/>to<sp/>the<sp/>Galaxy<sp/>server<sp/>(version<sp/>%version)&apos;</highlight><highlight class="normal">,<sp/>[</highlight><highlight class="stringliteral">&apos;%version&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$version[</highlight><highlight class="stringliteral">&apos;version_major&apos;</highlight><highlight class="normal">]]));</highlight></codeline>
+<codeline lineno="1031"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1032"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>TRUE;</highlight></codeline>
+<codeline lineno="1033"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1034"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1035"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1047" refid="de/db0/group__tripal__galaxy__api_1ga8c44bcb1d8e06449fe1be78ef21f622b" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga8c44bcb1d8e06449fe1be78ef21f622b" kindref="member">tripal_galaxy_get_files_dir</ref>()<sp/>{</highlight></codeline>
+<codeline lineno="1048"><highlight class="normal"><sp/><sp/>global<sp/>$user;</highlight></codeline>
+<codeline lineno="1049"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1050"><highlight class="normal"><sp/><sp/>$user_uid<sp/>=<sp/>md5($user-&gt;uid);</highlight></codeline>
+<codeline lineno="1051"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1052"><highlight class="normal"><sp/><sp/>$site_dir<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;public://tripal/files/galaxy/&apos;</highlight><highlight class="normal"><sp/>.<sp/>$user_uid;</highlight></codeline>
+<codeline lineno="1053"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!file_prepare_directory($site_dir,<sp/>FILE_CREATE_DIRECTORY))<sp/>{</highlight></codeline>
+<codeline lineno="1054"><highlight class="normal"><sp/><sp/><sp/><sp/>$message<sp/>=<sp/></highlight><highlight class="stringliteral">&apos;Could<sp/>not<sp/>access<sp/>the<sp/>directory<sp/>on<sp/>the<sp/>server<sp/>for<sp/>storing<sp/>this<sp/>file.&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="1055"><highlight class="normal"><sp/><sp/><sp/><sp/>watchdog(</highlight><highlight class="stringliteral">&apos;tripal&apos;</highlight><highlight class="normal">,<sp/>$message,<sp/>[],<sp/>WATCHDOG_ERROR);</highlight></codeline>
+<codeline lineno="1056"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="1057"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1058"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1059"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>$site_dir;</highlight></codeline>
+<codeline lineno="1060"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1061"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1071" refid="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" kindref="member">tripal_galaxy_delete_expired_histories</ref>(){</highlight></codeline>
+<codeline lineno="1072"><highlight class="normal"><sp/><sp/>$max_history_age<sp/>=<sp/>time()<sp/>-<sp/>variable_get(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_history_age&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="1073"><highlight class="normal"><sp/><sp/>$old_workflows<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow_submission&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgws&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="1074"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;fields(</highlight><highlight class="stringliteral">&apos;tgws&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="1075"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;start_time&apos;</highlight><highlight class="normal">,<sp/>$max_history_age,<sp/></highlight><highlight class="charliteral">&apos;&lt;&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="1076"><highlight class="normal"><sp/><sp/><sp/><sp/>-&gt;execute();</highlight></codeline>
+<codeline lineno="1077"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>($old_workflow<sp/>=<sp/>$old_workflows-&gt;fetchObject())<sp/>{</highlight></codeline>
+<codeline lineno="1078"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1079"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>Skip<sp/>already<sp/>delated<sp/>workflow<sp/>invocations.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1080"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">($old_workflow-&gt;status<sp/>==<sp/></highlight><highlight class="stringliteral">&apos;Deleted&apos;</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="1081"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">continue</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="1082"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1083"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="1084"><highlight class="normal"><sp/><sp/><sp/><sp/>$tp_workflow<sp/>=<sp/>db_select(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow&apos;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="1085"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fields(</highlight><highlight class="stringliteral">&apos;tgw&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="1086"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;galaxy_workflow_id&apos;</highlight><highlight class="normal">,<sp/>$old_workflow-&gt;galaxy_workflow_id,<sp/></highlight><highlight class="charliteral">&apos;=&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="1087"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;execute()</highlight></codeline>
+<codeline lineno="1088"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fetchObject();</highlight></codeline>
+<codeline lineno="1089"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1090"><highlight class="normal"><sp/><sp/><sp/><sp/>$node<sp/>=<sp/>node_load($tp_workflow-&gt;nid);</highlight></codeline>
+<codeline lineno="1091"><highlight class="normal"><sp/><sp/><sp/><sp/>$history_name<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" kindref="member">tripal_galaxy_get_history_name</ref>($old_workflow,<sp/>$node);</highlight></codeline>
+<codeline lineno="1092"><highlight class="normal"><sp/><sp/><sp/><sp/>$success<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga7c370bcf34de913a6282e4d0356eeb4f" kindref="member">tripal_galaxy_delete_remote_history</ref>($tp_workflow-&gt;galaxy_id,<sp/>$history_name);</highlight></codeline>
+<codeline lineno="1093"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="1094"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>($success)<sp/>{</highlight></codeline>
+<codeline lineno="1095"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>drupal_set_message(</highlight><highlight class="stringliteral">&apos;Successfully<sp/>deleted<sp/>workflow<sp/>invocation:<sp/>&apos;</highlight><highlight class="normal"><sp/>.<sp/>$old_workflow-&gt;invocation_id);</highlight></codeline>
+<codeline lineno="1096"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//disable<sp/>the<sp/>workflow<sp/>on<sp/>the<sp/>site.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1097"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>db_update(</highlight><highlight class="stringliteral">&apos;tripal_galaxy_workflow_submission&apos;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="1098"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;fields(array(</highlight></codeline>
+<codeline lineno="1099"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&apos;status&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/></highlight><highlight class="stringliteral">&apos;Deleted&apos;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>))</highlight></codeline>
+<codeline lineno="1101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;condition(</highlight><highlight class="stringliteral">&apos;invocation_id&apos;</highlight><highlight class="normal">,<sp/>$old_workflow-&gt;invocation_id)</highlight></codeline>
+<codeline lineno="1102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>-&gt;execute();</highlight></codeline>
+<codeline lineno="1103"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1104"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>drupal_set_message(</highlight><highlight class="stringliteral">&apos;Failed<sp/>to<sp/>deleted<sp/>workflow<sp/>invocation:<sp/>&apos;</highlight><highlight class="normal"><sp/>.<sp/>$old_workflow-&gt;invocation_id,<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="1106"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1107"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1108"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1109"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1122" refid="de/db0/group__tripal__galaxy__api_1ga7c370bcf34de913a6282e4d0356eeb4f" refkind="member"><highlight class="keyword">function</highlight><highlight class="normal"><sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga7c370bcf34de913a6282e4d0356eeb4f" kindref="member">tripal_galaxy_delete_remote_history</ref>($galaxy_id,<sp/>$history_name)<sp/>{</highlight></codeline>
+<codeline lineno="1123"><highlight class="normal"><sp/><sp/>$error<sp/>=<sp/>[];</highlight></codeline>
+<codeline lineno="1124"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">try</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="1125"><highlight class="normal"><sp/><sp/><sp/><sp/>$galaxy<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga6c9b43d1467a9a49ac9f7d67df256ce6" kindref="member">tripal_galaxy_get_connection</ref>($galaxy_id);</highlight></codeline>
+<codeline lineno="1126"><highlight class="normal"><sp/><sp/><sp/><sp/>$history<sp/>=<sp/><ref refid="de/db0/group__tripal__galaxy__api_1ga5cbbc1c0c36b1bde0e5756d645a26b9a" kindref="member">tripal_galaxy_get_history</ref>($galaxy,<sp/>$history_name,<sp/>$error);</highlight></codeline>
+<codeline lineno="1127"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$history)<sp/>{</highlight></codeline>
+<codeline lineno="1128"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="1129"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>Exception(</highlight><highlight class="stringliteral">&quot;Cannot<sp/>find<sp/>history,<sp/>$history_name<sp/>:&quot;</highlight><highlight class="normal"><sp/>.<sp/>$error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="1130"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1131"><highlight class="normal"></highlight></codeline>
+<codeline lineno="1132"><highlight class="normal"><sp/><sp/><sp/><sp/>$ghistories<sp/>=<sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>GalaxyHistories($galaxy);</highlight></codeline>
+<codeline lineno="1133"><highlight class="normal"><sp/><sp/><sp/><sp/>$deleted<sp/>=<sp/>$ghistories-&gt;deleteHistory(array(</highlight><highlight class="stringliteral">&apos;history_id&apos;</highlight><highlight class="normal"><sp/>=&gt;<sp/>$history[</highlight><highlight class="stringliteral">&apos;id&apos;</highlight><highlight class="normal">]));</highlight></codeline>
+<codeline lineno="1134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!$deleted)<sp/>{</highlight></codeline>
+<codeline lineno="1135"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>$error<sp/>=<sp/>$galaxy-&gt;getError();</highlight></codeline>
+<codeline lineno="1136"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">throw</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">new</highlight><highlight class="normal"><sp/>Exception(</highlight><highlight class="stringliteral">&quot;Cannot<sp/>delete<sp/>the<sp/>history,<sp/>$history_name<sp/>:&quot;</highlight><highlight class="normal"><sp/>.<sp/>$error[</highlight><highlight class="stringliteral">&apos;message&apos;</highlight><highlight class="normal">]);</highlight></codeline>
+<codeline lineno="1137"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1138"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>TRUE;</highlight></codeline>
+<codeline lineno="1139"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1140"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">catch</highlight><highlight class="normal"><sp/>(Exception<sp/>$e)<sp/>{</highlight></codeline>
+<codeline lineno="1141"><highlight class="normal"><sp/><sp/><sp/><sp/>drupal_set_message(t(</highlight><highlight class="stringliteral">&apos;Could<sp/>not<sp/>delete<sp/>the<sp/>remote<sp/>history.<sp/><sp/>Please<sp/>contact<sp/>the<sp/>web<sp/>site<sp/>administrator<sp/>to<sp/>report<sp/>this<sp/>issue.&apos;</highlight><highlight class="normal">),<sp/></highlight><highlight class="stringliteral">&apos;error&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="1142"><highlight class="normal"><sp/><sp/><sp/><sp/>watchdog_exception(</highlight><highlight class="stringliteral">&apos;tripal_galaxy&apos;</highlight><highlight class="normal">,<sp/>$e);</highlight></codeline>
+<codeline lineno="1143"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>FALSE;</highlight></codeline>
+<codeline lineno="1144"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="1145"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc"/>
+  </compounddef>
+</doxygen>
