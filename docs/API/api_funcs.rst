@@ -1,5 +1,5 @@
 Tripal Galaxy API Functions
 ===========================
-
-.. doxygenfile:: api/tripal_galaxy.api.inc
+   
+.. doxygengroup:: tripal_galaxy_api
    :project: tripal_galaxy

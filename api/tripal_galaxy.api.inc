@@ -1,6 +1,22 @@
 <?php
 
 /**
+ * @file
+ * Provides an application programming interface (API) for the Tripal Galaxy
+ * module.
+ */
+
+/**
+ * @defgroup tripal_galaxy_api Tripal Galaxy API
+ * @{
+ * Provides an application programming interface (API) for integrating Tripal
+ * and Galaxy. It uses the blend4php library to communicate with a remote Galaxy
+ * instances but ensures that other developers who want to integrate with the 
+ * features of the Tripal Galaxy module cab do so.
+ * @}
+ */
+
+/**
  * Retreives a GalaxyInstance objects using a galaxy_id
  *
  * @param $galaxy_id
@@ -9,6 +25,7 @@
  * @return GalaxyInstance
  *   A galaxyInstance object or FALSE on error.
  *
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_connection($galaxy_id) {
   // Get the galaxy server for this workflow
@@ -105,6 +122,8 @@ function tripal_galaxy_split_url($url) {
  *   A workflow object or FALSE on error.  If the workflow has already
  *   been added, then the workflow object is returned and no duplicate
  *   record is added.
+ *   
+ *  @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_add_workflow($galaxy_id, $values, $create_webform = TRUE) {
   
@@ -213,6 +232,8 @@ function tripal_galaxy_add_workflow($galaxy_id, $values, $create_webform = TRUE)
  *   
  * @return 
  *   An array of workflow objects.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_workflows($values = []) {
   $workflows = [];
@@ -253,6 +274,8 @@ function tripal_galaxy_get_workflows($values = []) {
  *   function.
  * @param $user
  *   The Drupal User object. This is the user who owns the submission.
+ *   
+ *  @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_init_submission($workflow, $user) {
 
@@ -292,6 +315,8 @@ function tripal_galaxy_init_submission($workflow, $user) {
  *   
  * @return
  *   An object containing the submisssion information.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_submission($sid) {
   
@@ -325,6 +350,8 @@ function tripal_galaxy_get_submission($sid) {
  *   objects are different from the GalaxyInstance objects provided by 
  *   blend4php.  These objects house the information that Tripal maintains
  *   about each of these servers.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_galaxies() {
   
@@ -352,6 +379,8 @@ function tripal_galaxy_get_galaxies() {
  *   object is different from the GalaxyInstance object provided by
  *   blend4php.  This objects house the information that Tripal maintains
  *   about each the servers.
+ * 
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_galaxy($galaxy_id) {
   
@@ -382,6 +411,8 @@ function tripal_galaxy_get_galaxy($galaxy_id) {
  * @return
  *   The newly created Galaxy object or FALSE on error.  If the record already
  *   exists the object is returned and no duplicated record is added.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_add_galaxy($values) {
 
@@ -424,6 +455,8 @@ function tripal_galaxy_add_galaxy($values) {
  * 
  * @return
  *   An array of submission objects.
+ *   
+ *  @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_active_submissions() {
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
@@ -459,6 +492,8 @@ function tripal_galaxy_get_active_submissions() {
  *   If a workflow submission is already completed this function will
  *   quickly return and not check the status again.  Setting the $force
  *   argument to TRUE will force the function to check the status.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
 
@@ -603,6 +638,8 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
  *
  * @return
  *   The history name.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_history_name($submission) {
   return "TG-" . $submission->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s', $submission->submit_date);
@@ -625,6 +662,8 @@ function tripal_galaxy_get_history_name($submission) {
  *   An array compatible with the $parameters argument for the 
  *   tripal_galaxy_invoke_wokflow(). Values are populatd with appropriate
  *   defaults.  Returns  FALSE if the workflow settings could not be retrieved.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_workflow_defaults($galaxy, $workflow_id) {
   
@@ -644,8 +683,8 @@ function tripal_galaxy_get_workflow_defaults($galaxy, $workflow_id) {
   $parameters = [];
   foreach ($workflow['steps'] as $step => $details) {
     $step_inputs = $details['input_steps'];
-    print_r($step_inputs);
-    _tripal_galaxy_get_workflow_defaults($details['tool_inputs'], $parameters[$step], $step_inputs);
+    $step_input_key = '';
+    _tripal_galaxy_get_workflow_defaults($details['tool_inputs'], $parameters[$step], $step_inputs, $step_input_key);
   }
  
   return $parameters;
@@ -653,24 +692,49 @@ function tripal_galaxy_get_workflow_defaults($galaxy, $workflow_id) {
 
 /**
  * A recursive helper function for tripal_galaxy_get_workflow_defaults.
+ * 
+ * @param $tool_inputs
+ *   The 'tool_inputs' array for the step, or the sub elements on a recursive 
+ *   call.
+ * @param $parameters
+ *   A pass-by-reference of the $parameters array. 
+ * @param $step_inputs
+ *   The 'input_steps' array for the step.  This is always passed as is at
+ *   every recursion level.
+ * @param $step_input_key
+ *   The key used to lookup up if an element has a key in the $step_inputs. For
+ *   nested keys they are concatenated. with a '|' separating each level.
  */
-function _tripal_galaxy_get_workflow_defaults($tool_inputs, &$parameters, $step_inputs) {
+function _tripal_galaxy_get_workflow_defaults($tool_inputs, &$parameters, $step_inputs, $step_input_key) {
   foreach ($tool_inputs as $key => $value) {
+    
     // Skip keys that are just internal to Galaxy.
     if (preg_match('/^__/', $key)) {
       continue;
     }
+    
+    $this_step_input_key = $step_input_key . $key;
+    
+    
+    // If this is an array then we want to recurse.
     if (is_array($value)) {
       $parameters[$key] = [];
-      _tripal_galaxy_get_workflow_defaults($value, $parameters[$key], $step_inputs);
+      _tripal_galaxy_get_workflow_defaults($value, $parameters[$key], $step_inputs, $this_step_input_key . '|');
       if (empty($parameters[$key])) {
-        $parameters[$key] = '';
+        if (is_array($step_inputs) and array_key_exists($this_step_input_key, $step_inputs)) {
+          $parameters[$key] = $step_inputs[$this_step_input_key];
+        }
+        else {
+          $parameters[$key] = '';
+        }
       }
     }
+    // Otherwise just set the value.
     else {
-      // If this is an input step then we need to set it.
-      if (is_array($step_inputs) and array_key_exists($key, $step_inputs)) {
-        $parameters[$key] = $step_inputs[$key];
+      // If this key is an input from another tool we need to get that
+      // information.
+      if (is_array($step_inputs) and array_key_exists($this_step_input_key, $step_inputs)) {
+        $parameters[$key] = $step_inputs[$this_step_input_key];
       }
       else {
         $parameters[$key] = $value;
@@ -716,16 +780,19 @@ function _tripal_galaxy_get_workflow_defaults($tool_inputs, &$parameters, $step_
  *      ],
  *    ];
  *   @endcode
- *   The id's are dataset IDs and can be found using the dataset class's
- *   index() function. The dataset must be present in a history, and the
- *   dataset 'state' must be 'ok' and 'deleted' must be set to FALSE. The
+ *   The id's are data set IDs and can be found using the data set class's
+ *   index() function. The data set must be present in a history, and the
+ *   data set 'state' must be 'ok' and 'deleted' must be set to FALSE. The
  *   {step index> is the numeric value of the step in the workflow where the
  *   file is used.
- * @param $history_id
- *   The ID of the history into which the workflow should be executed.
+ * @param $history
+ *   A history record as returned by the function tripal_galaxy_get_history().
+ *   
+ * @ingroup tripal_galaxy_api
  */
-function tripal_galaxy_invoke_workflow($galaxy, $submission, $parameters, 
-  $inputs, $history_id) {
+function tripal_galaxy_invoke_workflow($galaxy, $submission, $parameters, $inputs, $history) {
+  
+  $history_id = $history['id'];
   
   // Create some handy vairables for working with this submission.
   $workflow_id = $submission->workflow_id;
@@ -799,6 +866,8 @@ function tripal_galaxy_invoke_workflow($galaxy, $submission, $parameters,
  * @throws Exception
  * @return
  *   An array of the dataset details from Galaxy for the uploaded file.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents) {
 
@@ -872,6 +941,8 @@ function tripal_galaxy_upload_file($galaxy, $fid, $history_id, $history_contents
  * @return
  *   A history array for the specified history.  If a failure occured then
  *   FALSE is returned and the $error argument is set.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_history(GalaxyInstance $galaxy, $history_name, &$error) {
 
@@ -916,6 +987,8 @@ function tripal_galaxy_get_history(GalaxyInstance $galaxy, $history_name, &$erro
  * @return
  *   Returns TRUE if accessible. FALSE otherwise.  A Drupal message is
  *   also provided that indicates if the test was successful.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_test_connection($connect) {
 
@@ -968,6 +1041,8 @@ function tripal_galaxy_test_connection($connect) {
  * @return
  *   A Drupal URI indicating the location where Galaxy files are housed.
  *   Returns FALSE if the location does not exist or cannot be created.
+ *   
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_files_dir() {
   global $user;
@@ -990,6 +1065,8 @@ function tripal_galaxy_get_files_dir() {
  * Walks through the tripal_galaxy_workflow_submission table and deletes any 
  * workflows older than specified in the tripal_galaxy_history_age system 
  * variable.
+ * 
+ * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_delete_expired_histories(){
   $max_history_age = time() - variable_get('tripal_galaxy_history_age');
@@ -1039,7 +1116,8 @@ function tripal_galaxy_delete_expired_histories(){
  * @param $history_name
  *   The name of the history to retrieve. If the history doesn't exist then
  *   it will be created.
- * 
+ *   
+ * @ingroup tripal_galaxy_api 
  */
 function tripal_galaxy_delete_remote_history($galaxy_id, $history_name) {
   $error = [];
