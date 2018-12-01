@@ -527,7 +527,7 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
       ->fetchObject();
     
     // Create the workflow submission.
-    $tg_workflow = tripal_galaxy_create_submission($workflow, $user);
+      $tg_workflow = tripal_galaxy_init_submission($workflow, $user);
 
     // Linker table
     $data = [

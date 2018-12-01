@@ -163,7 +163,7 @@ function tripal_galaxy_admin_configuration_form_submit($form, &$form_state) {
       $galaxy = drupal_write_record('tripal_galaxy', $data, 'galaxy_id');
     } // Otherwise it's an insert.
     else {
-      $galaxy = drupal_write_record('tripal_galaxy', $data);
+      $galaxy = tripal_galaxy_add_galaxy($data);
     }
 
     // Insert the new Galaxy Instance into Drupal, return where appropriate.

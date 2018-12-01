@@ -23,4 +23,3 @@ Development of the Tripal Galaxy module and accompanying starter workflows was f
    ./galaxy_integration/viewing_usage_data
    ./galaxy_integration/workflows_and_collections
    ./API/api
-   ./API/api_funcs
