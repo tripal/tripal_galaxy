@@ -37,7 +37,7 @@ function tripal_galaxy_get_connection($galaxy_id) {
 /**
  * Splits a URL to a Galaxy server into the host, port and if HTTPS is required.
  *
- * @param $utl
+ * @param $url
  *   The URL for the remote galaxy instance.
  *
  * @return
@@ -96,7 +96,7 @@ function tripal_galaxy_split_url($url) {
  *   be identified using the Galaxy workflow ID provided using the
  *   'workflow_id' key or using the workflow name provided using the 
  *   'workflow_name' key.
- * @param_$create_webform.
+ * @param $create_webform
  *   If TRUE, creates a webform for the end-user to submit this workflow
  *   using the Tripal website.  It will automatically create a history
  *   for this workflow on the remote Galaxy server as well.
@@ -498,8 +498,6 @@ function tripal_galaxy_check_submission_status($sid = false, $force = FALSE) {
  * @param $submission
  *    A submission object that contains the galaxy_workflow_id, sid,
  *    and submit_date properties.
- * @param $user
- *    The Drupal user object containing the user that should own the history.
  *
  * @return
  *   The history name.
@@ -737,7 +735,7 @@ function tripal_galaxy_get_history(GalaxyInstance $galaxy, $history_name, &$erro
  *    - port: The TCP port for the server.
  *    - use_https:  Set to TRUE of the server uses HTTPS
  *
- * @param
+ * @return
  *   Returns TRUE if accessible. FALSE otherwise.  A Drupal message is
  *   also provided that indicates if the test was successful.
  */

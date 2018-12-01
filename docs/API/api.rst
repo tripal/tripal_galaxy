@@ -62,7 +62,7 @@ In the example code above above, the `tripal_galaxy_get_connection` function ret
   }
 
 Import a Workflow
---------------
+-----------------
 A site administrator can add new workflows to the Tripal using the Tripal Galaxy admin interface.  However, you can programmatically add a new workflow using the `tripal_galaxy_import_workflow` function.  To do this you must know have the ID of the galaxy server and the name of or workflow_id of the workflow.  You can obtain the name and the workflow_id from the Galaxy server. The following code example shows how to use this function:
 
 .. code-block:: php
@@ -97,6 +97,7 @@ Before invoking a workflow you will need to create the history with the Galaxy s
 
 
 .. code-block:: php
+
   // Retrieve the $submission object using a known submission ID.
   $submission = tripal_galaxy_get_submission($sid);
   
@@ -333,8 +334,8 @@ Here is an example of it being used in the tripal_galaxy.api.inc file in the tri
   }
 
   
-  Connect to an Unknown Galaxy Server
-===================================
+Connect to an Unknown Galaxy Server
+----------------------------------- 
 While it is better to connect using a known server, we show an example for how to connect to an unknown Galaxy server.  This is provided here to demonstrate For this you must know the URL to the remote Galaxy server and the URL must be split into it's parts: host, port, and protocol. The `tripal_galaxy_split_url` can do this for you, and you can then create your own instance of the `GalaxyInstance` class.
 
 Here is an example of this in use:
