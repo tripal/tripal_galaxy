@@ -106,8 +106,8 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables)
     $row = $form_rows[$i];
     $rows[] = array(
       drupal_render($row["galaxy_workflow_id" . $i]),
-      '<i>Name on this site:</i> ' . drupal_render($row["workflow_name" . $i]) .
-        '<i>Name on Galaxy server:</i> ' . drupal_render($row["workflow_name_galaxy" . $i]),
+      '<i>Webform Title:</i> ' . drupal_render($row["workflow_name" . $i]) .
+      '<i>Workflow Name:</i> ' . drupal_render($row["workflow_name_galaxy" . $i]),
       drupal_render($row["servername-" . $i]),
       drupal_render($row["workflow_status-" . $i]),
      // drupal_render($row["workflow_ids-" . $i]),

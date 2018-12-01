@@ -4,9 +4,10 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = Tripal
+SPHINXPROJ    = Tripal Galaxy
 SOURCEDIR     = .
 BUILDDIR      = _build
+DOXYGEN       = doxygen
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -17,4 +18,5 @@ help:
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
+	$(DOXYGEN) tripal_galaxy_doxygen.config
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

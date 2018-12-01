@@ -525,19 +525,9 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
       ->condition('workflow_id', $workflow_id)
       ->execute()
       ->fetchObject();
-
-    // To be implemented more properly once inputs are generated
-    $data = [
-      'galaxy_workflow_id' => $workflow->galaxy_workflow_id,
-      'errors' => '',
-      'submit_date' => REQUEST_TIME,
-      'status' => 'Waiting',
-    ];
-
-    // Now insert the submission into the database
-    $tg_workflow = db_insert('tripal_galaxy_workflow_submission')
-                    ->fields($data)
-                    ->execute();
+    
+    // Create the workflow submission.
+      $tg_workflow = tripal_galaxy_init_submission($workflow, $user);
 
     // Linker table
     $data = [
@@ -775,9 +765,10 @@ function tripal_galaxy_workflow_report($sid) {
     'start_time',
     'end_time',
     'invocation_id',
+    'uid',
   ]);
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', ['nid', 'galaxy_id', 'workflow_id']);
+  $query->fields('tgw', ['nid', 'galaxy_id', 'workflow_id', 'workflow_name']);
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
   if (!$submission) {
@@ -785,15 +776,20 @@ function tripal_galaxy_workflow_report($sid) {
   }
 
   $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
+  $title = $submission->workflow_name;
 
-  // Get the node that this workflow belongs to
-  $node = node_load($submission->nid);
-
-  // Does this user have access to this node?
-  if (!node_access('view', $node)) {
-    drupal_access_denied();
-    module_invoke_all('exit');
-    drupal_exit();
+  // If this a webform submission make sure the user has access to the 
+  // node that this workflow belongs to
+  if ($submission->nid) {
+    $node = node_load($submission->nid); 
+  
+    // Does this user have access to this node?
+    if (!node_access('view', $node)) {
+      drupal_access_denied();
+      module_invoke_all('exit');
+      drupal_exit();
+    }
+    $title = $node->title;
   }
 
   // Get the galaxy server
@@ -805,7 +801,7 @@ function tripal_galaxy_workflow_report($sid) {
 
   // Before doing anything check that the history has not been deleted.
   $galaxy_instance = tripal_galaxy_get_connection($submission->galaxy_id);
-  $history_name = tripal_galaxy_get_history_name($submission, $node);
+  $history_name = tripal_galaxy_get_history_name($submission);
   $error = [];
   $history = tripal_galaxy_get_history($galaxy_instance, $history_name, $error);
 
@@ -834,7 +830,7 @@ function tripal_galaxy_workflow_report($sid) {
       'header' => TRUE,
       'width' => '25%',
     ],
-    $node->title,
+    $title,
   ];
   if (user_access('administer galaxy')) {
     $rows[] = [
@@ -911,7 +907,7 @@ function tripal_galaxy_workflow_report($sid) {
   $content['analysis_name'] = [
     '#type' => 'item',
     '#title' => 'Analysis Name',
-    '#markup' => $node->title,
+    '#markup' => $title,
   ];
 
   $content['submission_details'] = [
@@ -1288,48 +1284,32 @@ function tripal_galaxy_download_from_links($link_clicked, $links) {
 function tripal_galaxy_mail($key, &$message, $params) {
 
   $site_name = variable_get('site_name', 'Drupal');
-
-  // Get the submission details.
-  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', [
-    'galaxy_workflow_id',
-    'status',
-    'errors',
-    'submit_date',
-    'start_time',
-    'end_time',
-  ]);
-  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', ['nid', 'galaxy_id']);
-  $query->condition('tgws.sid', $params['sid']);
-  $submission = $query->execute()->fetchObject();
-
-  // Get the node that this workflow belongs to
-  $node = node_load($submission->nid);
+  $submission = $params['submission'];
+  $title = $params['title'];
 
   switch ($key) {
     case 'submission-started':
       $message['subject'] = t("Your job at !site_name has started", ['!site_name' => $site_name]);
-      $message['body'][] = t("You recently submitted a job titled \"!title\".", ['!title' => $node->title]);
+      $message['body'][] = t("You recently submitted a job titled \"!title\".", ['!title' => $title]);
       $message['body'][] = "This job has started.";
       $message['body'][] = "You may check the status of all submitted jobs in the " .
-        l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
+        l('Galaxy Jobs', '/user/' . $submission->uid . '/galaxy-jobs') . ' section of your user account.';
       $message['body'][] = "Thank you.";
       break;
     case 'submission-ended':
       $message['subject'] = t("Your job at !site_name has completed", ['!site_name' => $site_name]);
-      $message['body'][] = t("You recently submitted a job titled \"!title\".", ['!title' => $node->title]);
+      $message['body'][] = t("You recently submitted a job titled \"!title\".", ['!title' => $title]);
       $message['body'][] = "This job has completed.";
       $message['body'][] = "You may obtain results of this job in the " .
-        l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
+        l('Galaxy Jobs', '/user/' . $submission->uid . '/galaxy-jobs') . ' section of your user account.';
       $message['body'][] = "Thank you.";
       break;
     case 'submission-failed':
       $message['subject'] = t("Your job at !site_name has failed", ['!site_name' => $site_name]);
-      $message['body'][] = t("You recently submitted a job titled \"!title\".", ['!title' => $node->title]);
+      $message['body'][] = t("You recently submitted a job titled \"!title\".", ['!title' => $title]);
       $message['body'][] = "This job has failed.";
       $message['body'][] = "You may check the error logs of this job in the " .
-        l('Galaxy Jobs', '/user/' . $node->uid . '/galaxy-jobs') . ' section of your user account.';
+        l('Galaxy Jobs', '/user/' . $submission->uid . '/galaxy-jobs') . ' section of your user account.';
       $message['body'][] = "Thank you.";
       break;
   }
@@ -1344,9 +1324,11 @@ function tripal_galaxy_mail($key, &$message, $params) {
  * @param $uid
  *   The User ID of the user to whom the email will go.
  */
-function tripal_galaxy_send_submission_start_mail($sid, $uid) {
+function tripal_galaxy_send_submission_start_mail($sid) {
 
-  $user = user_load($uid);
+  $submission = tripal_galaxy_get_submission($sid);
+  
+  $user = user_load($submission->uid);
   $module = 'tripal_galaxy';
   $key = 'submission-started';
 
@@ -1358,7 +1340,8 @@ function tripal_galaxy_send_submission_start_mail($sid, $uid) {
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
   $params = [
-    'sid' => $sid,
+    'submission' => $submission,
+    'title' => $submission->webform_title ? $submission->webform_title : $submission->workflow_title,
   ];
 
   // The language of the e-mail.
@@ -1384,9 +1367,11 @@ function tripal_galaxy_send_submission_start_mail($sid, $uid) {
  * @param $uid
  *   The User ID of the user to whom the email will go.
  */
-function tripal_galaxy_send_submission_ended_mail($sid, $uid) {
+function tripal_galaxy_send_submission_ended_mail($sid) {
 
-  $user = user_load($uid);
+  $submission = tripal_galaxy_get_submission($sid);
+  
+  $user = user_load($submission->uid);
   $module = 'tripal_galaxy';
   $key = 'submission-ended';
 
@@ -1398,9 +1383,10 @@ function tripal_galaxy_send_submission_ended_mail($sid, $uid) {
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
   $params = [
-    'sid' => $sid,
+    'submission' => $submission,
+    'title' => $submission->webform_title ? $submission->webform_title : $submission->workflow_title,
   ];
-
+  
   // The language of the e-mail.
   $language = language_default();
 
@@ -1432,12 +1418,11 @@ function tripal_galaxy_send_submission_ended_mail($sid, $uid) {
  *
  * @param $sid
  *   The Submission ID of the job.
- * @param $uid
- *   The User ID of the user to whom the email will go.
  */
-function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
+function tripal_galaxy_send_submission_failed_mail($sid) {
 
-  $user = user_load($uid);
+  $submission = tripal_galaxy_get_submission($sid);
+  $user = user_load($submission->uid);
   $module = 'tripal_galaxy';
   $key = 'submission-failed';
 
@@ -1449,7 +1434,8 @@ function tripal_galaxy_send_submission_failed_mail($sid, $uid) {
   // hook_mail(). In this case, we want to pass in the values the user entered
   // into the form, which include the message body in $form_values['message'].
   $params = [
-    'sid' => $sid,
+    'submission' => $submission,
+    'title' => $submission->webform_title ? $submission->webform_title : $submission->workflow_title,
   ];
 
   // The language of the e-mail.
