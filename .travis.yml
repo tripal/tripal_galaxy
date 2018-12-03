@@ -15,5 +15,7 @@ before_script:
   - sleep 300
 
 script:
+  - docker-compose exec app bash -c 'cd /var/www/html/sites/all/libraries; git clone https://github.com/galaxyproject/blend4php.git'
+  - docker-compose exec -u galaxy galaxy bash -c "sh ./run.sh"
   - docker-compose exec app drush pm-enable -y tripal_galaxy
   - docker-compose exec app bach -c "cd /modules/tripal_galaxy && composer install && DRUPAL_ROOT=/var/www/html ./vendor/bin/phpunit"

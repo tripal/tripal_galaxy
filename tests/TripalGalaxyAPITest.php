@@ -11,8 +11,9 @@ use StatonLab\TripalTestSuite\TripalTestCase;
  */
 
 class TripalGalaxyAPITest extends TripalTestCase {
-  // Uncomment to auto start and rollback db transactions per test method.
-  use DBTransaction;
+
+  // Turn on transactions to rollback database updates after each test.
+  //use DBTransaction;
   
   /**
    * Adds a new Galaxy server.
@@ -32,12 +33,11 @@ class TripalGalaxyAPITest extends TripalTestCase {
     foreach ($required_args as $key) {
       $test_vals = $values;
       unset($test_vals[$key]);
-      $galaxy = tripal_galaxy_add_galaxy($values);
+      $galaxy = tripal_galaxy_add_galaxy($test_vals);
       $this->assertFalse($galaxy,
         'tripal_galaxy_add_galaxy: the response ' .
-        'should be FALSE: missing ' . $key);      
-    }
-    
+        'should be FALSE: missing parameter "' . $key . '"');      
+    }    
     
     // Test proper addition of the galaxy server.
     $galaxy = tripal_galaxy_add_galaxy($values);
@@ -52,6 +52,47 @@ class TripalGalaxyAPITest extends TripalTestCase {
     $this->assertTrue(property_exists($galaxy, 'galaxy_id'), 
       'tripal_galaxy_add_galaxy: The galaxy object is missing the ' . 
       'galaxy_id property.');
-        
+    
+    // Test adding a duplicate. The same galaxy_id should be returned.
+    $galaxy_id = $galaxy->galaxy_id;
+    $galaxy = tripal_galaxy_add_galaxy($values);
+    $this->assertTrue($galaxy->galaxy_id == $galaxy_id,
+      'tripal_galaxy_add_galaxy: should return the same galaxy_id '. 
+      'for a duplicated entry.');  
+     
+    return $galaxy;
+  }
+  
+  /**
+   * @depends testAddGalaxy
+   */  
+  public function testGetGalaxy($galaxy) {
+    // Make sure we can find the Galaxy server we already added.
+    $found = tripal_galaxy_get_galaxy($galaxy->galaxy_id);
+    $this->assertTrue($galaxy->galaxy_id == $found->galaxy_id,
+      'tripal_galaxy_add_galaxy: should return the same galaxy_id '.
+      'for a duplicated entry.');        
+  }
+  
+  /**
+   * @depends testAddGalaxy
+   */
+  public function testConnection($galaxy) {
+
+    // First check we can test if the galaxy_id is provided.
+    $connection = tripal_galaxy_test_connection([
+      'galaxy_id' => $galaxy->galaxy_id]);
+    $this->assertTrue($connection, 
+      'tripal_galaxy_test_connection: connection using galaxy_id failed.');
+    
+    // Second check we can test connection using URL parts.
+    $connection = tripal_galaxy_test_connection([
+      'host' => 'galaxy',
+      'port' =>  '80',
+      'use_https' => FALSE,      
+    ]);
+    $this->assertTrue($connection,
+      'tripal_galaxy_test_connection: connection failed.');
+    
   }
 }
