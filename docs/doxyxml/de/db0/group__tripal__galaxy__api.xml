@@ -1,0 +1,682 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="de/db0/group__tripal__galaxy__api" kind="group">
+    <compoundname>tripal_galaxy_api</compoundname>
+    <title>Tripal Galaxy API</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_add_galaxy</definition>
+        <argsstring>(array $values)</argsstring>
+        <name>tripal_galaxy_add_galaxy</name>
+        <param>
+          <type>array</type>
+          <declname>$values</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Adds a new Galaxy server to Tripal.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>array</parametertype>
+<parametername>$values</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An associative array containing the following key/value pairs:<itemizedlist>
+<listitem><para>servername: A human-readable name for the Galaxy server. The servername must be unique and not already present.</para></listitem><listitem><para>description: (optional) a description about this server.</para></listitem><listitem><para>url: The full URL for the server (e.g. <ulink url="https://usegalaxy.org/">https://usegalaxy.org/</ulink>)</para></listitem><listitem><para>username: The name of the user to connect as.</para></listitem><listitem><para>api_key: The API key of the user. This allows Tripal to access the Galaxy server&apos;s RESTful API services.</para></listitem><listitem><para>uid: The Drupal User ID who created this record.</para></listitem></itemizedlist>
+</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>object The newly created Galaxy object or FALSE on error. If the record already exists the object is returned and no duplicated record is added. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="419" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="419" bodyend="453"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gac0e018b1fb585a9d09bbcc0844be3495" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_add_workflow</definition>
+        <argsstring>(int $galaxy_id, array $values, bool $create_webform=TRUE)</argsstring>
+        <name>tripal_galaxy_add_workflow</name>
+        <param>
+          <type>int</type>
+          <declname>$galaxy_id</declname>
+        </param>
+        <param>
+          <type>array</type>
+          <declname>$values</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>$create_webform</declname>
+          <defval>TRUE</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Adds a remote Galaxy Workflow to Tripal.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$galaxy_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An ID of the galaxy server. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>array</parametertype>
+<parametername>$values</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An associative array used to specify the workflow. The workflow can be identified using the Galaxy workflow ID provided using the &apos;workflow_id&apos; key or using the workflow name provided using the &apos;workflow_name&apos; key. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>bool</parametertype>
+<parametername>$create_webform</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If TRUE, creates a webform for the end-user to submit this workflow using the Tripal website. It will automatically create a history for this workflow on the remote Galaxy server as well.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>object A workflow object or FALSE on error. If the workflow has already been added, then the workflow object is returned and no duplicate record is added. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="128" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="128" bodyend="217"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga7d3d92d3bfcadbba4ad975261aed719d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_check_submission_status</definition>
+        <argsstring>(int $sid=false, bool $force=FALSE)</argsstring>
+        <name>tripal_galaxy_check_submission_status</name>
+        <param>
+          <type>int</type>
+          <declname>$sid</declname>
+          <defval>false</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>$force</declname>
+          <defval>FALSE</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Checks and updates the status of a Galaxy workflow.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$sid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The submission ID of the workflow. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>bool</parametertype>
+<parametername>$force</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If a workflow submission is already completed this function will quickly return and not check the status again. Setting the $force argument to TRUE will force the function to check the status.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>bool Returns TRUE on successful checking of the status, FALSE if a problem occured. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="504" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="504" bodyend="635"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_delete_expired_histories</definition>
+        <argsstring>()</argsstring>
+        <name>tripal_galaxy_delete_expired_histories</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Deletes expired histories.</para><para>Walks through the tripal_galaxy_workflow_submission table and deletes any workflows older than specified in the tripal_galaxy_history_age system variable. </para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1078" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1078" bodyend="1115"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga0c1d8391681ee16b93797089d9bad767" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_delete_remote_history</definition>
+        <argsstring>(int $galaxy_id, string $history_name)</argsstring>
+        <name>tripal_galaxy_delete_remote_history</name>
+        <param>
+          <type>int</type>
+          <declname>$galaxy_id</declname>
+        </param>
+        <param>
+          <type>string</type>
+          <declname>$history_name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Deletes a single remote history from the remote galaxy server.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$galaxy_id</parametername>
+<parametertype>int</parametertype>
+<parametername></parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A unique ID for the galaxy server. If this is provided no other arguments are needed.</para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>string</parametertype>
+<parametername>$history_name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The name of the history to retrieve. If the history doesn&apos;t exist then it will be created.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>bool TRUE if the deletion was successful, FALSE otherwise. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1132" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1132" bodyend="1155"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab25d14cbae238d1d2375db470d39fe42" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_active_submissions</definition>
+        <argsstring>()</argsstring>
+        <name>tripal_galaxy_get_active_submissions</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a list of all workflow submissions that have not completed.</para><para><simplesect kind="return"><para>array An array of submission objects. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="463" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="463" bodyend="486"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga7ecc0a27c271f35edb4aa49d799eb9c9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_connection</definition>
+        <argsstring>(int $galaxy_id)</argsstring>
+        <name>tripal_galaxy_get_connection</name>
+        <param>
+          <type>int</type>
+          <declname>$galaxy_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retreives a GalaxyInstance objects using a galaxy_id</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$galaxy_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The ID of a galaxy server.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>GalaxyInstance A galaxyInstance object or FALSE on error. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="30" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="30" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga8c44bcb1d8e06449fe1be78ef21f622b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_files_dir</definition>
+        <argsstring>()</argsstring>
+        <name>tripal_galaxy_get_files_dir</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Returns the URI where the Tripal Galaxy module stores files.</para><para>This function also ensures that the path exists by creating it.</para><para><simplesect kind="return"><para>string|bool A Drupal URI indicating the location where Galaxy files are housed. Returns FALSE if the location does not exist or cannot be created. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1054" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1054" bodyend="1067"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_galaxies</definition>
+        <argsstring>()</argsstring>
+        <name>tripal_galaxy_get_galaxies</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a list of Galaxy servers that are known to Tripal.</para><para><simplesect kind="return"><para>array An associative array of galaxy server objects. Note, the returned objects are different from the GalaxyInstance objects provided by blend4php. These objects house the information that Tripal maintains about each of these servers. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="358" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="358" bodyend="369"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga9ab413a396a4a875c1126ccde8ade9f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_galaxy</definition>
+        <argsstring>(int $galaxy_id)</argsstring>
+        <name>tripal_galaxy_get_galaxy</name>
+        <param>
+          <type>int</type>
+          <declname>$galaxy_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a Galaxy object.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$galaxy_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The ID of the galaxy server to retrieve. A list of all galxy servers known to Tripal can be retrieved using the <ref refid="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" kindref="member">tripal_galaxy_get_galaxies()</ref> function.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>object A galaxy object Note, the returned object is different from the GalaxyInstance object provided by blend4php. This objects house the information that Tripal maintains about each the servers. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="387" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="387" bodyend="397"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga2d2f96c66a66a5599102db7f05cf74b6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_history</definition>
+        <argsstring>(GalaxyInstance $galaxy, string $history_name, array &amp;$error)</argsstring>
+        <name>tripal_galaxy_get_history</name>
+        <param>
+          <type>GalaxyInstance</type>
+          <declname>$galaxy</declname>
+        </param>
+        <param>
+          <type>string</type>
+          <declname>$history_name</declname>
+        </param>
+        <param>
+          <type>array &amp;</type>
+          <declname>$error</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a history by name from Galaxy.</para><para>If the history does not exist then one is created.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>object</parametertype>
+<parametername>$galaxy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A GalaxyInstance object </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>string</parametertype>
+<parametername>$history_name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The name of the history to retrieve. If the history doesn&apos;t exist then it will be created. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>array</parametertype>
+<parametername>$error</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An empty array into which the error type and message will be placed if an error occurs.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>array|bool A history array for the specified history. If a failure occured then FALSE is returned and the $error argument is set. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="954" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="954" bodyend="981"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaade840f662e8ee712b1a27462b86c072" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_history_name</definition>
+        <argsstring>(object $submission)</argsstring>
+        <name>tripal_galaxy_get_history_name</name>
+        <param>
+          <type>object</type>
+          <declname>$submission</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Constructs the history name for a given submission.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>object</parametertype>
+<parametername>$submission</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A submission object that contains the galaxy_workflow_id, sid, and submit_date properties.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>string The history name. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="650" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="650" bodyend="652"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaf8ee6e07586607a7a28bae4bc6d4f315" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_submission</definition>
+        <argsstring>(int $sid)</argsstring>
+        <name>tripal_galaxy_get_submission</name>
+        <param>
+          <type>int</type>
+          <declname>$sid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a workflow submission object using the submission ID.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$sid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The submission ID of the workflow.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>object An object containing the submisssion information. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="323" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="323" bodyend="345"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga07df12107893bc6516804cc4e17ffefd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_workflow_defaults</definition>
+        <argsstring>(GalaxyInstance $galaxy, int $workflow_id)</argsstring>
+        <name>tripal_galaxy_get_workflow_defaults</name>
+        <param>
+          <type>GalaxyInstance</type>
+          <declname>$galaxy</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>$workflow_id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves an array of settings used by the workflow.</para><para>This is a helpful function to help a developer understand how the $parameters array should be structured when passing into the <ref refid="de/db0/group__tripal__galaxy__api_1ga95dc1837f43f752de2ba310bb9f9bb1c" kindref="member">tripal_galaxy_invoke_workflow()</ref> function.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>GalaxyInstance</parametertype>
+<parametername>$galaxy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A GalaxyInstance object. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$workflow_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The ID of the workflow to retrieve settings for. This is the Galaxy ID for the workflow.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>An array compatible with the $parameters argument for the tripal_galaxy_invoke_wokflow(). Values are populatd with appropriate defaults. Returns FALSE if the workflow settings could not be retrieved. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="674" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="674" bodyend="697"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga8abde38e7305740399ad8559def04c62" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_workflows</definition>
+        <argsstring>(array $values=[])</argsstring>
+        <name>tripal_galaxy_get_workflows</name>
+        <param>
+          <type>array</type>
+          <declname>$values</declname>
+          <defval>[]</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieves a list of workflows matching the given criteria.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>array</parametertype>
+<parametername>$values</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An associative array used to find workflows. The following keys are supported:<itemizedlist>
+<listitem><para>galaxy_id: finds all workflows that match the given galayx_id.</para></listitem><listitem><para>id: finds the workflow with this specific workflow ID.</para></listitem><listitem><para>workflow_id: the ID of the workflow on the remote Galaxy instance.</para></listitem><listitem><para>name: finds the workflow with a given name. Note: the workflow name is not guranteed to be unique.</para></listitem><listitem><para>status: finds all workflows whose status matches the value provided. Any combination of the keys can be used.</para></listitem></itemizedlist>
+</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>array An array of workflow objects. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="238" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="238" bodyend="265"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga79d0bb2854e04ad13e971d00bff47045" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_init_submission</definition>
+        <argsstring>(object $workflow, object $user)</argsstring>
+        <name>tripal_galaxy_init_submission</name>
+        <param>
+          <type>object</type>
+          <declname>$workflow</declname>
+        </param>
+        <param>
+          <type>object</type>
+          <declname>$user</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Initializes a new workflow submission record.</para><para>This function creates the record for the submission.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>object</parametertype>
+<parametername>$workflow</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An workflow object as generated by the tripal_galaxy_get_workflow() function. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>object</parametertype>
+<parametername>$user</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The Drupal User object. This is the user who owns the submission.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>int|bool The submission ID on success, FALSE on failure. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="283" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="283" bodyend="310"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga95dc1837f43f752de2ba310bb9f9bb1c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_invoke_workflow</definition>
+        <argsstring>(GalaxyInstance $galaxy, object $submission, array $parameters, array $inputs, array $history)</argsstring>
+        <name>tripal_galaxy_invoke_workflow</name>
+        <param>
+          <type>GalaxyInstance</type>
+          <declname>$galaxy</declname>
+        </param>
+        <param>
+          <type>object</type>
+          <declname>$submission</declname>
+        </param>
+        <param>
+          <type>array</type>
+          <declname>$parameters</declname>
+        </param>
+        <param>
+          <type>array</type>
+          <declname>$inputs</declname>
+        </param>
+        <param>
+          <type>array</type>
+          <declname>$history</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Invokes all submitted workflows that are in the &apos;Waiting&apos; state.</para><para>This function can be called by the tripal Job system hence the $job argument. For Tripal v2 the job_id is passed, for Tripal v3 a job object is passed so we&apos;ll handle both cases.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>GalxyInstnace</parametertype>
+<parametername>$galaxy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An instance of a GalaxyInstance object. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>object</parametertype>
+<parametername>$submission</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A Galaxy workflow submission object. This object can be retrieved using the <ref refid="de/db0/group__tripal__galaxy__api_1gaf8ee6e07586607a7a28bae4bc6d4f315" kindref="member">tripal_galaxy_get_submission()</ref> function. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>array</parametertype>
+<parametername>$parameters</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A mapping of tool parameters that are non-datasets parameters. The map must be in the following format: <programlisting><codeline><highlight class="normal">[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>{step_id_or_UUID}<sp/>=&gt;<sp/>[{param_name}<sp/>=&gt;<sp/>{value}],</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>{step_id_or_UUID}<sp/>=&gt;<sp/>[{param_name}<sp/>=&gt;<sp/>{value}]</highlight></codeline>
+<codeline><highlight class="normal">];</highlight></codeline>
+</programlisting> </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>array</parametertype>
+<parametername>$inputs</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An array of file inputs. These files should already be uploaded to the history on the Galaxy server. This array contains a mapping of workflow inputs to datasets and dataset collections. The datasets source can be a LibraryDatasetDatasetAssociation (ldda), LibraryDataset (ld), HistoryDatasetAssociation (hda), or HistoryDatasetCollectionAssociation (hdca). The map must be in the following format <programlisting><codeline><highlight class="normal">[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>{step<sp/>index}<sp/>=&gt;<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;id&apos;<sp/>=&gt;<sp/>{encoded<sp/>dataset<sp/>ID},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&apos;src&apos;<sp/>=&gt;<sp/>{&apos;ldda&apos;|&apos;ld&apos;|&apos;hda&apos;|&apos;hdca&apos;}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>],</highlight></codeline>
+<codeline><highlight class="normal">];</highlight></codeline>
+</programlisting> The id&apos;s are data set IDs and can be found using the data set class&apos;s index() function. The data set must be present in a history, and the data set &apos;state&apos; must be &apos;ok&apos; and &apos;deleted&apos; must be set to FALSE. The {step index&gt; is the numeric value of the step in the workflow where the file is used. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>array</parametertype>
+<parametername>$history</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>A history record as returned by the function <ref refid="de/db0/group__tripal__galaxy__api_1ga2d2f96c66a66a5599102db7f05cf74b6" kindref="member">tripal_galaxy_get_history()</ref>. </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="801" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="801" bodyend="856"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga59906aa5301eccfee60f1ac153f02f92" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_test_connection</definition>
+        <argsstring>(array $connect)</argsstring>
+        <name>tripal_galaxy_test_connection</name>
+        <param>
+          <type>array</type>
+          <declname>$connect</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Tests if a Galaxy server is accessible.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>array</parametertype>
+<parametername>$connect</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An array of the following:<itemizedlist>
+<listitem><para>galaxy_id: A unique ID for the galaxy server. If this is provided no other arguments are needed.</para></listitem><listitem><para>host: The DNS hostname of the galaxy server.</para></listitem><listitem><para>port: The TCP port for the server.</para></listitem><listitem><para>use_https: Set to TRUE of the server uses HTTPS</para></listitem></itemizedlist>
+</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>bool Returns TRUE if accessible. FALSE otherwise. A Drupal message is also provided that indicates if the test was successful. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1000" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1000" bodyend="1040"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga5525c38955ed320d326413498a4d0a5d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_upload_file</definition>
+        <argsstring>(object $galaxy, int $fid, int $history_id, array $history_contents)</argsstring>
+        <name>tripal_galaxy_upload_file</name>
+        <param>
+          <type>object</type>
+          <declname>$galaxy</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>$fid</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>$history_id</declname>
+        </param>
+        <param>
+          <type>array</type>
+          <declname>$history_contents</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Uploads a file to a given history on Galaxy.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>object</parametertype>
+<parametername>$galaxy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>An instance of a Galaxy server object. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$fid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The Drupal managed file ID. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$history_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The history ID. </para></parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametertype>array</parametertype>
+<parametername>$history_contents</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The Galaxy history contents array as returned by the GalaxyHistoryContents::index function.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="exception"><parameteritem>
+<parameternamelist>
+<parametername>Exception</parametername>
+</parameternamelist>
+<parameterdescription>
+<para></para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>array An array of the dataset details from Galaxy for the uploaded file. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="879" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="879" bodyend="932"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides an application programming interface (API) for integrating Tripal and Galaxy. It uses the blend4php library to communicate with a remote Galaxy instances but ensures that other developers who want to integrate with the features of the Tripal Galaxy module cab do so. </para>    </detaileddescription>
+  </compounddef>
+</doxygen>

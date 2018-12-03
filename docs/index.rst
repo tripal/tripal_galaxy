@@ -14,11 +14,12 @@ Development of the Tripal Galaxy module and accompanying starter workflows was f
    :maxdepth: 4
    :caption: Tripal Galaxy Exetension Module
 
-   ./galaxy_integration/install.rst
-   ./galaxy_integration/user_quotas.rst
-   ./galaxy_integration/site_wide_files.rst
-   ./galaxy_integration/remote_servers.rst
-   ./galaxy_integration/workflows.rst
-   ./galaxy_integration/job_queue.rst
-   ./galaxy_integration/viewing_usage_data.rst
-   ./galaxy_integration/workflows_and_collections.rst
+   ./galaxy_integration/install
+   ./galaxy_integration/user_quotas
+   ./galaxy_integration/site_wide_files
+   ./galaxy_integration/remote_servers
+   ./galaxy_integration/workflows
+   ./galaxy_integration/job_queue
+   ./galaxy_integration/viewing_usage_data
+   ./galaxy_integration/workflows_and_collections
+   ./API/api

@@ -635,7 +635,7 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
               $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
             }
             else {
-              $extra['items'] .= $step['id'] . "|" . $val[0] . "\n";
+              $extra['items'] .=  "--empty--|" . $val[0] . "\n";
             }
           }
         }
@@ -653,7 +653,7 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step,
             $extra['items'] .= $val[1] . "|" . $val[0] . "\n";
           }
           else {
-            $extra['items'] .= $step['id'] . "|" . $val[0] . "\n";
+            $extra['items'] .=  "--empty--|" . $val[0] . "\n";
           }
         }
       }
@@ -1072,14 +1072,9 @@ function tripal_galaxy_build_webform_get_step_defaults($defaults, $tool_input, &
  *   The webform submission ID.
  */
 function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
-  // Get the workflows that need execution
-  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws');
-  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
-  $query->condition('tgws.sid', $sid);
-  $submission = $query->execute()->fetchObject();
   
+  // Get the workflow details that need execution.
+  $submission = tripal_galaxy_get_submission($sid);  
   if (!$submission) {
     throw new Exception('The provided submission ID does not exist');
   }
@@ -1090,9 +1085,6 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
     $error = $galaxy->getError();
     throw new Exception('Cannot connect to Galaxy server:' . $error['message']);
   }
-  
-  // The node for this submission
-  $node = node_load($submission->nid);
   
   // The array where the workflow input parameters are stored.
   $parameters = [];
@@ -1108,7 +1100,7 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
 
   // Get the history that we'll use for this submission.
   $error = [];
-  $history_name = tripal_galaxy_get_history_name($submission, $node);
+  $history_name = tripal_galaxy_get_history_name($submission);
   $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
   if (!$history) {
     $error = $galaxy->getError();
@@ -1129,6 +1121,13 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
   $collections = [];
   $inputs = [];
   foreach ($submitted_data as $data) {
+    
+    // Webform select component doesn't like an option with an empty value 
+    // so we had to force one by using the special string '--empty--'. Before
+    // we invoke the workflow we must switch it back to an empty value.
+    if ($data->data == '--empty--') {
+      $data->data = '';
+    }
     
     // Handle a single file upload.
     if ($data->type == 'galaxy_sfile') {
@@ -1389,8 +1388,8 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
   }
   
   // Call the Tripal Galaxy API function to invoke this workflow.
-  tripal_galaxy_invoke_workflow($galaxy, $submission->workflow_id, $parameters, 
-    $input_datasets, $history['id'], $sid, $node->uid);
+  tripal_galaxy_invoke_workflow($galaxy, $submission, $parameters, 
+    $input_datasets, $history);
 }
 
 /**
