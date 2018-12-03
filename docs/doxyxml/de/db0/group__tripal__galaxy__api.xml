@@ -85,15 +85,15 @@
         </inbodydescription>
         <location file="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="128" column="1" bodyfile="/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="128" bodyend="217"/>
       </memberdef>
-      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga7d3d92d3bfcadbba4ad975261aed719d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaa666f881b052ec82ed674da24eb100c2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
         <definition>tripal_galaxy_check_submission_status</definition>
-        <argsstring>(int $sid=false, bool $force=FALSE)</argsstring>
+        <argsstring>(int $sid=NULL, bool $force=FALSE)</argsstring>
         <name>tripal_galaxy_check_submission_status</name>
         <param>
           <type>int</type>
           <declname>$sid</declname>
-          <defval>false</defval>
+          <defval>NULL</defval>
         </param>
         <param>
           <type>bool</type>

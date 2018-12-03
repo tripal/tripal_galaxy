@@ -11,10 +11,9 @@ env:
   - DRUPAL_ROOT=/var/www/html
 
 before_script:
-  - docker pull statonlab/tripal3
+  - docker-compose up -d
+  - sleep 300
 
 script:
-  - docker run -it -d --rm --name tripal -v "$(pwd)":/modules/tripal_galaxy statonlab/tripal3
-  - sleep 30 # We pause here so postgres and apache complete booting up
-  - docker exec -it tripal drush pm-enable -y tripal_galaxy
-  - docker exec -it tripal bash -c "cd /modules/tripal_galaxy && composer install && DRUPAL_ROOT=/var/www/html ./vendor/bin/phpunit"
+  - docker-compose exec app drush pm-enable -y tripal_galaxy
+  - docker-compose exec app bach -c "cd /modules/tripal_galaxy && composer install && DRUPAL_ROOT=/var/www/html ./vendor/bin/phpunit"
