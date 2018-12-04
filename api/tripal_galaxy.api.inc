@@ -17,7 +17,7 @@
  */
 
 /**
- * Retreives a GalaxyInstance objects using a galaxy_id
+ * Retrieves a GalaxyInstance objects using a galaxy_id
  *
  * @param int $galaxy_id
  *   The ID of a galaxy server.
@@ -380,11 +380,17 @@ function tripal_galaxy_get_galaxies() {
  *   A galaxy object  Note, the returned
  *   object is different from the GalaxyInstance object provided by
  *   blend4php.  This objects house the information that Tripal maintains
- *   about each the servers.
+ *   about each the servers. Returns FALSE on error.
  * 
  * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_galaxy(int $galaxy_id) {
+  
+  if (!$galaxy_id) {
+    tripal_report_error('tripal_galaxy', TRIPAL_ERROR,
+      'tripal_galaxy_get_galaxy: missing required field "$galaxy_id"');
+    return FALSE;
+  }
   
   $galaxies = [];
   $galaxy = db_select('tripal_galaxy', 'tg')
@@ -990,6 +996,9 @@ function tripal_galaxy_get_history(GalaxyInstance $galaxy, string $history_name,
  *    - host: The DNS hostname of the galaxy server.
  *    - port: The TCP port for the server.
  *    - use_https:  Set to TRUE of the server uses HTTPS
+ *   If the 'galaxy_id' is provided then no other values are needed. Use the
+ *   host, port and use_https arguments if testing connection to a server that
+ *   has not yet been added.
  *
  * @return bool
  *   Returns TRUE if accessible. FALSE otherwise.  A Drupal message is

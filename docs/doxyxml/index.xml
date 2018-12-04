@@ -4,7 +4,7 @@
     <member refid="df/d55/tripal__galaxy_8api_8inc_1aee35f9000f503ad715947aa4af7d465e" kind="function"><name>_tripal_galaxy_get_workflow_defaults</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" kind="function"><name>tripal_galaxy_add_galaxy</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gac0e018b1fb585a9d09bbcc0844be3495" kind="function"><name>tripal_galaxy_add_workflow</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga7d3d92d3bfcadbba4ad975261aed719d" kind="function"><name>tripal_galaxy_check_submission_status</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1gaa666f881b052ec82ed674da24eb100c2" kind="function"><name>tripal_galaxy_check_submission_status</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" kind="function"><name>tripal_galaxy_delete_expired_histories</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga0c1d8391681ee16b93797089d9bad767" kind="function"><name>tripal_galaxy_delete_remote_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab25d14cbae238d1d2375db470d39fe42" kind="function"><name>tripal_galaxy_get_active_submissions</name></member>
@@ -26,7 +26,7 @@
   <compound refid="de/db0/group__tripal__galaxy__api" kind="group"><name>tripal_galaxy_api</name>
     <member refid="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" kind="function"><name>tripal_galaxy_add_galaxy</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gac0e018b1fb585a9d09bbcc0844be3495" kind="function"><name>tripal_galaxy_add_workflow</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga7d3d92d3bfcadbba4ad975261aed719d" kind="function"><name>tripal_galaxy_check_submission_status</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1gaa666f881b052ec82ed674da24eb100c2" kind="function"><name>tripal_galaxy_check_submission_status</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" kind="function"><name>tripal_galaxy_delete_expired_histories</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga0c1d8391681ee16b93797089d9bad767" kind="function"><name>tripal_galaxy_delete_remote_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab25d14cbae238d1d2375db470d39fe42" kind="function"><name>tripal_galaxy_get_active_submissions</name></member>
