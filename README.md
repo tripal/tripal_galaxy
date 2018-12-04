@@ -15,6 +15,6 @@ docker-compose exec app bash -c 'cd /var/www/html/sites/all/libraries; git clone
 docker-compose exec app bash -c "cd /var/www/html; drush en -y tripal_galaxy"
 
 # Start the Unit tests
-docker-compose exec -u apache app bash -c 'cd /modules/tripal_galaxy; ./vendor/bin/phpunit'
+docker-compose exec app bash -c 'cd /modules/tripal_galaxy; ./vendor/bin/phpunit'
 ```
 
