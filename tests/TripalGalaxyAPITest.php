@@ -16,7 +16,7 @@ class TripalGalaxyAPITest extends TripalTestCase {
   //use DBTransaction;
   
   /**
-   * Adds a new Galaxy server.
+   * Tests tripal_galaxy_add_galaxy().
    */
   public function testAddGalaxy() {
     $values = [
@@ -64,9 +64,11 @@ class TripalGalaxyAPITest extends TripalTestCase {
   }
   
   /**
+   * Tests tripal_galaxy_test_connection().
+   * 
    * @depends testAddGalaxy
    */  
-  public function testGetGalaxy($galaxy) {
+  public function tripal_galaxy_get_galaxy($galaxy) {
     // Make sure we can find the Galaxy server we already added.
     $found = tripal_galaxy_get_galaxy($galaxy->galaxy_id);
     $this->assertTrue($galaxy->galaxy_id == $found->galaxy_id,
@@ -75,6 +77,8 @@ class TripalGalaxyAPITest extends TripalTestCase {
   }
   
   /**
+   * Tests tripal_galaxy_test_connection().
+   * 
    * @depends testAddGalaxy
    */
   public function testConnection($galaxy) {
@@ -95,4 +99,17 @@ class TripalGalaxyAPITest extends TripalTestCase {
       'tripal_galaxy_test_connection: connection failed.');
     
   }
+  
+  /**
+   * Setup the Galaxy server to have the workflow we need for testing.
+   * 
+   * This will use blend4php directly and since we aren't testing that
+   * library we'll ust load up the data here as a provider.
+   * 
+   * @depends testAddGalaxy
+   */
+  public function loadWorkflow() {
+    
+  }
+ 
 }

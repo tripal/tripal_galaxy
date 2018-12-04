@@ -1162,11 +1162,3 @@ function tripal_galaxy_delete_remote_history(int $galaxy_id, string $history_nam
     return FALSE;
   }
 }
-
-
-/**
- * 
- */
-function tripal_galaxy_import_workflow() {
-  
-}
