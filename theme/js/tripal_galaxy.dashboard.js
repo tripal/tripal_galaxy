@@ -15,63 +15,66 @@ Drupal.behaviors.tripalGalaxyDashboard = {
       
       // Function to handle histogram.
       function barChart(fD){
-          var hG={}, hGDim = {t: 60, r: 0, b: 30, l: 0};
-          if (fD.length > 0) {
-            hGDim.w = (900 * fD.length/10) - hGDim.l - hGDim.r;
-          }
-          else {
-            hGDim.w = 900 - hGDim.l - hGDim.r;
-          }
-          hGDim.h = (300) - hGDim.t - hGDim.b;
+          var chart_width = 600;
+          var chart_height = 300;
+          var top_margin = 30;
+          var left_margin = 300;
+          var right_margin = 30;
                         
-          // Create svg for histogram.
+          // Create SVG for histogram.
           var hGsvg = d3.select(id).append("svg")
-              .attr("width", hGDim.w + hGDim.l + hGDim.r)
-              .attr("height", hGDim.h + hGDim.t + hGDim.b).append("g")
-              .attr("transform", "translate(" + hGDim.l + "," + hGDim.t + ")");
+              .attr("width", chart_width)
+              .attr("height", chart_height)
+              .append("g");
+              
     
-          // create function for x-axis mapping.
-          var x = d3.scale.ordinal().rangeRoundBands([0, hGDim.w], 0.1)
-                  .domain(fD.map(function(d) { return d.name;}));
-
-          // Add x-axis to the histogram svg.
-          var xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom");
+          // Create function for mapping of data to x and y axes.
+          var x = d3.scale.linear().range([0, chart_width - (left_margin + right_margin)])
+            .domain([0, d3.max(fD, function(d) { return d.count; })]);
           
-          hGsvg.append("g")
-            .attr("class", "x tripal-galaxy-usage-axis")
-            .attr("transform", "translate(0," + hGDim.h + ")")
-            .call(xAxis);
-    
+          var y = d3.scale.ordinal().rangeRoundBands([0, chart_height - top_margin], 0.1)
+            .domain(fD.map(function(d) { return d.name;}));
+          
           // Create function for y-axis map.
-          var y = d3.scale.linear().range([hGDim.h, 0])
-                  .domain([0, d3.max(fD, function(d) { return d.count; })]);
-    
           var yAxis = d3.svg.axis()
             .scale(y)
             .orient("left");
-      
+          
+          var xAxis = d3.svg.axis()
+            .scale(x)
+            .ticks(4)
+            .tickSubdivide(0);
+          
+          // Add axes to the histogram svg.  
+          hGsvg.append("g")
+            .attr("class", "x tripal-galaxy-usage-axis")
+            .attr("transform", "translate(" + left_margin + ", 0)")
+            .call(xAxis);
+          
           hGsvg.append("g")
             .attr("class", "y tripal-galaxy-usage-axis")
-            .call(yAxis);
+            .attr("transform", "translate(" + left_margin + ", " + top_margin + ")")
+            .call(yAxis)
           
           // Create bars for histogram to contain rectangles and labels.
-          var bars = hGsvg.selectAll(".bar").data(fD.map(function(d) {return [d.name, d.count]})).enter()
-                  .append("g").attr("class", "bar");
-          
+          var bars = hGsvg.selectAll(".bar")
+             .data(fD.map(function(d) {return [d.name, d.count]}))
+             .enter()
+             .append("g")
+             .attr("class", "bar");
+
           // Create the rectangles.
           bars.append("rect")
-              .attr("x", function(d) { return x(d[0]); })
-              .attr("y", function(d) { return y(d[1]); })
-              .attr("width", x.rangeBand())
-              .attr("height", function(d) { return hGDim.h - y(d[1]); })
+              .attr("x", function(d) { return left_margin; })
+              .attr("y", function(d) { return y(d[0])  + top_margin; })
+              .attr("height", y.rangeBand())
+              .attr("width", function(d) { return x(d[1]); })
               .attr('fill', function(d, i) { return c10(i); })
               
-          // Create the labels above the rectangles.
+          // Create the quantity labels to the right of the rectangles.
           bars.append("text").text(function(d){ return d3.format(",")(d[1])})
-              .attr("x", function(d) { return x(d[0])+x.rangeBand()/2; })
-              .attr("y", function(d) { return y(d[1])-5; })
+              .attr("x", function(d) { return left_margin + x(d[1]) + 10; })
+              .attr("y", function(d) { return y(d[0]) + (y.rangeBand()/2) + top_margin; })
               .attr("text-anchor", "middle");
           
       }
@@ -97,9 +100,9 @@ Drupal.behaviors.tripalGalaxyDashboard = {
           return leg;
       }
       
-     // Create the histogram and legends.
-      var hG = barChart(fData), 
-          leg= legend(fData);  
+      // Create the histogram and legends.
+      var hG = barChart(fData); 
+          //leg= legend(fData);  
     }
     
     

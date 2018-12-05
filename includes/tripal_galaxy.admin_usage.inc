@@ -125,12 +125,12 @@ function tripal_galaxy_admin_usage_page() {
     </div>
     <div id=\"tripal-galaxy-usage-users\" class=\"tripal-galaxy-usage-pane\">
       <h2>Top 10 Submitters</h2>
-      <p>The following chart shows the top 10 users that have submitted workflows.</p>
+      <p>The following bar chart shows the top 10 users that have submitted workflows.</p>
       <div id=\"tripal-galaxy-usage-users-chart\"></div>
     </div>
     <div id=\"tripal-galaxy-usage-workflows\" class=\"tripal-galaxy-usage-pane\">
       <h2>Top 10 Workflows Submitted</h2>
-      <p>The following chart shows the top 10 workflows that have been submitted.</p>
+      <p>The following bar chart shows the top 10 workflows that have been submitted.</p>
       <div id=\"tripal-galaxy-usage-workflows-chart\"></div>
     </div>
   ";
