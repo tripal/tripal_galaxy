@@ -11,6 +11,7 @@ The Tripal Galaxy module is designed to support integration of [Tripal](http://t
 The Tripal Galaxy module provides more than just a “wrapper” for Galaxy. Site administrators can provide files to help end-users easily integrate data from the site within workflows. On Tripal v3 sites, user’s can create data collection containing data gleaned from the site which in turn can be used in Galaxy workflows. Quotas are provided to prevent users from overunning the storage space of the server and usage statistics help a site admin learn which workflows are most used and who are the biggest users.
 
 # How does it work!
+## Option 1: Create a web form for a workflow
 1. Identify users who need analyatical workflows within the research community that your Tripal site supports.
 2. Determine if you have access to a Galaxy server that has the space and computational resources to support these analyses. The [Use Galaxy server](https://usegalaxy.org/) is an option but is a globally shared resources.
 3. Create the workflow using the Galaxy web interface, or consider trying some pre-existing workflows housed at the [Staton Lab Galaxy Workflows repository](https://github.com/statonlab/galaxy-workflows).   You can edit those workflows as needed to meet your needs.
@@ -18,6 +19,11 @@ The Tripal Galaxy module provides more than just a “wrapper” for Galaxy. Sit
 5. Use the Tripal Galaxy module to create a webform within your Tripal site to allow users to execute the workflow.  User's need not interact with Galaxy at all.
 6. Set users quotas using Tripal to ensure you do not overun the storage space on your server.
 7. Create a link to the workflow in an accessible location so end-users can run the workflow.
+
+## Option 2: Use a Galaxy workflow to power an application
+1. Create a Galaxy workflow that will execute the analysis you need for your application using the Galaxy web interface.
+2. Create a web front-end for an application to run on your Tripal site.  Use the Tripal API, Drupal API, and other visualization libraries you need.
+3. Use the Tripal Galaxy API to write code that submits the workflow behind-the-scenes, checks the status and retrieves results.
 
 # Installation
 Please view the [latest online documentation](https://tripal-galaxy.readthedocs.io/en/latest/).
