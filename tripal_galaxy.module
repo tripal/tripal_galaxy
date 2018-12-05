@@ -755,22 +755,7 @@ function tripal_galaxy_workflow_report($sid) {
   ]);
 
   // Get the submission details.
-  $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', [
-    'sid',
-    'galaxy_workflow_id',
-    'status',
-    'errors',
-    'submit_date',
-    'start_time',
-    'end_time',
-    'invocation_id',
-    'uid',
-  ]);
-  $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', ['nid', 'galaxy_id', 'workflow_id', 'workflow_name']);
-  $query->condition('tgws.sid', $sid);
-  $submission = $query->execute()->fetchObject();
+  $submission = tripal_galaxy_get_submission($sid);
   if (!$submission) {
     return FALSE;
   }
@@ -937,12 +922,8 @@ function tripal_galaxy_workflow_report($sid) {
   ];
 
 
-  $galaxy_server = db_select('tripal_galaxy', 'tg')
-    ->fields('tg')
-    ->condition('galaxy_id', $submission->galaxy_id)
-    ->execute()
-    ->fetchObject();
-
+  // Get details about the galaxy server and the connection to Galaxy.
+  $galaxy_server = tripal_galaxy_get_galaxy($submission->galaxy_id);
   $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
 
   $content['results'] = [
@@ -1498,6 +1479,7 @@ function tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submissio
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['uid'] = $node->uid;
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['name'] = $history_content['name'];
   $_SESSION['tripal_galaxy_proxy_urls'][$id]['file_size'] = $history_content['file_size'];
+  $_SESSION['tripal_galaxy_proxy_urls'][$id]['galaxy_id'] = $submission->galaxy_id;
   return $id;
 }
 
@@ -1510,8 +1492,15 @@ function tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submissio
 function tripal_galaxy_stream_url_proxy($proxy_id) {
 
   $url = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['url'];
-  //$url = $url . '?key=' . $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['key'];
-
+  return tripal_galaxy_stream_url_proxy_url($url);
+}
+/**
+ * Retrieves content from a Galaxy URL and stream it back.
+ *
+ * @param $url
+ *  A valid URL on the remote Galaxy server.
+ */
+function tripal_galaxy_stream_url_proxy_url($url) {
   $headers = get_headers($url);
   $ch = curl_init();
 
@@ -1537,9 +1526,62 @@ function tripal_galaxy_stream_url_proxy($proxy_id) {
  * @param $proxy_id
  *  A unique proxy ID that maps to a URL.
  */
+function tripal_galaxy_stream_link_proxy($proxy_id) {
+  if (array_key_exists($proxy_id, $_SESSION['tripal_galaxy_proxy_urls'])) {
+    // The link that was rewritten in the tripal_galaxy_results_viewer_full_page
+    // is passed in as the 'url' variable.
+    $addition = $_GET['url'];
+    
+    // Get the current proxy details, so we can map links for download.
+    $cproxy = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id];    
+    $galaxy = tripal_galaxy_get_connection($cproxy['galaxy_id']);
+    
+    // Get the history ID and the dataset ID so we can build the URL.
+    $history_id = '';
+    $dataset_id = '';
+    $matches = [];
+    preg_match('/histories\/(.*?)\/contents\/(.*?)\/display/', $cproxy['url'], $matches);
+    if (count($matches) > 1) {
+      $history_id = $matches[1];
+      $dataset_id = $matches[2];
+    }
+    
+    $content = '';
+    if ($dataset_id) {
+      $url = $galaxy->getURL() . '/datasets/' . $dataset_id . '/display/' . $addition;
+      $headers = get_headers($url);
+      foreach ($headers as $header) {
+        $results = preg_split('/:/', $header, 2);
+        if (count($results) == 2) {
+          drupal_add_http_header($results[0], $results[1]);
+        }
+      }
+      print tripal_galaxy_stream_url_proxy_url($url);
+    }
+    
+    exit();
+  }
+  else {
+    $content['name'] = [
+      '#type' => 'markup',
+      '#markup' => t('This page has expired. Please reload the job results page for uploaded links.'),
+    ];
+    return $content;
+  }
+}
+/**
+ * A generic full page for viewing content from Galaxy.
+ *
+ * @param $proxy_id
+ *  A unique proxy ID that maps to a URL.
+ */
 function tripal_galaxy_results_viewer_full_page($proxy_id) {
   if (array_key_exists($proxy_id, $_SESSION['tripal_galaxy_proxy_urls'])) {
     $content = tripal_galaxy_stream_url_proxy($proxy_id);
+    
+    // Replace relative URLs to have the proxy.   
+    $url = url('galaxy/link/' . $proxy_id);    
+    $content = preg_replace('/href\s*=\s*[\'"](?!\s*http)(.*?)[\'"]/', 'href=' . $url . '?url=\1', $content);
     return $content;
   }
   else {
