@@ -1,6 +1,10 @@
 [![7.x-3.x Build Status](https://travis-ci.org/tripal/tripal_galaxy.svg?branch=7.x-1.x)](https://travis-ci.org/tripal/tripal_galaxy)
 [![Documentation Status](https://readthedocs.org/projects/tripal_galaxy/badge/?version=latest)](https://tripal.readthedocs.io/en/latest/?badge=latest)
 
+![alt tag](https://raw.githubusercontent.com/tripal/tripal/7.x-3.x/tripal/theme/images/tripal_logo.png)
+![alt_tag](https://galaxyproject.org/images/galaxy-logos/galaxy_logo_25percent.png)
+
+
 # Overview
 The Tripal Galaxy module is designed to support integration of [Tripal](http://tripal.info) with [Galaxy](https://galaxyproject.org/). In the past, community databases have often provided analytical tools that come prepared with site-specific data. Examples include BLAST, CAP3, and InterProScan servers, for example. By integrating Tripal with Galaxy, the Tripal-based community database can offer more complicated analytical tools that support larger data sets using Galaxy as a backend. 
 
