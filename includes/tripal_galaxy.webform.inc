@@ -87,8 +87,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'value' => $step_annotation,
         'extra' => [
           'private' => 0,
-          //        'display_on' => 'display',
           'format' => 'full_html',
+          'display_on' => 'both',
         ],
         'required' => '0',
         'weight' => $markup_fieldset_cid + 1,
@@ -371,6 +371,7 @@ function tripal_galaxy_build_webform_add_instruction_step($webform, $galaxy, $wo
     ),
     'extra' => [
       'format' => 'full_html',
+      'display_on' => 'both',
     ],
     'required' => '0',
     'weight' => 0,
