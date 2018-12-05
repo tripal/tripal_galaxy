@@ -870,7 +870,7 @@ function tripal_galaxy_invoke_workflow(GalaxyInstance $galaxy, object $submissio
  *   An instance of a Galaxy server object.
  * @param int $fid
  *   The Drupal managed file ID.
- * @param int $history_id
+ * @param string $history_id
  *   The history ID.
  * @param array $history_contents
  *   The Galaxy history contents array as returned by the 
@@ -882,7 +882,7 @@ function tripal_galaxy_invoke_workflow(GalaxyInstance $galaxy, object $submissio
  *   
  * @ingroup tripal_galaxy_api
  */
-function tripal_galaxy_upload_file(object $galaxy, int $fid, int $history_id, array $history_contents) {
+function tripal_galaxy_upload_file(object $galaxy, int $fid, string $history_id, array $history_contents) {
 
   if (!$fid) {
     throw new Exception('Cannot upload a file without an fid');
