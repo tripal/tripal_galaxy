@@ -1080,7 +1080,10 @@ function tripal_galaxy_workflow_report($sid) {
     $content['results'] = [
       '#type' => 'item',
       '#title' => t('Results'),
-      '#markup' => t('Expand the fields below to view the status and results of each step in the analysis.'),
+      '#markup' => t('All files associated with the analysis, including input 
+        files and all output files are listed below. If an error occurred during
+        creation of any file it will be noted.  Expand the field for the result below to 
+        view the status, peek or download result files.'),
     ];
   }
   else {

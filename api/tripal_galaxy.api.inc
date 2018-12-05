@@ -331,6 +331,7 @@ function tripal_galaxy_get_submission(int $sid) {
       'status',
       'email',
       'uid',
+      'errors',
     ]);
     $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
     $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid', 'workflow_name']);
@@ -508,7 +509,6 @@ function tripal_galaxy_get_active_submissions() {
  * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FALSE) {
-
   $submissions = [];
   if (!$sid) {
     $submissions = tripal_galaxy_get_active_submissions();
@@ -525,8 +525,8 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     if (!$submission->invocation_id) {
       continue;
     }
-    // If the job is complete skip it.
-    if ($submission->status == 'Completed') {
+    // If the job is complete skip it unless $force is set to TRUE.
+    if ($submission->status == 'Completed' and !$force) {
       continue;
     }
 
@@ -577,10 +577,11 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     // if 'ok' state has value larger than 0 and all other states' values being 0,
     // then this history has completed successfully. We can set the $status = 'Completed'
     $status = '';
+
     if ($history) {
       $history_info = $ghistories->show(['history_id' => $history['id']]);
       $state_details = array_filter($history_info['state_details']);
-      
+
       // if no jobs are in the state of 'paused', 'running', or 'queued', the history is completed
       if (!isset($state_details['paused']) and !isset($state_details['running']) and !isset($state_details['queued'])) {
         $ghistory_contents = new GalaxyHistoryContents($galaxy);
@@ -631,6 +632,7 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
       'status' => $status,
       'errors' => serialize($invocation_info),
     ];
+
     if ($end_time != null) {
       $fields['end_time'] = $end_time;
     }
