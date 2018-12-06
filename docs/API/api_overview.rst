@@ -85,8 +85,8 @@ If a Galaxy server is not accessible no actions can be performed including workf
   }
 
 
-Import a Workflow
------------------
+Add a Workflow to Tripal
+------------------------
 The Tripal GAlaxy module does not allow a user to create Galaxy workflows.  Workflows should always be created on the Galaxy interface.  Once a workflow is created it can be added to Tripal. A site administrator can add new workflows to Tripal using the web interface.  However, you can programmatically add a new workflow using the ``tripal_galaxy_add_workflow`` function.  To do this you must know have the ID of the galaxy server and the name or workflow_id of the workflow on the Galaxy server.  You can obtain the name or workflow_id from the Galaxy server by:
 
 1. Using the blend4php `GalaxyWorkflows::index() <http://galaxyproject.github.io/blend4php/docs-v0.1a/html/classGalaxyWorkflows.html>`_ function and examining the resulting array.
@@ -120,7 +120,7 @@ If a web form was created for a workflow then your site visitors can submit the 
   // Find the workflow using the values. This function always returns an
   // array of workflows that match the criteria.  By providing the workflow_id
   // and the galaxy_id it should only ever match one workflow.
-  $workflows = tripal_galaxy_get_workflows();
+  $workflows = tripal_galaxy_get_workflows($values);
   $workflow = $workflows[0];
   
   // We can now initialize the workflow submission.
