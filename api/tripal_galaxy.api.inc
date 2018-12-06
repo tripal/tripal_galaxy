@@ -615,6 +615,7 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
         }
         else {
           $status = 'Completed';
+          $end_time = $update_time->getTimestamp();
         }
       }
       else {
@@ -623,7 +624,6 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     }
 
     // Now inform the user that the job is done!
-    $end_time = $update_time->getTimestamp();
     if (!$force && $submission->email != 'SENT') {
       tripal_galaxy_send_submission_ended_mail($submission->sid, $node->uid);
     }
@@ -633,7 +633,7 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
       'errors' => serialize($invocation_info),
     ];
 
-    if ($end_time != null) {
+    if ($end_time != NULL) {
       $fields['end_time'] = $end_time;
     }
     db_update('tripal_galaxy_workflow_submission')

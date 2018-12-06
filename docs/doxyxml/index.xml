@@ -21,7 +21,7 @@
     <member refid="de/db0/group__tripal__galaxy__api_1ga95dc1837f43f752de2ba310bb9f9bb1c" kind="function"><name>tripal_galaxy_invoke_workflow</name></member>
     <member refid="df/d55/tripal__galaxy_8api_8inc_1a413af37aaacd994ad46b0844f695a76e" kind="function"><name>tripal_galaxy_split_url</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga59906aa5301eccfee60f1ac153f02f92" kind="function"><name>tripal_galaxy_test_connection</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga5525c38955ed320d326413498a4d0a5d" kind="function"><name>tripal_galaxy_upload_file</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1ga2bb7c89ccb7bad8df8104ee92c4e118b" kind="function"><name>tripal_galaxy_upload_file</name></member>
   </compound>
   <compound refid="de/db0/group__tripal__galaxy__api" kind="group"><name>tripal_galaxy_api</name>
     <member refid="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" kind="function"><name>tripal_galaxy_add_galaxy</name></member>
@@ -42,7 +42,7 @@
     <member refid="de/db0/group__tripal__galaxy__api_1ga79d0bb2854e04ad13e971d00bff47045" kind="function"><name>tripal_galaxy_init_submission</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga95dc1837f43f752de2ba310bb9f9bb1c" kind="function"><name>tripal_galaxy_invoke_workflow</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga59906aa5301eccfee60f1ac153f02f92" kind="function"><name>tripal_galaxy_test_connection</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga5525c38955ed320d326413498a4d0a5d" kind="function"><name>tripal_galaxy_upload_file</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1ga2bb7c89ccb7bad8df8104ee92c4e118b" kind="function"><name>tripal_galaxy_upload_file</name></member>
   </compound>
   <compound refid="dir_0188a3e6da905bc60aceb35bf790b8c9" kind="dir"><name>/home/ficklin/Projects/tripal_galaxy/api</name>
   </compound>

@@ -859,6 +859,13 @@ function tripal_galaxy_workflow_report($sid) {
   ];
   $rows[] = [
     [
+      'data' => 'History Name',
+      'header' => TRUE,
+    ],
+    tripal_galaxy_get_history_name($submission),
+  ];
+  $rows[] = [
+    [
       'data' => 'Start Time',
       'header' => TRUE,
     ],
