@@ -8,7 +8,7 @@ Currently, there are no workflows available. A workflow can be added by clicking
 
 .. image:: ./workflows.2.png
 
-Select a Galaxy server and a list of workflows appears. In the previous :doc:`./remote_servers` section we added the UseGalaxy public server.  However, for the remainder of this tutorial we will use a local Galaxy server which has several pre-installed workflows from the `StatonLab Galaxy Workflows library <https://github.com/statonlab/galaxy-workflows>`_.
+Select a Galaxy server and a list of workflows appears. In the previous :doc:`./remote_servers` section we added the UseGalaxy public server.  However, for the remainder of this tutorial we will use a local Galaxy server which has several pre-installed workflows from the `Staton Lab Galaxy Workflows library <https://github.com/statonlab/galaxy-workflows>`_.
 
 .. image:: ./workflows.3.png
 
@@ -46,11 +46,10 @@ To change the instructions, click the **Edit** link for the column with the **La
 
   If the **value** field on the form shows pure HTML you may want to install a WYSIWYG editor such as ``ckeditor`` using a command such as:
   
-  ```bash
+ .. code::
+ 
   drush pm-enable ckeditor
 
-  ```
-  This will allow you to edit the text more naturally as the screenshot above shows.
   
 Edit the instructions to your liking and click the **Save component** button at the bottom of the page.  Click the **View** tab to see how things have changed:
 
@@ -62,7 +61,7 @@ You can now browse through the workflow, to ensure that the end-user experience 
 
 If you see a description or help text that does not meet your liking you may change it by clicking the **Webform** tab, finding the correct component and editing appropriately.  Remember to only change labels, descriptions and help text. Do not change the form keys or default values or conditionals.
 
-Once you have completed any edits to the workflow you can make it available for end-users by adding the URL for the workflow to your sites Menu as needed. Notice in the previous screenshot that our workflow can be found on our site at the relative URL ``node/488``.  Navigate to the **Administer >Structure > Menus** and add the workflow to the most appropriate menu for your site. 
+Once you have completed any edits to the workflow you can make it available for end-users by adding the URL for the workflow to your sites Menu as needed. Notice in the previous screenshot that our workflow can be found on our site at the relative URL ``node/488``.  Navigate to the **Administer > Structure > Menus** and add the workflow to the most appropriate menu for your site. 
 
 .. note::
  

@@ -35,4 +35,4 @@ The Tripal Galaxy Module also provides some simple bar charts indicating the top
 
 The following is an example results for a new site that has had just a few workflows executed by the administrator user (most likely just for testing).
 
-.. image:: usage.4.png
+.. image:: usage.5.png
