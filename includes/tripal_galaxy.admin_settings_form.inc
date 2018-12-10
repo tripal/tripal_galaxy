@@ -8,13 +8,13 @@ function tripal_galaxy_admin_settings_form($form, &$form_state) {
   if (! $cron_default) {
     $cron_default = 60;
   }
-
+  
   $exp_default = variable_get('tripal_galaxy_cron_frequency') / 60;
   if (! $exp_default) {
     $exp_default = 60;
   }
   $form['#tree'] = true;
-
+  
   $form['expiration'] = array(
     '#type' => 'textfield',
     '#title' => t('History Age Expiration (in days)'),
@@ -22,8 +22,9 @@ function tripal_galaxy_admin_settings_form($form, &$form_state) {
     '#default_value' => $cron_default,
     '#size' => 60,
     '#maxlength' => 128,
-    '#required' => true);
-
+    '#required' => true
+  );
+  
   $form['cron'] = array(
     '#type' => 'textfield',
     '#title' => t('Galaxy cron run (in minutes)'),
@@ -31,12 +32,14 @@ function tripal_galaxy_admin_settings_form($form, &$form_state) {
     '#default_value' => $exp_default,
     '#size' => 60,
     '#maxlength' => 128,
-    '#required' => true);
+    '#required' => true
+  );
   // Default submit
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save Changes'));
-
+    '#value' => t('Save Changes')
+  );
+  
   return $form;
 }
 

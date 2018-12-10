@@ -40,7 +40,8 @@ class views_handler_view_results_field extends views_handler_field {
 
   /**
    * Render callback handler.
-   * Return the markup that will appear in the rendered field.
+   * Return the markup that will appear in the rendered
+   * field.
    */
   function render($values) {
     // Check status of the run.

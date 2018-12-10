@@ -11,7 +11,8 @@ function _webform_defaults_BDSS_file() {
     'weight' => 0,
     'value' => '',
     'required' => 0,
-    'extra' => array());
+    'extra' => array()
+  );
 }
 
 /**
@@ -20,7 +21,9 @@ function _webform_defaults_BDSS_file() {
 function _webform_theme_BDSS_file() {
   return array(
     'webform_display_BDSS_file' => array(
-      'render element' => 'element'));
+      'render element' => 'element'
+    )
+  );
 }
 
 /**
@@ -41,7 +44,9 @@ function _webform_render_BDSS_file($component, $value = NULL, $filter = TRUE) {
     '#description' => array_key_exists('description', $component['extra']) ? $component['extra']['description'] : '',
     '#weight' => $component['weight'],
     '#theme_wrappers' => array(
-      'webform_element'));
+      'webform_element'
+    )
+  );
   return $element;
 }
 
@@ -51,10 +56,10 @@ function _webform_render_BDSS_file($component, $value = NULL, $filter = TRUE) {
  */
 function _webform_display_BDSS_file($component, $value, $format = 'html') {
   $URL = '';
-
+  
   $file_URL = $value['file_URL'];
   $fid = $value['file_upload'];
-
+  
   if ($file_URL) {
     $URL = $file_URL;
   }
@@ -62,17 +67,20 @@ function _webform_display_BDSS_file($component, $value, $format = 'html') {
     $file = file_load($fid);
     $URL = file_create_url($file->uri);
   }
-
+  
   return array(
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
     '#weight' => $component['weight'],
     '#theme' => 'webform_display_textfield',
     '#theme_wrappers' => $format == 'html' ? array(
-      'webform_element') : array(
-      'webform_element_text'),
+      'webform_element'
+    ) : array(
+      'webform_element_text'
+    ),
     '#format' => $format,
-    '#value' => $URL);
+    '#value' => $URL
+  );
 }
 
 /**

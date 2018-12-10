@@ -1,50 +1,58 @@
 @CHARSET "UTF-8";
 
-path {  
-  stroke: #fff; 
-}
-.tripal-galaxy-usage-legend tr{    
-  border: none;
-}
-.tripal-galaxy-usage-legend tr:first-child {    
-  border: none;
-}
-.tripal-galaxy-usage-legend tr td:last-child {
-  border: none;
-}
-.tripal-galaxy-usage.axis text {
-  font: 10px sans-serif;
+path {
+	stroke: #fff;
 }
 
-.tripal-galaxy-usage-axis path,
-.tripal-galaxy-usage-axis line {
-  fill: none;
-  stroke: #000;
+.tripal-galaxy-usage-legend tr {
+	border: none;
 }
+
+.tripal-galaxy-usage-legend tr:first-child {
+	border: none;
+}
+
+.tripal-galaxy-usage-legend tr td:last-child {
+	border: none;
+}
+
+.tripal-galaxy-usage.axis text {
+	font: 10px sans-serif;
+}
+
+.tripal-galaxy-usage-axis path, .tripal-galaxy-usage-axis line {
+	fill: none;
+	stroke: #000;
+}
+
 .tripal-galaxy-usage-legend {
-  margin-bottom:76px;
-  display:inline-block;
-  border: none;
+	margin-bottom: 76px;
+	display: inline-block;
+	border: none;
 }
+
 .tripal-galaxy-usage-legend {
-  width: 150px;
-  float: left;
+	width: 150px;
+	float: left;
 }
-.tripal-galaxy-usage-legend td{
-    padding:4px 5px;
-    vertical-align:bottom;
+
+.tripal-galaxy-usage-legend td {
+	padding: 4px 5px;
+	vertical-align: bottom;
 }
+
 #tripal-galaxy-usage-users {
-  clear: both;
+	clear: both;
 }
+
 #tripal-galaxy-usage-workflows {
-  clear: both;
+	clear: both;
 }
 
 #tripal-galaxy-usage-stats-table {
-  width: 50%;
+	width: 50%;
 }
 
 .tripal-galaxy-usage-pane {
-  margin-bottom: 30px;
+	margin-bottom: 30px;
 }

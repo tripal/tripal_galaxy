@@ -11,7 +11,8 @@ function _webform_defaults_galaxy_sfile() {
     'weight' => 0,
     'value' => '',
     'required' => 0,
-    'extra' => array());
+    'extra' => array()
+  );
 }
 
 /**
@@ -20,7 +21,9 @@ function _webform_defaults_galaxy_sfile() {
 function _webform_theme_galaxy_sfile() {
   return array(
     'webform_display_galaxy_sfile' => array(
-      'render element' => 'element'));
+      'render element' => 'element'
+    )
+  );
 }
 
 /**
@@ -45,13 +48,15 @@ function _webform_render_galaxy_sfile($component, $value = NULL, $filter = TRUE)
     '#description' => array_key_exists('description', $component['extra']) ? $component['extra']['description'] : '',
     '#weight' => $component['weight'],
     '#theme_wrappers' => array(
-      'webform_element'),
+      'webform_element'
+    ),
     '#usage_type' => $component['form_key'],
     '#usage_id' => $component['nid'],
     '#usage_module' => 'tripal_galaxy',
     '#allowed_types' => $allowed_types,
     '#cardinality' => 1,
-    '#required' => array_key_exists('required', $component) and $component['required'] ? TRUE : FALSE);
+    '#required' => array_key_exists('required', $component) and $component['required'] ? TRUE : FALSE
+  );
   return $element;
 }
 
@@ -61,11 +66,11 @@ function _webform_render_galaxy_sfile($component, $value = NULL, $filter = TRUE)
  */
 function _webform_display_galaxy_sfile($component, $value, $format = 'html') {
   $filename = '';
-
+  
   // Find the field ccontaining the fid.
   $fid = NULL;
   $filename = 'No file selected';
-
+  
   foreach ($value as $key => $val) {
     if (preg_match('/submitted.*' . $component['form_key'] . '_/', $key)) {
       $fid = $val;
@@ -84,18 +89,21 @@ function _webform_display_galaxy_sfile($component, $value, $format = 'html') {
     $file = file_load($fid);
     $filename = $file->filename;
   }
-
+  
   return array(
     '#title' => $component['name'],
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
     '#weight' => $component['weight'],
     '#theme' => 'webform_display_textfield',
     '#theme_wrappers' => $format == 'html' ? array(
-      'webform_element') : array(
-      'webform_element_text'),
+      'webform_element'
+    ) : array(
+      'webform_element_text'
+    ),
     '#format' => $format,
     '#value' => $filename,
-    '#title' => ! empty($component['name']) ? $component['name'] : 'Input Data File');
+    '#title' => ! empty($component['name']) ? $component['name'] : 'Input Data File'
+  );
 }
 
 /**

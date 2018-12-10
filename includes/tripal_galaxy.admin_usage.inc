@@ -1,7 +1,7 @@
 <?php
 
 function tripal_galaxy_admin_usage_page() {
-
+  
   // set the breadcrumb
   $breadcrumb = array();
   $breadcrumb[] = l('Home', '<front>');
@@ -10,15 +10,15 @@ function tripal_galaxy_admin_usage_page() {
   $breadcrumb[] = l('Extensions', 'admin/tripal/extension');
   $breadcrumb[] = l('Galaxy', 'admin/tripal/extension/galaxy');
   drupal_set_breadcrumb($breadcrumb);
-
+  
   tripal_add_d3js();
   drupal_add_js(drupal_get_path('module', 'tripal_galaxy') . '/theme/js/tripal_galaxy.dashboard.js');
   drupal_add_css(drupal_get_path('module', 'tripal_galaxy') . '/theme/css/tripal_galaxy.dashboard.css');
-
+  
   // Get some basic stats
   $headers = array();
   $rows = array();
-
+  
   // The number of workflow submissions
   $sql = "
     SELECT count(*) as count
@@ -29,9 +29,11 @@ function tripal_galaxy_admin_usage_page() {
     array(
       'data' => 'Total submisssions',
       'header' => TRUE,
-      'width' => '50%'),
-    $result->fetchField());
-
+      'width' => '50%'
+    ),
+    $result->fetchField()
+  );
+  
   // The total number of hours executed.
   $sql = "
     SELECT count(name) FROM (
@@ -43,9 +45,11 @@ function tripal_galaxy_admin_usage_page() {
   $rows[] = array(
     array(
       'data' => 'Users Submitting Workflows',
-      'header' => TRUE),
-    $result->fetchField());
-
+      'header' => TRUE
+    ),
+    $result->fetchField()
+  );
+  
   // The total number of hours executed.
   $sql = "
     SELECT sum(duration) as total_seconds
@@ -58,19 +62,23 @@ function tripal_galaxy_admin_usage_page() {
   $rows[] = array(
     array(
       'data' => 'Total execution time',
-      'header' => TRUE),
-    $result->fetchField());
-
+      'header' => TRUE
+    ),
+    $result->fetchField()
+  );
+  
   $stats = theme_table(array(
     'header' => $headers,
     'rows' => $rows,
     'attributes' => array(
-      'id' => 'tripal-galaxy-usage-stats-table'),
+      'id' => 'tripal-galaxy-usage-stats-table'
+    ),
     'sticky' => FALSE,
     'caption' => '',
     'colgroups' => array(),
-    'empty' => ''));
-
+    'empty' => ''
+  ));
+  
   // Get the top 10 users.
   $sql = "
     SELECT U.name, count(*) as count
@@ -84,9 +92,10 @@ function tripal_galaxy_admin_usage_page() {
   while ($result = $results->fetchObject()) {
     $top10users[] = array(
       'name' => $result->name,
-      'count' => $result->count);
+      'count' => $result->count
+    );
   }
-
+  
   // Get the top 10 workflows.
   $sql = "
     SELECT TGW.workflow_name, N.title as name, count(*) as count
@@ -101,14 +110,17 @@ function tripal_galaxy_admin_usage_page() {
   while ($result = $results->fetchObject()) {
     $top10workflows[] = array(
       'name' => $result->name,
-      'count' => $result->count);
+      'count' => $result->count
+    );
   }
-
+  
   drupal_add_js("var top10users = " . json_encode($top10users) . ";", array(
-    'type' => 'inline'));
+    'type' => 'inline'
+  ));
   drupal_add_js("var top10workflows = " . json_encode($top10workflows) . ";", array(
-    'type' => 'inline'));
-
+    'type' => 'inline'
+  ));
+  
   $content = "
     <div id=\"tripal-galaxy-usage-stats\" class=\"tripal-galaxy-usage-pane\">
       <h2>Usage Stats</h2>
@@ -127,6 +139,7 @@ function tripal_galaxy_admin_usage_page() {
   ";
   return array(
     '#type' => 'markup',
-    '#markup' => $content);
+    '#markup' => $content
+  );
 }
 

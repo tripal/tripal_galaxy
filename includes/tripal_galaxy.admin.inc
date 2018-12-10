@@ -11,34 +11,35 @@
  * @return Formatted HTML table containing information on all Galaxy Instances.
  */
 function tripal_galaxy_admin_home() {
-
+  
   // Initialize the headers and rows of the table.
   $rows = array();
   $headers = array(
     'Galaxy Server',
     'Description',
     'Status',
-    'Options');
-
+    'Options'
+  );
+  
   // Retrieve the list of galaxy servers that have been added and generate
   // the rows for the table.
   $sql = "SELECT * FROM {tripal_galaxy}";
   $results = db_query($sql);
-
+  
   while ($result = $results->fetchObject()) {
-
+    
     $disabled_workflows = db_select('tripal_galaxy_workflow', 'tgw')->fields('tgw')
       ->condition('galaxy_id', $result->galaxy_id)
       ->condition('status', 'disabled')
       ->execute()
       ->fetchObject();
-
+    
     $enabled_workflows = db_select('tripal_galaxy_workflow', 'tgw')->fields('tgw')
       ->condition('galaxy_id', $result->galaxy_id)
       ->condition('status', 'Active')
       ->execute()
       ->fetchObject();
-
+    
     // Check the status of the server to determine which link to include.
     $status_link = '';
     if ($result->serverstatus == 'unavailable') {
@@ -61,20 +62,23 @@ function tripal_galaxy_admin_home() {
       $result->servername,
       $result->description,
       $result->serverstatus,
-      l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id) . ' | ' . l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' | ' . $status_link);
+      l('edit', '/admin/tripal/extension/galaxy/edit/' . $result->galaxy_id) . ' | ' . l('test', '/admin/tripal/extension/galaxy/test/' . $result->galaxy_id) . ' | ' . $status_link
+    );
   }
-
+  
   // Theme the table and return.
   $table = array(
     'header' => $headers,
     'rows' => $rows,
     'attributes' => array(
       'id' => 'tripal_galaxy-table-properties',
-      'class' => 'tripal-data-table'),
+      'class' => 'tripal-data-table'
+    ),
     'sticky' => FALSE,
     'caption' => '',
     'colgroups' => array(),
-    'empty' => 'No Galaxy instances have been added.');
+    'empty' => 'No Galaxy instances have been added.'
+  );
   return theme_table($table);
 }
 
@@ -88,15 +92,16 @@ function tripal_galaxy_admin_home() {
  */
 function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
   $form_rows = $variables['form'];
-
+  
   // The apparopriate headers for this form's table.
   $headers = array(
     'Enabled',
     'Workflow Name',
     'Galaxy Server',
     'Workflow ID',
-    'Actions');
-
+    'Actions'
+  );
+  
   // Theme the rows of this form's table.
   $rows = array();
   foreach (element_children($form_rows) as $i) {
@@ -106,9 +111,10 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
       drupal_render($row["workflow_name-user" . $i]),
       drupal_render($row["servername-" . $i]),
       drupal_render($row["workflow_id-user" . $i]),
-      drupal_render($row["actions-" . $i]));
+      drupal_render($row["actions-" . $i])
+    );
   }
-
+  
   // Subset sequences.
   return theme_table(array(
     'header' => $headers,
@@ -117,31 +123,33 @@ function theme_tripal_galaxy_admin_workflows_form_rows($variables) {
     'sticky' => TRUE,
     'caption' => '',
     'colgroups' => array(),
-    'empty' => 'There are no workflows'));
+    'empty' => 'There are no workflows'
+  ));
 }
 
 /**
  * Removes a workflow based on the given workflow id.
- * This function is called by Drupal's confirm_form which is setup in the
+ * This function is called by
+ * Drupal's confirm_form which is setup in the
  * tripal_galaxy_admin_confirm_remove_workflow_form() function.
  */
 function tripal_galaxy_admin_remove_workflow($form, &$form_state) {
   $transaction = db_transaction();
-
+  
   try {
-
+    
     // Get the Node that belongs to this workflow
     $workflow = $form['#workflow'];
-
+    
     if (! $workflow) {
       drupal_set_message(t('Cannot remove the workflow, as it cannot be found'), 'error');
       drupal_goto("/admin/tripal/extension/galaxy/workflows");
       return;
     }
-
+    
     // Remove the webform node that this workflow belongs to.
     node_delete($workflow->nid);
-
+    
     // Delete the table instance given the galaxy_workflow_id
     $success = db_delete('tripal_galaxy_workflow')->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)->execute();
     $success = db_delete('tripal_galaxy_workflow_submission')->condition('galaxy_workflow_id', $workflow->galaxy_workflow_id)->execute();
@@ -153,7 +161,7 @@ function tripal_galaxy_admin_remove_workflow($form, &$form_state) {
     drupal_goto("/admin/tripal/extension/galaxy/workflows");
     return;
   }
-
+  
   // Set message and go back to the workflow page.
   drupal_set_message(t('Workflow Deleted Successfully'));
   drupal_goto("/admin/tripal/extension/galaxy/workflows");
@@ -172,27 +180,28 @@ function tripal_galaxy_admin_confirm_remove_workflow_form($form, &$form_state, $
     ->condition('galaxy_workflow_id', $galaxy_workflow_id)
     ->execute()
     ->fetchObject();
-
+  
   $form['#workflow'] = $workflow;
   $form['#submit'][] = 'tripal_galaxy_admin_remove_workflow';
-
+  
   $form = confirm_form(
     // Form.
-    $form,
+    $form, 
     // Question.
     t('Confirm deletion of the workflow titled: %title', array(
-      '%title' => $workflow->workflow_name)),
+      '%title' => $workflow->workflow_name
+    )), 
     // The page to go to if the user cancels the action.
-    '/admin/tripal/extension/galaxy/workflows',
+    '/admin/tripal/extension/galaxy/workflows', 
     // Description.
-    '<p>' . t('This action cannot be undone and all job submissions for this workflow will be lost.') . '</p>',
+    '<p>' . t('This action cannot be undone and all job submissions for this workflow will be lost.') . '</p>', 
     // Yes text.
-    t('Delete'),
+    t('Delete'), 
     // No text.
-    t('Cancel'),
+    t('Cancel'), 
     // Internal name for this confirm_form.
     'confirm');
-
+  
   return $form;
 }
 
@@ -204,18 +213,21 @@ function tripal_galaxy_admin_confirm_remove_workflow_form($form, &$form_state, $
  */
 function tripal_galaxy_admin_test_server($galaxy_id) {
   $status = tripal_galaxy_test_connection(array(
-    'galaxy_id' => $galaxy_id));
+    'galaxy_id' => $galaxy_id
+  ));
   if ($status === FALSE) {
     // Update status in the db.
     db_update('tripal_galaxy')->fields(array(
-      'serverstatus' => 'unavailable'))
+      'serverstatus' => 'unavailable'
+    ))
       ->condition('galaxy_id', $galaxy_id, '=')
       ->execute();
   }
   else if ($status === TRUE) {
     // Update status in the db.
     db_update('tripal_galaxy')->fields(array(
-      'serverstatus' => 'available'))
+      'serverstatus' => 'available'
+    ))
       ->condition('galaxy_id', $galaxy_id, '=')
       ->execute();
   }
@@ -233,10 +245,11 @@ function tripal_galaxy_admin_disable_workflows($galaxy_id) {
   try {
     $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE galaxy_id = $galaxy_id";
     $results = db_query($sql);
-
+    
     while ($result = $results->fetchObject()) {
       $sucess = db_update('tripal_galaxy_workflow')->fields(array(
-        'status' => 'disabled'))
+        'status' => 'disabled'
+      ))
         ->condition('galaxy_id', $galaxy_id, '=')
         ->execute();
     }
@@ -262,10 +275,11 @@ function tripal_galaxy_admin_disable_workflow($galaxy_workflow_id) {
   $transaction = db_transaction();
   try {
     db_update('tripal_galaxy_workflow')->fields(array(
-      'status' => 'disabled'))
+      'status' => 'disabled'
+    ))
       ->condition('galaxy_workflow_id', $galaxy_workflow_id, '=')
       ->execute();
-
+    
     drupal_set_message(t('Workflow disabled'), 'status');
     drupal_goto("/admin/tripal/extension/galaxy/workflows");
   }
@@ -289,10 +303,11 @@ function tripal_galaxy_admin_enable_workflows($galaxy_id) {
   try {
     $sql = "SELECT * FROM {tripal_galaxy_workflow} WHERE galaxy_id = $galaxy_id";
     $results = db_query($sql);
-
+    
     while ($result = $results->fetchObject()) {
       $sucess = db_update('tripal_galaxy_workflow')->fields(array(
-        'status' => 'Active'))
+        'status' => 'Active'
+      ))
         ->condition('galaxy_id', $galaxy_id, '=')
         ->execute();
     }
@@ -318,10 +333,11 @@ function tripal_galaxy_admin_enable_workflow($galaxy_workflow_id) {
   $transaction = db_transaction();
   try {
     $sucess = db_update('tripal_galaxy_workflow')->fields(array(
-      'status' => 'Active'))
+      'status' => 'Active'
+    ))
       ->condition('galaxy_workflow_id', $galaxy_workflow_id, '=')
       ->execute();
-
+    
     drupal_set_message(t('Workflow enabled'), 'status');
     drupal_goto("/admin/tripal/extension/galaxy/workflows");
   }
