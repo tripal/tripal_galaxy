@@ -44,7 +44,7 @@ function tripal_galaxy_admin_settings_form($form, &$form_state) {
 }
 
 /**
- * 
+ *
  *
  * @param $form
  * @param $form_state

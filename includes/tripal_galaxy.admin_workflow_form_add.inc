@@ -235,7 +235,7 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
       // Insert the new workflow into the db given the data from the add wd form
       $transaction = db_transaction();
       try {
-        
+
         $galaxy_id = $form_state['values']['galaxy_id-server'];
         $values = [
           'workflow_id' => $form_rows[$i]['workflow_id-server-' . $i],

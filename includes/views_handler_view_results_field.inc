@@ -15,7 +15,7 @@ class views_handler_view_results_field extends views_handler_field {
   /**
    * {@inheritdoc}
    *
-   * Perform any database or cache data retrieval here. 
+   * Perform any database or cache data retrieval here.
    */
   function query() {
 

@@ -342,7 +342,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
   $element['description'] = array(
     '#type' => 'item',
     '#title' => $element['#title'] ? '' : 'Data File',
-    '#markup' =>  $element['#description'] . ' Please provide a data file. You may either select an 
+    '#markup' =>  $element['#description'] . ' Please provide a data file. You may either select an
       existing file or upload a new file. Note: you have currently used ' .
       $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
@@ -451,7 +451,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
   $data_collection_value_id = strtolower(preg_replace('/[^\w]/', '-', $data_collection_value_id)) . '-data-collection';
 
   $files_list = array();
-  $files_list[] = '-- Select a File --'; 
+  $files_list[] = '-- Select a File --';
   $files = tripal_get_user_uploads($user->uid, $allowed_types);
   foreach ($files as $fid => $file) {
     // Ignore files that are in the user's existing files that have
@@ -617,7 +617,7 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 
   $files_list = array();
   $files_list[] = '-- Select a File --';
-  $files = tripal_get_user_uploads($user->uid, $allowed_types);  
+  $files = tripal_get_user_uploads($user->uid, $allowed_types);
   foreach ($files as $fid => $file) {
     $files_list[$fid] = $file->filename . ' (' . tripal_format_bytes($file->filesize) . ') ';
   }

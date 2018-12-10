@@ -8,7 +8,8 @@
 /**
  * Admin home page for Tripal Galaxy
  *
- * @return Formatted HTML table containing information on all Galaxy Instances
+ * @return
+ *   Formatted HTML table containing information on all Galaxy Instances.
  *
  */
 function tripal_galaxy_admin_home() {
