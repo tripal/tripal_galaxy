@@ -11,8 +11,7 @@ function _webform_defaults_BDSS_file() {
     'weight' => 0,
     'value' => '',
     'required' => 0,
-    'extra' => array(),
-  );
+    'extra' => array());
 }
 
 /**
@@ -21,9 +20,7 @@ function _webform_defaults_BDSS_file() {
 function _webform_theme_BDSS_file() {
   return array(
     'webform_display_BDSS_file' => array(
-      'render element' => 'element',
-    ),
-  );
+      'render element' => 'element'));
 }
 
 /**
@@ -31,7 +28,7 @@ function _webform_theme_BDSS_file() {
  * the edit screen of the component.
  */
 function _webform_edit_BDSS_file($component) {
- // TODO: revisit this function.
+  // TODO: revisit this function.
 }
 
 /**
@@ -43,10 +40,11 @@ function _webform_render_BDSS_file($component, $value = NULL, $filter = TRUE) {
     '#title' => $component['name'],
     '#description' => array_key_exists('description', $component['extra']) ? $component['extra']['description'] : '',
     '#weight' => $component['weight'],
-    '#theme_wrappers' => array('webform_element'),
-  );
+    '#theme_wrappers' => array(
+      'webform_element'));
   return $element;
 }
+
 /**
  * Defines how the value is displayed from the component in the various
  * reporting from webform.
@@ -54,11 +52,11 @@ function _webform_render_BDSS_file($component, $value = NULL, $filter = TRUE) {
 function _webform_display_BDSS_file($component, $value, $format = 'html') {
   $URL = '';
 
-  $file_URL =  $value['file_URL'];
+  $file_URL = $value['file_URL'];
   $fid = $value['file_upload'];
 
   if ($file_URL) {
-    $URL =  $file_URL;
+    $URL = $file_URL;
   }
   if ($fid) {
     $file = file_load($fid);
@@ -70,22 +68,19 @@ function _webform_display_BDSS_file($component, $value, $format = 'html') {
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
     '#weight' => $component['weight'],
     '#theme' => 'webform_display_textfield',
-    '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
+    '#theme_wrappers' => $format == 'html' ? array(
+      'webform_element') : array(
+      'webform_element_text'),
     '#format' => $format,
-    '#value' => $URL,
-  );
+    '#value' => $URL);
 }
 
 /**
- *
  */
-function _webform_csv_headers_BDSS_file($component, $export_options){
-
+function _webform_csv_headers_BDSS_file($component, $export_options) {
 }
 
 /**
- *
  */
-function _webform_csv_data_BDSS_file($component, $export_options, $value){
-
+function _webform_csv_data_BDSS_file($component, $export_options, $value) {
 }

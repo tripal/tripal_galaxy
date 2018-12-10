@@ -7,7 +7,6 @@
 
 /**
  * Describes default views
- *
  */
 function tripal_galaxy_views_default_views() {
   $views = array();
@@ -18,11 +17,8 @@ function tripal_galaxy_views_default_views() {
   return $views;
 }
 
-
 /**
- * Describes the jobs administration view.
- *
- * @ingroup tripal
+ * Describes the jobs administration view. @ingroup tripal
  */
 function tripal_galaxy_views_job_queue() {
   $view = new view();
@@ -33,7 +29,11 @@ function tripal_galaxy_views_job_queue() {
   $view->human_name = 'Galaxy Job Queue';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = false; /* Edit this to true to make a default view disabled initially */
+  $view->disabled = false;
+
+  /*
+   * Edit this to true to make a default view disabled initially
+   */
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
@@ -55,8 +55,7 @@ function tripal_galaxy_views_job_queue() {
     'submit_date' => 'submit_date',
     'start_time' => 'start_time',
     'end_time' => 'end_time',
-    'status' => 'status',
-  );
+    'status' => 'status');
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
     'title' => array(
@@ -64,56 +63,47 @@ function tripal_galaxy_views_job_queue() {
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0),
     'servername' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0),
     'uid' => array(
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0),
     'name' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0),
     'submit_date' => array(
       'sortable' => 1,
       'default_sort_order' => 'desc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0),
     'start_time' => array(
       'sortable' => 1,
       'default_sort_order' => 'desc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0),
     'end_time' => array(
       'sortable' => 1,
       'default_sort_order' => 'desc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
+      'empty_column' => 0),
     'status' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
-      'empty_column' => 0,
-    ),
-  );
+      'empty_column' => 0));
   $handler->display->display_options['style_options']['empty_table'] = true;
   /* Footer: Global: Text area */
   $handler->display->display_options['footer']['area']['id'] = 'area';
@@ -219,8 +209,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['title']['expose']['remember_roles'] = array(
     2 => '2',
     1 => 0,
-    3 => 0,
-  );
+    3 => 0);
   /* Filter criterion: User: Name (raw) */
   $handler->display->display_options['filters']['name']['id'] = 'name';
   $handler->display->display_options['filters']['name']['table'] = 'users';
@@ -235,8 +224,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['name']['expose']['remember_roles'] = array(
     2 => '2',
     1 => 0,
-    3 => 0,
-  );
+    3 => 0);
   /* Filter criterion: Galaxy Workflow Submission: Submission Status */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'tripal_galaxy_workflow_submission';
@@ -250,8 +238,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['status']['expose']['remember_roles'] = array(
     2 => '2',
     1 => 0,
-    3 => 0,
-  );
+    3 => 0);
 
   /* Display: Galaxy Job Queue */
   $handler = $view->new_display('page', 'Galaxy Job Queue', 'galaxy_job_queue');
@@ -330,7 +317,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['end_time']['field'] = 'end_time';
   $handler->display->display_options['fields']['end_time']['date_format'] = 'short';
   $handler->display->display_options['fields']['end_time']['second_date_format'] = 'long';
-  /* Field: Galaxy Workflow Submission: Submission Status */  
+  /* Field: Galaxy Workflow Submission: Submission Status */
   $handler->display->display_options['fields']['status']['id'] = 'status';
   $handler->display->display_options['fields']['status']['table'] = 'tripal_galaxy_workflow_submission';
   $handler->display->display_options['fields']['status']['field'] = 'status';
@@ -383,8 +370,7 @@ function tripal_galaxy_views_job_queue() {
     'nothing_3' => 'nothing_3',
     'nothing' => 'nothing',
     'nothing_1' => 'nothing_1',
-    'view_results' => 'view_results',
-  );
+    'view_results' => 'view_results');
   $handler->display->display_options['fields']['ctools_dropdown']['check_access'] = 0;
   $handler->display->display_options['defaults']['filter_groups'] = false;
   $handler->display->display_options['defaults']['filters'] = false;
@@ -403,8 +389,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['title']['expose']['remember_roles'] = array(
     2 => '2',
     1 => 0,
-    3 => 0,
-  );
+    3 => 0);
   /* Filter criterion: Galaxy Workflow Submission: Submission Status */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'tripal_galaxy_workflow_submission';
@@ -418,9 +403,8 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['status']['expose']['remember_roles'] = array(
     2 => '2',
     1 => 0,
-    3 => 0,
-  );
-  /* Filter criterion: User: Current */ 
+    3 => 0);
+  /* Filter criterion: User: Current */
   $handler->display->display_options['filters']['uid_current']['id'] = 'uid_current';
   $handler->display->display_options['filters']['uid_current']['table'] = 'users';
   $handler->display->display_options['filters']['uid_current']['field'] = 'uid_current';

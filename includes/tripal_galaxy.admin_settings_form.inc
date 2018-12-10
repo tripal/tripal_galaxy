@@ -4,13 +4,13 @@
  * Implements Drupal's hook_form function, settings form for galaxy
  */
 function tripal_galaxy_admin_settings_form($form, &$form_state) {
-  $cron_default = variable_get('tripal_galaxy_history_age')/86400;
-  if (!$cron_default) {
+  $cron_default = variable_get('tripal_galaxy_history_age') / 86400;
+  if (! $cron_default) {
     $cron_default = 60;
   }
 
   $exp_default = variable_get('tripal_galaxy_cron_frequency') / 60;
-  if (!$exp_default) {
+  if (! $exp_default) {
     $exp_default = 60;
   }
   $form['#tree'] = true;
@@ -22,8 +22,7 @@ function tripal_galaxy_admin_settings_form($form, &$form_state) {
     '#default_value' => $cron_default,
     '#size' => 60,
     '#maxlength' => 128,
-    '#required' => true,
-  );
+    '#required' => true);
 
   $form['cron'] = array(
     '#type' => 'textfield',
@@ -32,25 +31,23 @@ function tripal_galaxy_admin_settings_form($form, &$form_state) {
     '#default_value' => $exp_default,
     '#size' => 60,
     '#maxlength' => 128,
-    '#required' => true,
-  );
+    '#required' => true);
   // Default submit
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save Changes')
-  );
+    '#value' => t('Save Changes'));
 
   return $form;
 }
 
 /**
  *
- *
- * @param $form
- * @param $form_state
+ * @param
+ *        $form
+ * @param
+ *        $form_state
  */
-function tripal_galaxy_admin_settings_form_submit($form, &$form_state)
-{
+function tripal_galaxy_admin_settings_form_submit($form, &$form_state) {
   if ($form_state['values']['expiration']) {
     variable_set('tripal_galaxy_history_age', round($form_state['values']['expiration'] * 60 * 60 * 24));
   }

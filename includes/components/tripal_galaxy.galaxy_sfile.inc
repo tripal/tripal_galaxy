@@ -11,8 +11,7 @@ function _webform_defaults_galaxy_sfile() {
     'weight' => 0,
     'value' => '',
     'required' => 0,
-    'extra' => array(),
-  );
+    'extra' => array());
 }
 
 /**
@@ -21,9 +20,7 @@ function _webform_defaults_galaxy_sfile() {
 function _webform_theme_galaxy_sfile() {
   return array(
     'webform_display_galaxy_sfile' => array(
-      'render element' => 'element',
-    ),
-  );
+      'render element' => 'element'));
 }
 
 /**
@@ -31,7 +28,7 @@ function _webform_theme_galaxy_sfile() {
  * the edit screen of the component.
  */
 function _webform_edit_galaxy_sfile($component) {
- // TODO: revisit this function.
+  // TODO: revisit this function.
 }
 
 /**
@@ -39,8 +36,7 @@ function _webform_edit_galaxy_sfile($component) {
  */
 function _webform_render_galaxy_sfile($component, $value = NULL, $filter = TRUE) {
   $allowed_types = array();
-  if (array_key_exists('filtering', $component['extra']) and
-      array_key_exists('types', $component['extra']['filtering'])) {
+  if (array_key_exists('filtering', $component['extra']) and array_key_exists('types', $component['extra']['filtering'])) {
     $allowed_types = array_values($component['extra']['filtering']['types']);
   }
   $element = array(
@@ -48,16 +44,17 @@ function _webform_render_galaxy_sfile($component, $value = NULL, $filter = TRUE)
     '#title' => $component['name'],
     '#description' => array_key_exists('description', $component['extra']) ? $component['extra']['description'] : '',
     '#weight' => $component['weight'],
-    '#theme_wrappers' => array('webform_element'),
+    '#theme_wrappers' => array(
+      'webform_element'),
     '#usage_type' => $component['form_key'],
     '#usage_id' => $component['nid'],
     '#usage_module' => 'tripal_galaxy',
     '#allowed_types' => $allowed_types,
     '#cardinality' => 1,
-    '#required' => array_key_exists('required', $component) and  $component['required'] ? TRUE : FALSE,
-  );
+    '#required' => array_key_exists('required', $component) and $component['required'] ? TRUE : FALSE);
   return $element;
 }
+
 /**
  * Defines how the value is displayed from the component in the various
  * reporting from webform.
@@ -74,13 +71,13 @@ function _webform_display_galaxy_sfile($component, $value, $format = 'html') {
       $fid = $val;
     }
   }
-  if (!$fid and array_key_exists('existing_fset', $value) ) {
+  if (! $fid and array_key_exists('existing_fset', $value)) {
     $fid = $value['existing_fset']['existing'];
   }
-  if (!$fid and array_key_exists('site_wide_fset', $value) ) {
+  if (! $fid and array_key_exists('site_wide_fset', $value)) {
     $fid = $value['site_wide_fset']['site_wide'];
   }
-  if (!$fid and array_key_exists('data_collection_fset', $value) ) {
+  if (! $fid and array_key_exists('data_collection_fset', $value)) {
     $fid = $value['data_collection_fset']['data_collection'];
   }
   if ($fid) {
@@ -93,23 +90,20 @@ function _webform_display_galaxy_sfile($component, $value, $format = 'html') {
     '#title_display' => $component['extra']['title_display'] ? $component['extra']['title_display'] : 'before',
     '#weight' => $component['weight'],
     '#theme' => 'webform_display_textfield',
-    '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
+    '#theme_wrappers' => $format == 'html' ? array(
+      'webform_element') : array(
+      'webform_element_text'),
     '#format' => $format,
     '#value' => $filename,
-    '#title' => !empty($component['name']) ? $component['name'] : 'Input Data File',
-  );
+    '#title' => ! empty($component['name']) ? $component['name'] : 'Input Data File');
 }
 
 /**
- *
  */
-function _webform_csv_headers_galaxy_sfile($component, $export_options){
-
+function _webform_csv_headers_galaxy_sfile($component, $export_options) {
 }
 
 /**
- *
  */
-function _webform_csv_data_galaxy_sfile($component, $export_options, $value){
-
+function _webform_csv_data_galaxy_sfile($component, $export_options, $value) {
 }

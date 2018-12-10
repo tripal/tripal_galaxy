@@ -14,9 +14,9 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
   if (array_key_exists('values', $form_state)) {
     $galaxy_id = $form_state['values']['galaxy_id'];
   }
-  $results = db_select('tripal_galaxy', 'tg')
-    ->fields('tg', array('galaxy_id', 'servername'))
-    ->execute();
+  $results = db_select('tripal_galaxy', 'tg')->fields('tg', array(
+    'galaxy_id',
+    'servername'))->execute();
   $galaxies[0] = 'Select';
   while ($galaxy = $results->fetchObject()) {
     $galaxies[$galaxy->galaxy_id] = $galaxy->servername;
@@ -26,15 +26,13 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
   $form['galaxy_id'] = array(
     '#type' => 'select',
     '#options' => $galaxies,
-    '#title' => t ( 'Galaxy Servers' ),
-    '#description' => t ( 'Please select a galaxy instance to view it\'s workflows' ),
+    '#title' => t('Galaxy Servers'),
+    '#description' => t('Please select a galaxy instance to view it\'s workflows'),
     '#ajax' => array(
       'callback' => 'tripal_galaxy_admin_add_workflow_form_ajax_callback',
       'wrapper' => 'tripal-galaxy-admin-wf-available-form-rows',
       'method' => 'replace',
-      'effect' => 'fade'
-    ),
-  );
+      'effect' => 'fade'));
 
   $form['#prefix'] = '<div id="tripal-galaxy-admin-wf-available-form-rows">';
   $form['#suffix'] = '</div>';
@@ -44,7 +42,7 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
 
     // Connect to the Galaxy instance.
     $galaxy = tripal_galaxy_get_connection($galaxy_id);
-    if (!$galaxy) {
+    if (! $galaxy) {
       drupal_set_message('Cannot connect to Galaxy Instance', 'error');
       return $form;
     }
@@ -58,13 +56,12 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
     // Galaxy id for the server
     $form['galaxy_id-server'] = array(
       '#type' => 'value',
-      '#value' => $galaxy_id
-    );
+      '#value' => $galaxy_id);
 
     // Obtain the workflows
     $gworkflows = new GalaxyWorkflows($galaxy);
     $workflows = $gworkflows->index();
-    if (!$workflows) {
+    if (! $workflows) {
       $error = $galaxy->getError();
       if (empty($error['message'])) {
         $error['message'] = 'No workflow is found in this Galaxy server for the user you used
@@ -73,7 +70,6 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
       drupal_set_message($error['message'], 'error');
       return $form;
     }
-
 
     // Loop through each workflow to add it to the form
     foreach ($workflows as $workflow) {
@@ -90,8 +86,7 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
       $workflow_rec = db_query($sql, array(
         ':workflow_id' => $workflow['id'],
         ':galaxy_id' => $galaxy_id,
-        ':workflow_uuid' => $workflow['latest_workflow_uuid']
-      ))->fetchObject();
+        ':workflow_uuid' => $workflow['latest_workflow_uuid']))->fetchObject();
       if ($workflow_rec) {
         $workflow_exists = TRUE;
       }
@@ -101,48 +96,39 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
       // Workflow name
       $form['rows'][$i]['workflow_name-' . $i] = array(
         '#type' => 'item',
-        '#markup' => $workflow['name']
-      );
+        '#markup' => $workflow['name']);
       $form['rows'][$i]['workflow_name-server-' . $i] = array(
         '#type' => 'value',
-        '#value' => $workflow['name']
-      );
+        '#value' => $workflow['name']);
       // Workflow_id
       $form['rows'][$i]['workflow_id-' . $i] = array(
         '#type' => 'item',
-        '#markup' => $workflow['id']
-      );
+        '#markup' => $workflow['id']);
       // Workflow UUID
       $form['rows'][$i]['workflow_uuid-' . $i] = array(
         '#type' => 'value',
-        '#value' => $workflow['latest_workflow_uuid']
-      );
+        '#value' => $workflow['latest_workflow_uuid']);
       $form['rows'][$i]['workflow_id-server-' . $i] = array(
         '#type' => 'value',
-        '#value' => $workflow['id']
-      );
+        '#value' => $workflow['id']);
       // If the workflow is already on the site then check and disable the
       // box so it can't be added twice.
       if ($workflow_exists) {
         $form['rows'][$i]['available-' . $i] = array(
           '#type' => 'checkbox',
           '#default_value' => 1,
-          '#disabled' => TRUE
-        );
+          '#disabled' => TRUE);
         $form['contains_wf-' . $i] = array(
           '#type' => 'value',
-          '#value' => TRUE
-        );
+          '#value' => TRUE);
       }
       else {
         $form['rows'][$i]['available-' . $i] = array(
           '#type' => 'checkbox',
-          '#default_value' => 0
-        );
+          '#default_value' => 0);
         $form['contains_wf-' . $i] = array(
           '#type' => 'value',
-          '#value' => FALSE
-        );
+          '#value' => FALSE);
       }
     }
 
@@ -153,8 +139,7 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
     $form['submit'] = array(
       '#type' => 'submit',
       '#name' => 'submit',
-      '#value' => t ( 'Submit' )
-    );
+      '#value' => t('Submit'));
   }
 
   return $form;
@@ -170,7 +155,6 @@ function tripal_galaxy_admin_add_workflow_form_ajax_callback(&$form, $form_state
 
 /**
  * The themable fuinction for the add workflow form
- *
  */
 function theme_tripal_galaxy_admin_add_workflow_form_rows($variables) {
   $form = $variables['form'];
@@ -179,8 +163,7 @@ function theme_tripal_galaxy_admin_add_workflow_form_rows($variables) {
   $headers = array(
     'Add Workflow',
     'Workflow Name',
-    'Workflow Id'
-  );
+    'Workflow Id');
 
   // Theme the rows of this form's table.
   $rows = array();
@@ -190,8 +173,7 @@ function theme_tripal_galaxy_admin_add_workflow_form_rows($variables) {
     $rows[] = array(
       drupal_render($row["available-" . $i]),
       drupal_render($row["workflow_name-" . $i]),
-      drupal_render($row["workflow_id-" . $i]) . drupal_render($row["workflow_uuid-" . $i])
-    );
+      drupal_render($row["workflow_id-" . $i]) . drupal_render($row["workflow_uuid-" . $i]));
     $i ++;
   }
 
@@ -203,13 +185,11 @@ function theme_tripal_galaxy_admin_add_workflow_form_rows($variables) {
     'sticky' => TRUE,
     'caption' => '',
     'colgroups' => array(),
-    'empty' => 'No Workflows Available'
-  ));
+    'empty' => 'No Workflows Available'));
 }
 
 /**
- * TODO:
- * Override's Drupal's Hook_form_validate
+ * TODO: Override's Drupal's Hook_form_validate
  */
 function tripal_galaxy_admin_add_workflow_form_validate($form, &$form_state) {
   // Not implemented yet
@@ -217,10 +197,9 @@ function tripal_galaxy_admin_add_workflow_form_validate($form, &$form_state) {
 }
 
 /**
- * Implements Drupal's Hook_form_submit
- * possible conditions:
- * - Workflow already exists on site and needs to be updated.
- * - Workflow does not exist on site and needs to be inserted.
+ * Implements Drupal's Hook_form_submit possible conditions: - Workflow already
+ * exists on site and needs to be updated. - Workflow does not exist on site and
+ * needs to be inserted.
  */
 function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
   $i = 0;
@@ -238,12 +217,11 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
 
         $galaxy_id = $form_state['values']['galaxy_id-server'];
         $values = [
-          'workflow_id' => $form_rows[$i]['workflow_id-server-' . $i],
-        ];
+          'workflow_id' => $form_rows[$i]['workflow_id-server-' . $i]];
         $workflow = tripal_galaxy_add_workflow($galaxy_id, $values, TRUE);
 
         $nid = $workflow->nid;
-        if (!$nid) {
+        if (! $nid) {
           throw new Exception('Could not create workflow');
         }
 
@@ -251,32 +229,32 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
           'The workflow title.',
           'The instructions for the workflow.',
           'The "About this step" field for each tool to help the user understand the workflow.',
-          'Each tool setting descriptions as desired.',
-        );
+          'Each tool setting descriptions as desired.');
         $list = theme_item_list(array(
           'items' => $instructions,
           'title' => '',
           'type' => 'ul',
-          'attributes' => array(),
-        ));
+          'attributes' => array()));
         drupal_set_message(t('The workflow was succesfully added! <p>Sometimes
           these workflows need a bit of tweaking to make them more intuitive
           for users. Click the title of the workflow below to customize how it
-          will appear to users. Consider improving: !list</p>', array('!list' => $list)));
-          /*<p>Also,
-          consider adding a version number to each of your workflow names below.
-          If a change is made to a workflow on the Galaxy server then the
-          workflow below will be marked as "Altered" and no user submission will
-          be allowed. This is because the web form provided by this site will
-          be out of sync with the workflow on the Galaxy server. If this
-          happens you will need to re-add the workflow and therefore the
-          version numbers will help users distinguish between multiple versions
-          of the same workflow.', array('!list' => $list))); */
+          will appear to users. Consider improving: !list</p>', array(
+          '!list' => $list)));
+        /*
+         * <p>Also, consider adding a version number to each of your workflow
+         * names below. If a change is made to a workflow on the Galaxy server
+         * then the workflow below will be marked as "Altered" and no user
+         * submission will be allowed. This is because the web form provided by
+         * this site will be out of sync with the workflow on the Galaxy server.
+         * If this happens you will need to re-add the workflow and therefore
+         * the version numbers will help users distinguish between multiple
+         * versions of the same workflow.', array('!list' => $list)));
+         */
       }
       catch (Exception $e) {
         $transaction->rollback();
         drupal_set_message($e->getMessage(), 'error');
-        //watchdog_exception('tripal_galaxy', $e);
+        // watchdog_exception('tripal_galaxy', $e);
       }
     }
     $i ++;

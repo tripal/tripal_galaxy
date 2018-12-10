@@ -18,7 +18,7 @@ function tripal_galaxy_submission_user_report($sid) {
 
   module_load_include('inc', 'tripal_galaxy', 'includes/tripal_galaxy.admin');
 
-  if($report =  tripal_galaxy_workflow_report($sid)) {
+  if ($report = tripal_galaxy_workflow_report($sid)) {
     return $report;
   }
 
