@@ -1,1 +1,8 @@
-<?php print drupal_render($page['content']); ?>
+<?php
+
+/**
+ * @file
+ */
+
+
+print drupal_render($page['content']); ?>

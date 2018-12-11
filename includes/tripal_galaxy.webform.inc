@@ -412,14 +412,8 @@ function tripal_galaxy_build_webform_sort_conditionals($a, $b) {
  * of these workflows will have its 'vanilla' inputs and others will have its
  * inputs already chosen (workflow might have been constructed on the galaxy
  * server or imported)
- *
- * @param $webform
- *   An object containinng the components and conditionals into which the
- *   webform will be created.
- *
- * @return An array suitable for the 'components' webform array False otherwise.
  */
-function tripal_galaxy_build_webform_add_tool_input($webform, $workflow, $step, $tool, $tool_input, $pid = 0, $data_inputs) {
+function tripal_galaxy_build_webform_add_tool_input($webform, $workflow, $step, $tool, $tool_input, $pid = 0, $data_inputs = NULL) {
   $step_index = $step['id'];
   // We want to keep track of which inputs come from a repeat input type
   // because there can be multiple values at different indicies.
@@ -527,21 +521,6 @@ function tripal_galaxy_build_webform_add_tool_input($webform, $workflow, $step, 
 
 /**
  * Adds a single component to the webform.
- *
- * @param The $webform
- *   webform object containing conditionals and components that can be
- *        added to.
- * @param The $step
- *   step array in the workflow to which the tool belongs.
- * @param The $input
- *   tool input from the tool that will be added as a component.
- * @param The $pid
- *   parent's component ID.
- * @param Set $fixed
- *   to TRUE if this component should be fixed and not allowed to change by
- *        the end-user.
- *
- * @return The component ID of the recently added component.
  */
 function tripal_galaxy_build_webform_add_component($webform, $workflow, $step, $tool, $input, $pid, $data_inputs, $fixed = FALSE) {
 
@@ -811,9 +790,12 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step, $
         $section_input['full_name'] = $input['name'] . '|' . $section_input['name'];
         tripal_galaxy_build_webform_add_tool_input($webform, $workflow, $step, $tool, $section_input, $dcid, $data_inputs);
       }
+      // phpcs:disable Squiz.ControlStructures.SwitchDeclaration.SpacingAfterBreak
+      // phpcs:disable Squiz.PHP.NonExecutableCode.Unreachable
       return;
-
     break;
+      // phpcs:enable Squiz.PHP.NonExecutableCode.Unreachable
+      // phpcs:enable Squiz.ControlStructures.SwitchDeclaration.SpacingAfterBreak
 
     default:
       drupal_set_message('Unhandled tool input type: ' . $input['type'] . ".", 'error');
@@ -858,23 +840,25 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step, $
 }
 
 /**
+ * Sets allowed file extensions.
+ *
  * Adds the allowed extensions to data_input and data_collection_input tools.
  * The data_input and data_collection_input "tools" don't have any allowed file
  * types. The allowed file types are set in the tool that uses them as input.
  * Therefore, we need to traverse the steps, find those that use the data_input
  * and data_collection_input as an input and set the allowed types.
  *
- * @param The $workflow
- *   Galaxy workflow array.
- * @param The $input
- *   tool input from the tool that will be added as a component.
- * @param The $data_inputs
- *   array that maps the data_input steps to the component IDs.
- * @param The $webform
- *   webform object containing conditionals and components that can be
- *        added to.
+ * @param array $workflow
+ *   The Galaxy workflow array.
+ * @param array $input
+ *   The tool input from the tool that will be added as a component.
+ * @param array $data_inputs
+ *   The array that maps the data_input steps to the component IDs.
+ * @param array $webform
+ *   The webform object containing conditionals and components that can be
+ *   added to.
  */
-function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $data_inputs, &$webform) {
+function tripal_laxy_build_webform_set_input_extensions(array $workflow, array $input, array $data_inputs, array &$webform) {
   $full_name = $input['full_name'];
 
   // Add some additional allowances.
@@ -913,27 +897,28 @@ function tripal_galaxy_build_webform_set_input_extensions($workflow, $input, $da
 
 /**
  * Retrieves the value set in the workflow for a given input.
- * The workflow
- * organizes values in a nested array based on the heirarchy of the tool's
- * inputs and their conditionals. Therefore, this funtion is recursive in order
- * to descend through the nested array to find the value.
  *
- * @param The $workflow
- *   Galaxy workflow array.
- * @param The $step_index
- *   step in the workflow for the tool that the input belongs to.
- * @param The $input_full_name
- *   full name of the tool input. This name is constructed as the workflow
- *        is recursively parsed. The name represents the heirarchal position of
- *        the tool input which each level separated by a '|' character.
- * @param Do $values
- *   not use when calling this function. It is only used during recursion.
- * @param Do $depth
- *   not use when calling this function. It is only used during recursion.
+ * The workflow organizes values in a nested array based on the heirarchy of
+ * the tool's inputs and their conditionals. Therefore, this funtion is
+ * recursive in order to descend through the nested array to find the value.
  *
- * @return The value of the tool input as set in the workflow configuration.
+ * @param array $workflow
+ *   The Galaxy workflow array.
+ * @param int $step_index
+ *   The step in the workflow for the tool that the input belongs to.
+ * @param string $input_full_name
+ *   The full name of the tool input. This name is constructed as the workflow
+ *   is recursively parsed. The name represents the heirarchal position of
+ *   the tool input which each level separated by a '|' character.
+ * @param array $values
+ *   Do not use when calling this function. It is only used during recursion.
+ * @param int $depth
+ *   Do not use when calling this function. It is only used during recursion.
+ *
+ * @return array
+ *   The value of the tool input as set in the workflow configuration.
  */
-function tripal_galaxy_build_webform_get_input_value($workflow, $step_index, $input_full_name, $values = [], $depth = 0) {
+function tripal_galaxy_build_webform_get_input_value(array $workflow, int $step_index, string $input_full_name, array $values = [], int $depth = 0) {
 
   // At the first level initialize our values array to the tool inputs.
   if ($depth == 0) {
@@ -975,27 +960,7 @@ function tripal_galaxy_build_webform_get_input_value($workflow, $step_index, $in
 }
 
 /**
- * This is for tools that have their input files determined by the output of a
- * preceding tool.
- */
-function tripal_galaxy_build_webform_get_input_steps($default_files, $tool_input, &$webform_value, &$webform_type, &$extra) {
-  // The tool input type will be select, if there is a key in the $default_files
-  // that matches the $tool_input name then we change the webform_type to
-  // markup and the value to the name of the step's output that this
-  // particular input file is taking in.
-  foreach ($default_files as $key => $val) {
-    // Again $val will be an array containing the elements
-    // step_output AND (more importantly) source_step.
-  }
-}
-
-/**
  * Unpack a default array from the steps of a given workflow.
- *
- * @param
- *        $default_obj
- *
- * @return The default value of the component (if it exists).
  */
 function tripal_galaxy_build_webform_get_step_defaults($defaults, $tool_input, &$webform_value) {
 
@@ -1032,7 +997,6 @@ function tripal_galaxy_build_webform_get_step_defaults($defaults, $tool_input, &
         break;
 
       case 'data':
-        // This is for tripal_galaxy_build_webform_get_input_steps.
         break;
 
       case 'boolean':
@@ -1058,9 +1022,6 @@ function tripal_galaxy_build_webform_get_step_defaults($defaults, $tool_input, &
 
 /**
  * Invoke a workflow provided by a webform submission.
- *
- * @param The $sid
- *   webform submission ID.
  */
 function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
 
@@ -1391,17 +1352,17 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
 
 /**
  * A helper function for recursively building a values array.
- * The values array
- * is needed to invoke a Galaxy workflow.
  *
- * @param The $values
- *   array into which the value will be placed.
- * @param The $input_full_name
- *   full name of the input paramter.
- * @param The $value
- *   value to add to the array.
+ * The values array is needed to invoke a Galaxy workflow.
+ *
+ * @param array $values
+ *   The array into which the value will be placed.
+ * @param string $input_full_name
+ *   The full name of the input paramter.
+ * @param scalar $value
+ *   The value to add to the array.
  */
-function _tripal_galaxy_invoke_webform_build_values(&$values, $input_full_name, $value) {
+function _tripal_galaxy_invoke_webform_build_values(array &$values, string $input_full_name, scalar $value) {
   // Pop the first name off the list.
   $names = explode('|', $input_full_name);
   $name = array_shift($names);

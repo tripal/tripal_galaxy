@@ -1,28 +1,31 @@
 <?php
 
 /**
+ * @file
  * @galaxy
  * Installation of the galaxy module
  */
 
 /**
  * Implementation of hook_schema().
+ *
  * @ingroup tripal_galaxy
  */
 function tripal_galaxy_schema() {
   $schema = array();
-  
+
   tripal_galaxy_add_galaxy_table($schema);
   tripal_galaxy_add_workflow_table($schema);
   tripal_galaxy_add_workflow_submission_table($schema);
   tripal_galaxy_add_site_wide_files_table($schema);
   tripal_galaxy_add_webform_table($schema);
-  
+
   return $schema;
 }
 
 /**
  * Adds the 'tripal_galaxy' table to Drupal schema.
+ *
  * @ingroup tripal_galaxy
  */
 function tripal_galaxy_add_galaxy_table(&$schema) {
@@ -31,58 +34,58 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
     'fields' => array(
       'galaxy_id' => array(
         'type' => 'serial',
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'url' => array(
         'type' => 'text',
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'uid' => array(
         'type' => 'int',
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'save_auth' => array(
         'type' => 'int',
         'size' => 'tiny',
         'default' => 1,
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'username' => array(
         'type' => 'varchar',
-        'length ' => 128
+        'length ' => 128,
       ),
       'api_key' => array(
         'type' => 'varchar',
-        'length ' => 1024
+        'length ' => 1024,
       ),
       'servername' => array(
         'type' => 'varchar',
-        'length ' => 1024
+        'length ' => 1024,
       ),
       'description' => array(
         'type' => 'text',
-        'not NULL' => FALSE
+        'not NULL' => FALSE,
       ),
       'serverstatus' => array(
         'type' => 'varchar',
         'length ' => 1024,
-        'not NULL' => FALSE
-      )
+        'not NULL' => FALSE,
+      ),
     ),
     'primary key' => array(
-      0 => 'galaxy_id'
+      0 => 'galaxy_id',
     ),
     'unique keys' => array(
       'tripal_galaxy_servername' => array(
-        'servername'
-      )
-    )
+        'servername',
+      ),
+    ),
   );
 }
 
 /**
  * Add workflow submission table, the table responsible for recording submitted
- * Workflow data
+ * Workflow data.
  *
  * @param unknown $schema
  */
@@ -92,65 +95,65 @@ function tripal_galaxy_add_workflow_submission_table(&$schema) {
     'fields' => array(
       'sid' => array(
         'type' => 'serial',
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'uid' => array(
         'type' => 'int',
         'not null' => TRUE,
-        'description' => 'The Drupal User ID of the user submitting the workflow.'
+        'description' => 'The Drupal User ID of the user submitting the workflow.',
       ),
       'galaxy_workflow_id' => array(
         'type' => 'int',
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'errors' => array(
-        'type' => 'text'
+        'type' => 'text',
       ),
       'status' => array(
         'type' => 'varchar',
         'length' => 50,
         'not NULL' => TRUE,
-        'default' => 'Waiting'
+        'default' => 'Waiting',
       ),
       'submit_date' => array(
         'type' => 'int',
         'not NULL' => TRUE,
-        'description' => 'UNIX integer submit time'
+        'description' => 'UNIX integer submit time',
       ),
       'start_time' => array(
         'type' => 'int',
         'not NULL' => FALSE,
-        'description' => 'UNIX integer start time'
+        'description' => 'UNIX integer start time',
       ),
       'end_time' => array(
         'type' => 'int',
         'not NULL' => FALSE,
-        'description' => 'UNIX integer end time'
+        'description' => 'UNIX integer end time',
       ),
       'invocation_id' => array(
         'type' => 'varchar',
         'length' => 128,
-        'description' => 'Galaxy provides an invocation ID that can be used ' . 'to check the status of a submitted workflow.'
+        'description' => 'Galaxy provides an invocation ID that can be used ' . 'to check the status of a submitted workflow.',
       ),
       'email' => array(
         'type' => 'varchar',
         'length' => 128,
-        'description' => 'Flag if notification email has been sent'
-      )
+        'description' => 'Flag if notification email has been sent',
+      ),
     ),
     'indexes' => array(
       'sid' => array(
-        'sid'
+        'sid',
       ),
       'galaxy_workflow_id' => array(
-        'galaxy_workflow_id'
-      )
+        'galaxy_workflow_id',
+      ),
     ),
     'unique' => array(
       'sid_uq1' => array(
-        'sid'
-      )
-    )
+        'sid',
+      ),
+    ),
   );
 }
 
@@ -163,102 +166,105 @@ function tripal_galaxy_add_workflow_table(&$schema) {
     'fields' => array(
       'galaxy_workflow_id' => array(
         'type' => 'serial',
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'nid' => array(
         'type' => 'int',
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'galaxy_id' => array(
         'type' => 'int',
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'status' => array(
         'type' => 'varchar',
         'length' => 1024,
-        'default' => 'Active'
+        'default' => 'Active',
       ),
       'workflow_id' => array(
         'type' => 'varchar',
         'length' => 128,
         'not NULL' => TRUE,
-        'description' => 'The ID of the workflow on the Galaxy server.'
+        'description' => 'The ID of the workflow on the Galaxy server.',
       ),
       'workflow_uuid' => array(
         'type' => 'varchar',
         'length' => 1024,
         'not NULL' => TRUE,
-        'description' => 'Each Galaxy workflow has a unique UUID nad each time ' . 'the workflow is changed the UUID changes. This way we can ensure that ' . 'workflows are disabled if the UUID changes.'
+        'description' => 'Each Galaxy workflow has a unique UUID nad each time ' . 'the workflow is changed the UUID changes. This way we can ensure that ' . 'workflows are disabled if the UUID changes.',
       ),
       'workflow_name' => array(
         'type' => 'text',
-        'not NULL' => TRUE
-      )
+        'not NULL' => TRUE,
+      ),
     ),
     'primary key' => array(
-      0 => 'galaxy_workflow_id'
+      0 => 'galaxy_workflow_id',
     ),
     'unique keys' => array(
       'tripal_galaxy_workflow_uq1' => array(
         'galaxy_id',
         'workflow_id',
-        'workflow_uuid'
-      )
-    )
+        'workflow_uuid',
+      ),
+    ),
   );
 }
 
+/**
+ *
+ */
 function tripal_galaxy_add_site_wide_files_table(&$schema) {
   $schema['tripal_galaxy_site_files'] = array(
     'table' => 'tripal_galaxy_site_files',
     'fields' => array(
       'swfid' => array(
         'type' => 'serial',
-        'not null' => TRUE
+        'not null' => TRUE,
       ),
       'fid' => array(
-        'type' => 'int'
+        'type' => 'int',
       ),
       'url' => array(
-        'type' => 'text'
+        'type' => 'text',
       ),
       'filename' => array(
         'type' => 'varchar',
         'length' => 1024,
-        'not null' => TRUE
+        'not null' => TRUE,
       ),
       'short_desc' => array(
         'type' => 'varchar',
         'length' => 128,
-        'not null' => TRUE
+        'not null' => TRUE,
       ),
       'filetype' => array(
         'type' => 'varchar',
         'length' => 32,
-        'not null' => TRUE
+        'not null' => TRUE,
       ),
       'enabled' => array(
         'type' => 'int',
         'not null' => TRUE,
-        'default' => 1
-      )
+        'default' => 1,
+      ),
     ),
     'primary key' => array(
-      0 => 'swfid'
+      0 => 'swfid',
     ),
     'unique keys' => array(
       'uq1' => array(
-        'url'
+        'url',
       ),
       'uq2' => array(
-        'fid'
-      )
+        'fid',
+      ),
     ),
     'indexes' => array(
       'idx1' => array(
-        'filetype'
-      )
-    )
+        'filetype',
+      ),
+    ),
   );
 }
 
@@ -272,16 +278,16 @@ function tripal_galaxy_add_webform_table(&$schema) {
     'fields' => array(
       'wf_sid' => array(
         'type' => 'int',
-        'not NULL' => TRUE
+        'not NULL' => TRUE,
       ),
       'tg_sid' => array(
         'type' => 'int',
-        'not NULL' => TRUE
-      )
+        'not NULL' => TRUE,
+      ),
     ),
     'primary key' => array(
-      0 => 'wf_sid'
-    )
+      0 => 'wf_sid',
+    ),
   );
 }
 
@@ -291,19 +297,22 @@ function tripal_galaxy_add_webform_table(&$schema) {
 function tripal_galaxy_requirements($phase) {
   $requirements = array();
   if ($phase == 'install') {
-    if (! module_exists('tripal_core') and ! module_exists('tripal')) {
+    if (!module_exists('tripal_core') and !module_exists('tripal')) {
       $requirements['tripal_galaxy'] = array(
         'title' => "tripal_galaxy",
         'value' => "ERROR: You must have Tripal v2 or v3 installed to use this module.",
-        'severity' => REQUIREMENT_ERROR
+        'severity' => REQUIREMENT_ERROR,
       );
     }
   }
   return $requirements;
 }
 
+/**
+ *
+ */
 function tripal_galaxy_uninstall() {
-  // Remove the db tables that this installed
+  // Remove the db tables that this installed.
   drupal_uninstall_schema('tripal_galaxy');
   db_drop_table('tripal_galaxy');
   db_drop_table('tripal_galaxy_workflow');
@@ -327,7 +336,7 @@ function tripal_galaxy_update_7100() {
 }
 
 /**
- * Adds support for site-wide files
+ * Adds support for site-wide files.
  */
 function tripal_galaxy_update_7101() {
   try {
@@ -364,7 +373,7 @@ function tripal_galaxy_update_7103() {
     $status = array(
       'type' => 'varchar',
       'length ' => 1024,
-      'not NULL' => FALSE
+      'not NULL' => FALSE,
     );
     db_add_field('tripal_galaxy', 'serverstatus', $status);
   }
@@ -383,7 +392,7 @@ function tripal_galaxy_update_7104() {
     $schema = array();
     tripal_galaxy_add_webform_table($schema);
     db_create_table('tripal_galaxy_webform', $schema['tripal_galaxy_webform']);
-    
+
     // Move the data over to the new table.
     $sql = "SELECT * FROM tripal_galaxy_workflow_submission";
     $entries = db_query($sql);
@@ -394,7 +403,7 @@ function tripal_galaxy_update_7104() {
       try {
         db_insert('tripal_galaxy_webform')->fields(array(
           'wf_sid' => $entry->sid,
-          'tg_sid' => $entry->sid
+          'tg_sid' => $entry->sid,
         ))->execute();
       }
       catch (\PDOException $e) {
@@ -402,7 +411,7 @@ function tripal_galaxy_update_7104() {
         throw new DrupalUpdateException('Could not copy the data into the new linker table: ' . $error);
       }
     }
-    
+
     // Now that everything is moved change the existing sid field to a serial.
     // On PostgreSQL, changing a field definition involves adding a new field
     // and dropping an old one.
@@ -410,7 +419,7 @@ function tripal_galaxy_update_7104() {
       $holder = array(
         'type' => 'int',
         'length ' => 1024,
-        'not NULL' => false
+        'not NULL' => FALSE,
       );
       db_add_field('tripal_galaxy_workflow_submission', 'sid_linker', $holder);
     }
@@ -418,7 +427,7 @@ function tripal_galaxy_update_7104() {
       $error = $e->getMessage();
       throw new DrupalUpdateException('Could not insert the column into the tripal_galaxy_workflow_submission table: ' . $error);
     }
-    
+
     // Copy the data into a holder column, delete old column, create new column,
     // update tg_sid mapping. This should finish the update to that field.
     try {
@@ -426,10 +435,10 @@ function tripal_galaxy_update_7104() {
       $copied = db_query($copy_sql);
       if ($copied) {
         db_drop_field('tripal_galaxy_workflow_submission', 'sid');
-        if (! db_field_exists('tripal_galaxy_workflow_submission', 'sid')) {
+        if (!db_field_exists('tripal_galaxy_workflow_submission', 'sid')) {
           $status = array(
             'type' => 'serial',
-            'not NULL' => false
+            'not NULL' => FALSE,
           );
           db_add_field('tripal_galaxy_workflow_submission', 'sid', $status);
         }
@@ -442,7 +451,7 @@ function tripal_galaxy_update_7104() {
               continue;
             }
             $updated_sid = db_update('tripal_galaxy_webform')->fields(array(
-              'tg_sid' => $entry->sid
+              'tg_sid' => $entry->sid,
             ))
               ->condition('wf_sid', $entry->sid_linker, '=')
               ->execute();
@@ -473,7 +482,7 @@ function tripal_galaxy_update_7106() {
     $email = array(
       'type' => 'varchar',
       'length' => 128,
-      'description' => 'Flag if notification email has been sent'
+      'description' => 'Flag if notification email has been sent',
     );
     db_add_field('tripal_galaxy_workflow_submission', 'email', $email);
   }
@@ -490,15 +499,15 @@ function tripal_galaxy_update_7106() {
 function tripal_galaxy_update_7107() {
   $transaction = db_transaction();
   try {
-    
+
     // Add the field but don't allow it to have null's for now. We'll try to
     // add those in.
     $uid = array(
       'type' => 'int',
-      'description' => 'The Drupal User ID of the user submitting the workflow.'
+      'description' => 'The Drupal User ID of the user submitting the workflow.',
     );
     db_add_field('tripal_galaxy_workflow_submission', 'uid', $uid);
-    
+
     // Next try to find the UID for the submitted workflows. The UID is
     // buried in the history name as the first element after the TG- prefix.
     // We'll pull it out and store it in the field.
@@ -511,29 +520,29 @@ function tripal_galaxy_update_7107() {
       if (preg_match('/^TG-(\d+?)-.*$/', $history_name, $matches)) {
         $uid = $matches[1];
         db_update('tripal_galaxy_workflow_submission')->fields([
-          'uid' => $uid
+          'uid' => $uid,
         ])
           ->condition('sid', $sid)
           ->execute();
       }
     }
-    
+
     // If there are any workflows that we can't find the user then we will
     // just assign them to the admin user. At the time of the writing of this
     // update function very few folks are using this module so it should only
     // be an issue, if at all for a few cases.
     db_upate('tripal_galaxy_workflow_submission')->fields([
-      'uid' => 1
+      'uid' => 1,
     ])
       ->isNull('sid')
       ->execute();
-    
+
     // Now that we're all done we want to set the uid field to not allow
     // NULLs.
     db_change_field('tripal_galaxy_workflow_submission', 'uid', 'uid', [
       'not null' => TRUE,
       'type' => 'int',
-      'description' => 'The Drupal User ID of the user submitting the workflow.'
+      'description' => 'The Drupal User ID of the user submitting the workflow.',
     ]);
   }
   catch (\PDOException $e) {

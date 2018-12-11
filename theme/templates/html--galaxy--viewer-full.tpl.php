@@ -1,1 +1,8 @@
-<?php print $page?>
+<?php
+
+/**
+ * @file
+ */
+
+
+print $page?>
