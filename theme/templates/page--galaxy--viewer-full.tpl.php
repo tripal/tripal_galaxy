@@ -2,6 +2,7 @@
 
 /**
  * @file
+ * The page template for viewing Galaxy results.
  */
 
 
