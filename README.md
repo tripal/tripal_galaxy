@@ -1,6 +1,7 @@
 [![7.x-3.x Build Status](https://travis-ci.org/tripal/tripal_galaxy.svg?branch=7.x-1.x)](https://travis-ci.org/tripal/tripal_galaxy)
 [![Documentation Status](https://readthedocs.org/projects/tripal_galaxy/badge/?version=latest)](https://tripal-galaxy.readthedocs.io/en/latest/?badge=latest)
 [![Maintainability](https://api.codeclimate.com/v1/badges/d96b8ae3505c31c48d31/maintainability)](https://codeclimate.com/github/tripal/tripal_galaxy/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/d96b8ae3505c31c48d31/test_coverage)](https://codeclimate.com/github/tripal/tripal_galaxy/test_coverage)
 
 ![alt tag](https://raw.githubusercontent.com/tripal/tripal/7.x-3.x/tripal/theme/images/tripal_logo.png)
 ![alt_tag](https://galaxyproject.org/images/galaxy-logos/galaxy_logo_25percent.png)
