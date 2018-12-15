@@ -779,9 +779,18 @@ function _tripal_galaxy_get_workflow_defaults(array $tool_inputs, array &$parame
  *   using the tripal_galaxy_get_submission() function.
  * @param array $parameters
  *   A mapping of tool parameters that are non-datasets parameters. The map
- *   must be in the following format: @code [ {step_id_or_UUID} =>
- *   [{param_name} => {value}], {step_id_or_UUID} => [{param_name} =>
- *   {value}] ]; @endcode.
+ *   must be in the following format:
+ *   @code
+ *   [
+ *     {step_id_or_UUID} => [
+ *       {param_name} => {value}
+ *     ],
+ *     {step_id_or_UUID} => [
+ *       {param_name} =>
+ *       {value}
+ *     ]
+ *   ];
+ *   @endcode
  * @param array $inputs
  *   An array of file inputs. These files should already be uploaded to the
  *   history on the Galaxy server. This array contains a mapping of
@@ -791,12 +800,12 @@ function _tripal_galaxy_get_workflow_defaults(array $tool_inputs, array &$parame
  *   HistoryDatasetCollectionAssociation (hdca). The map must be in the
  *   following format.
  *   @code
- *    [
- *      {step index} => [
- *        'id' => {encoded dataset ID},
- *        'src' => {'ldda'|'ld'|'hda'|'hdca'},
- *      ],
- *    ];
+ *   [
+ *     {step index} => [
+ *       'id' => {encoded dataset ID},
+ *       'src' => {'ldda'|'ld'|'hda'|'hdca'},
+ *     ],
+ *   ];
  *   @endcode
  *   The id's are data set IDs and can be found using the data set class's
  *   index() function. The data set must be present in a history, and the data
@@ -1158,4 +1167,110 @@ function tripal_galaxy_delete_remote_history(int $galaxy_id, string $history_nam
     watchdog_exception('tripal_galaxy', $e);
     return FALSE;
   }
+}
+
+/**
+ * Retrieve a file from a Galaxy history.
+ *
+ * Downloads a single file from a history.  The file will be stored in the
+ * user's Tripal space and count towards their quota.  If the file has already
+ * been downloaded it will be retrieved again and overwrite any existing file.
+ *
+ * @param int $galaxy_id
+ *   A unique ID for the galaxy server.
+ * @param string $history_name
+ *   The name of the history from which the file should be obtained.
+ * @param string $dataset_id
+ *   The unique Galaxy Dataset ID.  This can be obtained from the history
+ *   contents using the GalaxyHistoryContents::index function.
+ * @param int $uid
+ *   The user that should own this file after it is downloaded.
+ *
+ * @throws Exception
+ *
+ * @return object
+ *   Returns a Drupal File object.
+ *
+ * @ingroup tripal_galaxy_api
+ */
+function tripal_galaxy_retrieve_file(int $galaxy_id, string $history_name, string $dataset_id, int $uid) {
+
+  $user = user_load($uid);
+
+  // Connect to the Galaxy server and get the history.
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
+  $error = [];
+  $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
+  if (!$history) {
+    $error = $galaxy->getError();
+    throw new Exception("Cannot find history, $history_name :" . $error['message']);
+  }
+
+  // Get the history contents
+  $ghistory_contents = new GalaxyHistoryContents($galaxy);
+  $history_contents = $ghistory_contents->index([
+    'history_id' => $history['id'],
+  ]);
+  if (!$history_contents) {
+    $error = $galaxy->getError();
+    throw new Exception("Cannot find the history contents with name '$history_name' :" . $error['message']);
+  }
+
+  $url = '';
+  foreach ($history_contents as $entry) {
+    if ($entry['dataset_id'] == $dataset_id) {
+      $gdataset = new GalaxyDatasets($galaxy);
+      $dataset = $gdataset->show(['dataset_id' => $dataset_id]);
+      if (!$dataset) {
+        $error = $galaxy->getError();
+        throw new Exception("Cannot find the dataset with ID '$dataset_id' :" . $error['message']);
+      }
+      $file_name = preg_replace('/[^\w]/', '_', $dataset['name']) . '.' . $dataset['file_ext'];
+      $url = $galaxy->getURL() . $dataset['download_url'];
+    }
+  }
+
+  // Now save the file
+  $destination = tripal_get_user_files_dir($user) . '/tripal_galaxy/' . $history_name;
+  file_prepare_directory($destination, FILE_CREATE_DIRECTORY);
+  $file_uri = $destination . '/' . $file_name;
+  $url_fh = fopen($url, "r");
+  if (!$url_fh) {
+    throw new Exception("Unable to download the file at $url.");
+  }
+  $fh = fopen($file_uri, "w");
+  if (!$url_fh) {
+    throw new Exception("Unable to save file $file_name.");
+  }
+  while (!feof($url_fh)) {
+    fwrite($fh, fread($url_fh, 255), 255);
+  }
+  fclose($url_fh);
+  fclose($fh);
+
+
+  // See if this file is already managed if so, then it has been uploaded
+  // before and we don't need to add a managed item again.
+  $fid = db_select('file_managed', 'fm')
+    ->fields('fm', ['fid'])
+    ->condition('uri', $file_uri)
+    ->execute()
+    ->fetchField();
+
+  // Now register the file with Drupal
+  if (!$fid) {
+    $file->uri = $file_uri;
+    $file->filename = $file_name;
+    $file->filemime = file_get_mimetype($file_uri);
+    $file->uid = $user->uid;
+    $file->status = FILE_STATUS_PERMANENT;
+    $file = file_save($file);
+
+    // Set the file as being managed by Tripal Galaxy module.
+    file_usage_add($file, 'tripal', 'tripal_galaxy:' . $dataset_id, 0);
+  }
+  else {
+    $file = file_load($fid);
+  }
+  return $file;
 }
