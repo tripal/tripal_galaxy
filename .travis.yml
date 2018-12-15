@@ -9,12 +9,23 @@ services:
 
 env:
   - DRUPAL_ROOT=/var/www/html
+  - CC_TEST_REPORTER_ID=774dee8b4e2373efe81f96debc7391367dc2ca3a2aee002facc29fb3f06ef0a8
 
 before_script:
   - docker-compose up -d
   - sleep 300
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build --debug
+  - GIT_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
+  - GIT_COMMIT_SHA=$TRAVIS_PULL_REQUEST_SHA
+
+after_script:
+  - ./cc-test-reporter after-build clover.xml --debug -t clover -p /var/www/html/sites/all/modules/custom/tripal_galaxy --exit-code $TRAVIS_TEST_RESULT
+  -
 
 script:
   - docker-compose exec app bash -c 'cd /var/www/html/sites/all/libraries; git clone https://github.com/galaxyproject/blend4php.git'
   - docker-compose exec app drush pm-enable -y tripal_galaxy
-  - docker-compose exec app bash -c "cd /modules/tripal_galaxy && composer install && DRUPAL_ROOT=/var/www/html ./vendor/bin/phpunit"
+  - docker-compose exec app yum install -y php-pecl-xdebug.x86_64
+  - docker-compose exec app bash -c "cd /modules/tripal_galaxy && composer install && DRUPAL_ROOT=/var/www/html ./vendor/bin/phpunit --coverage-clover ./clover.xml"
