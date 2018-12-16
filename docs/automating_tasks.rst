@@ -11,11 +11,19 @@ In a production setting, jobs submitted by end-users should be executed automati
 
 Automatic Job Status Checking
 -----------------------------
-When submitted workflows are added to the Tripal Jobs queue or invoked via the API you will want to check the status of those jobs.  For this we need automation to ensure that jobs are checked on a regular bases.  The best way to do this is to setup an independent `Cron entry <https://en.wikipedia.org/wiki/Cron>`_  for the site.  You can also learn about Cron integration with Drupal at the `Tripal User's Guide <https://tripal.readthedocs.io/en/latest/user_guide/install_tripal/automating_job_execution.html>`_.  To automate job status checks, the ``drush trp-galaxy-status`` command-line tool is available.  Suppose our site is at `http://my.tripal.site` then we could add a new cron entry to check for job status updates every 5 minutes:
+When submitted workflows are added to the Tripal Jobs queue or invoked via the API you will want to check the status of those jobs.  For this we need automation to ensure that jobs are checked on a regular bases.  The best way to do this is to setup an independent `Cron entry <https://en.wikipedia.org/wiki/Cron>`_  for the site.  You can also learn about Cron integration with Drupal at the `Tripal User's Guide <https://tripal.readthedocs.io/en/latest/user_guide/install_tripal/automating_job_execution.html>`_.  To automate job status checks, the ``drush trp-galaxy-status`` command-line tool is available.  Suppose our site is at `http://my.tripal.site` and it is found on the server at the path ``/var/www/html`` then we could add a new cron entry to check for job status updates every 5 minutes. On an Ubuntu system, to edit the cron execute this command:
 
 .. code-block:: bash
 
-  0,5,10,15,20,25,30,35,40,45,50,55 * * * * drush trp-galaxy-status --uri=http://my.tripal.site/
+  sudo crontab -e
+
+Then add an entry similar to the following
+
+.. code-block:: bash
+
+  0,5,10,15,20,25,30,35,40,45,50,55 * * * * drush trp-galaxy-status --uri=http://my.tripal.site/ --root=/var/www/html
+  
+Note that we specified the URL of the site with the ``--uri`` argument and the location of our Drupal site with the ``--root`` option.
   
 .. warning::
 
