@@ -326,7 +326,7 @@ An email will be sent to the user indicating that the workflow has been submitte
 
 Check the status of a workflow submission
 -----------------------------------------
-By invoking a workflow you indicate to the Galaxy server that your workflow should be executed.  You must then wait for Galaxy to execute your workflow submission once resources become available.  Additionally, depending on the amount of data and the tools used the workflow can take a long time to complete.  You therefore should periodically check the status of your workflow.  You can do so by calling the ``tripal_galaxy_check_submission_status`` function to update the status of the submitted workflow. A workflow submission on Tripal Galaxy  will have one of 4 statuses: Waiting, Submitted, Completed or Error. 
+By invoking a workflow you indicate to the Galaxy server that the workflow should be executed.  You must then wait for Galaxy to execute your workflow submission once resources become available.  Additionally, depending on the amount of data and the tools used the workflow can take a long time to complete.  You therefore should periodically check the status of your workflow.  You can do so by calling the ``tripal_galaxy_check_submission_status`` function to update the status of the submitted workflow. A workflow submission on Tripal Galaxy  will have one of 4 statuses: Waiting, Submitted, Completed or Error. 
 
 
 .. code-block:: php
@@ -338,7 +338,152 @@ By invoking a workflow you indicate to the Galaxy server that your workflow shou
   $submission = tripal_galaxy_get_submission($submission->sid);
   $status = $submission->status;
 
-
-
+  
 Retrieving Results from Galaxy
------------------------------
+------------------------------
+There are two primary cases in which result files from an executed workflow can be made available to end-users.  First, you may wish to retrieve the files so that they can be analyzed for visualization or for use in other workflows. This results in the files being stored locally to the Drupal server, and retrieved files will count towards Tripal's user file quota.  Second, you may simply wish to provide a download link to these files but not download them to the server.  This way, the files can remain on the Galaxy server, the files don't count towards the Tripal user quota, yet users can still retrieve them from within your application.  
+
+For either option, you must first know the dataset ID. Result files are stored within the history on the remote Galaxy server. The quickest way to find the dataset ID is to retrieve a list of datasets using the ``tripal_galaxy_get_datasets`` function.
+
+.. code-block:: php
+
+    $datasets = tripal_galaxy_get_datasets($submission);
+
+The ``$datasets`` variable now contains a list of datasets for the workflow invocation. 
+
+.. note::
+
+  You must be sure that the workflow has completed before calling the ``tripal_galaxy_get_datasets()`` function.
+
+Suppose we have a history that appears as follows on the Galaxy server.
+
+.. image:: ./api_overview.history.png
+
+Note in the image above the right sidebar with the 7 datasets. When the history contents are retrieved for such a history it will be an array describing each dataset. Below is an example element in the ``$datasets`` array for the 'WGCNA: eigengene visualization' item. 
+
+.. code-block:: php
+
+  [
+    [accessible] => 1
+    [type_id] => dataset-40876639881ca029
+    [file_name] => /galaxy/database/files/000/dataset_58.dat
+    [resubmitted] => 
+    [create_time] => 2018-12-06T00:35:05.157630
+    [creating_job] => 52e496b945151ee8
+    [dataset_id] => 40876639881ca029
+    [file_size] => 1427219
+    [file_ext] => html
+    [id] => 40876639881ca029
+    [misc_info] => ''
+    [hda_ldda] => hda
+    [download_url] => /api/histories/0c5ffef6d88a1e97/contents/40876639881ca029/display
+    [state] => ok
+    [display_types] => []
+    [display_apps] => []
+    [metadata_dbkey] => ?
+    [type] => file
+    [misc_blurb] => 1.4 MB
+    [peek] => <table cellspacing="0" cellpadding="3"><tr><td>HTML file</td></tr></table>
+    [update_time] => 2018-12-06T00:43:13.749954
+    [data_type] => galaxy.datatypes.text.Html
+    [tags] => []
+    [deleted] => 
+    [history_id] => 0c5ffef6d88a1e97
+    [meta_files] => []
+    [genome_build] => ?
+    [hid] => 7
+    [model_class] => HistoryDatasetAssociation
+    [metadata_data_lines] => 150
+    [annotation] => 
+    [permissions] => [
+      [access] => []
+      [manage] => []
+    ]
+    [history_content_type] => dataset
+    [name] => WGCNA: eigengene visualization
+    [extension] => html
+    [visible] => 1
+    [url] => /api/histories/0c5ffef6d88a1e97/contents/40876639881ca029
+    [uuid] => c5178a2d-eef5-4218-bb09-6984e56a49e3
+    [visualizations] => [
+      [0] => [
+        [embeddable] => 
+        [href] => /plugins/visualizations/charts/show?dataset_id=40876639881ca029
+        [html] => Charts
+        [target] => galaxy_main
+      ]
+    ]
+    [rerunnable] => 1
+    [purged] => 
+    [api_type] => file
+  ]
+
+By iterating over all of the datasets we can find the dataset id of the file
+we are interested in. 
+
+.. code-block:: php
+
+  $dataset_id = NULL;
+  $datasets = tripal_galaxy_get_datasets($submission);
+  foreach ($datasets as $dataset) {
+    if ($dataset['name'] == 'WGCNA: eigengene visualization') {
+      $dataset_id = $dataset['id'];
+    }
+  }
+
+.. note::
+
+  The Tripal Galaxy module does have a setting for how long files can stay on a remote Galaxy server before they are automatically removed.  See the :doc:`../settings` document for more details.  
+
+Option 1: Download Files to the Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+Once the workflow has completed you can retrieve any resulting files onto the Drupal server.  This is useful if you need to re-use the results in other workflows or if you want to make those results available to users on their Profile pages (i.e. via the ``Files`` link).  
+
+To retrieve the file simply call the ``tripal_galaxy_download_file`` function.
+
+.. code-block:: php
+
+  $file = tripal_galaxy_download_file($submission, $dataset_id, $uid);
+  
+This function downloads the file to the Drupal server and registers it with Drupal as a file managed by Tripal.  This ensures that the file will be associated with the user ID specified by the ``$uid`` argument. Therefore, the ``$file`` variable returned will be a Drupal File object, and the file will count against the user's quota and show up on their profile page. 
+
+.. warning::
+
+  Be sure that you have sufficient storage space when downloading files. To help with this, Tripal provides a user quota system to which downloaded are applied.  However, be cautious of how much space is being utilized.  You can check how much space a user is currently consuming using the ``tripal_get_user_usage()`` function. If space is a concern you probably want to check the user's usage before invoking the workflow.
+
+Option 2: Providing Download Links for Users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Once the workflow has completed you may want to provide links for the end-user to view or download results from the workflow.  As opposed to option #1, this does not result in files being downloaded to the Drupal server and will not affect the user's file quota. To create a link for either viewing or downloading you should use the ``tripal_galaxy_get_proxy_url``.  This function returns a URL you can use in your application for viewing or downloading.  For example, the following retrieves a URL for downloading a dataset:
+
+.. code-block:: php
+
+    global $user;
+    
+    // Get the dataset.
+    $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
+    
+    // Now get the Proxy URL and create the link.
+    $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $uid, 'download');
+    $link = l($dataset['name'], $proxy_url) . ' (' . $dataset[file_size] . ')';
+
+The ``$link`` variable now contains an HTML formatted link for downloading the file. It also lists the file size next to the link.  You can use this variable anywhere that you create content for a page in your application. Notice that the last argument to the ``tripal_galaxy_get_proxy_url()`` function is the string ``download``.  This is the action that the proxy URL should perform.
+ 
+Similarly to retrieve a URL for viewing the dataset:
+
+.. code-block:: php
+
+  global $user;
+
+  // Get the dataset.
+  $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
+  
+  // Any files that are smaller than 1MB can be shown in a browser.
+  if ($dataset['file_size'] < pow(10, 6)) {
+    $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $uid, 'viewer');
+    $link =  l($dataset['name'], $proxy_url);
+  }
+  else {
+    $link =  'Result file is too large to view. Please download.';
+  }
+  
+Note in the call to ``tripal_galaxy_get_proxy_url`` the last argument is ``viewer``. With this action, when the link is clicked the file will be shown on a results page provided by the Tripal Galaxy module.  The page displays results in an HTML IFrame.  If you prefer to show results in a stand-alone page use ``viewer-full`` as the last argument. 

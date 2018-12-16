@@ -860,7 +860,6 @@ function tripal_galaxy_workflow_report(int $sid) {
     return FALSE;
   }
 
-  $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
   $title = $submission->workflow_name;
 
   // If this a webform submission make sure the user has access to the
@@ -1102,12 +1101,14 @@ function tripal_galaxy_workflow_report(int $sid) {
               break;
             }
             $link = $history_content['content_link'];
-            $proxy_id = tripal_galaxy_set_proxy_url($link, $galaxy, $history_content, $submission, $node);
+            $dataset_id = $history_content['dataset_id'];
+            $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
+            $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'download');
             $file_size = tripal_format_bytes($history_content['file_size']);
             $step_content['history_content_' . $history_content['id'] . '_' . $index]['download_link'] = [
               '#type' => 'item',
               '#title' => t('Download Results'),
-              '#markup' => l($history_content['name'], 'galaxy/download/' . $proxy_id) . ' (' . $file_size . ')',
+              '#markup' => l($history_content['name'], $proxy_url) . ' (' . $file_size . ')',
             ];
             break;
 
@@ -1117,12 +1118,13 @@ function tripal_galaxy_workflow_report(int $sid) {
 
         switch ($history_content['extension']) {
           case 'html':
-            $url = $galaxy_server->url . $history_content['download_url'];
-            $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
+            $dataset_id = $history_content['dataset_id'];
+            $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
+            $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'viewer');
             $step_content['history_content_' . $history_content['id'] . '_' . $index]['html_view'] = [
               '#type' => 'item',
               '#title' => t('View Results'),
-              '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
+              '#markup' => l($history_content['name'], $proxy_url),
               '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
             ];
             break;
@@ -1130,12 +1132,13 @@ function tripal_galaxy_workflow_report(int $sid) {
           default:
             // Any files that are smaller than 1MB can be shown in a browser.
             if ($history_content['file_size'] < pow(10, 6)) {
-              $url = $galaxy_server->url . $history_content['download_url'];
-              $proxy_id = tripal_galaxy_set_proxy_url($url, $galaxy, $history_content, $submission, $node);
+              $dataset_id = $history_content['dataset_id'];
+              $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
+              $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'viewer');
               $step_content['history_content_' . $history_content['id'] . '_' . $index]['html_view'] = [
                 '#type' => 'item',
                 '#title' => t('View Results'),
-                '#markup' => l($history_content['name'], 'galaxy/viewer/' . $proxy_id),
+                '#markup' => l($history_content['name'], $proxy_url),
                 '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
               ];
             }
@@ -1555,42 +1558,26 @@ function tripal_galaxy_handle_uploaded_file($file, $type) {
 }
 
 /**
- * Adds a URL to the proxy array.
- *
- * @param string $url
- *   The Galaxy URL.
- * @param object $galaxy
- *   The Galaxy object.
- * @param array $history_content
- *   The history content that the proxy URL is associated with.
- * @param object $submission
- *   An object for the workflow submission.
- * @param object $node
- *   The webform node for the workflow.
- */
-function tripal_galaxy_set_proxy_url($url, $galaxy, array $history_content, $submission, $node) {
-  if (!array_key_exists('tripal_galaxy_proxy_urls', $_SESSION)) {
-    $_SESSION['tripal_galaxy_proxy_urls'] = [];
-  };
-  $id = uniqid('TGPX', TRUE);
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['url'] = $url;
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['sid'] = $submission->sid;
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['key'] = $galaxy->getAPIKey();
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['uid'] = $node->uid;
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['name'] = $history_content['name'];
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['file_size'] = $history_content['file_size'];
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['galaxy_id'] = $submission->galaxy_id;
-  return $id;
-}
-
-/**
  * Retrieves content from a Galaxy URL and stream it back.
  *
  * @param string $proxy_id
  *   A unique ID that maps to a URL.
  */
 function tripal_galaxy_stream_url_proxy(string $proxy_id) {
-  $url = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['url'];
+  // Get the current proxy details, so we can map links for download.
+  $cproxy = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id];
+  $dataset = $cproxy['dataset'];
+  $uid = $cproxy['uid'];
+  $sid = $cproxy['sid'];
+
+  // retrieve the pertinents needed to download the file.
+  $submission = tripal_galaxy_get_submission($sid);
+  $galaxy_id = $submission->workflow->galaxy_id;
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
+  $dataset_id = $dataset['id'];
+
+  $url = $galaxy->getURL() . $dataset['download_url'];
+
   return tripal_galaxy_stream_url_proxy_url($url);
 }
 
@@ -1628,36 +1615,28 @@ function tripal_galaxy_stream_url_proxy_url(string $url) {
  */
 function tripal_galaxy_stream_link_proxy(string $proxy_id) {
   if (array_key_exists($proxy_id, $_SESSION['tripal_galaxy_proxy_urls'])) {
-    // The link that was rewritten in the tripal_galaxy_results_viewer_full_page
-    // is passed in as the 'url' variable.
-    $addition = $_GET['url'];
 
     // Get the current proxy details, so we can map links for download.
     $cproxy = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id];
-    $galaxy = tripal_galaxy_get_connection($cproxy['galaxy_id']);
+    $dataset = $cproxy['dataset'];
+    $uid = $cproxy['uid'];
+    $sid = $cproxy['sid'];
 
-    // Get the history ID and the dataset ID so we can build the URL.
-    $history_id = '';
-    $dataset_id = '';
-    $matches = [];
-    preg_match('/histories\/(.*?)\/contents\/(.*?)\/display/', $cproxy['url'], $matches);
-    if (count($matches) > 1) {
-      $history_id = $matches[1];
-      $dataset_id = $matches[2];
-    }
+    // retrieve the pertinents needed to download the file.
+    $submission = tripal_galaxy_get_submission($sid);
+    $galaxy_id = $submission->workflow->galaxy_id;
+    $galaxy = tripal_galaxy_get_connection($galaxy_id);
+    $dataset_id = $dataset['id'];
 
-    $content = '';
-    if ($dataset_id) {
-      $url = $galaxy->getURL() . '/datasets/' . $dataset_id . '/display/' . $addition;
-      $headers = get_headers($url);
-      foreach ($headers as $header) {
-        $results = preg_split('/:/', $header, 2);
-        if (count($results) == 2) {
-          drupal_add_http_header($results[0], $results[1]);
-        }
+    $url = $galaxy->getURL() . $dataset['download_url'];
+    $headers = get_headers($url);
+    foreach ($headers as $header) {
+      $results = preg_split('/:/', $header, 2);
+      if (count($results) == 2) {
+        drupal_add_http_header($results[0], $results[1]);
       }
-      print tripal_galaxy_stream_url_proxy_url($url);
     }
+    print tripal_galaxy_stream_url_proxy_url($url);
 
     exit();
   }
@@ -1702,6 +1681,20 @@ function tripal_galaxy_results_viewer_full_page(string $proxy_id) {
  */
 function tripal_galaxy_results_viewer_page(string $proxy_id) {
   if (array_key_exists($proxy_id, $_SESSION['tripal_galaxy_proxy_urls'])) {
+
+    // Get the current proxy details, so we can map links for download.
+    $cproxy = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id];
+    $dataset = $cproxy['dataset'];
+    $uid = $cproxy['uid'];
+    $sid = $cproxy['sid'];
+
+    // retrieve the pertinents needed to download the file.
+    $submission = tripal_galaxy_get_submission($sid);
+    $galaxy_id = $submission->workflow->galaxy_id;
+    $galaxy = tripal_galaxy_get_connection($galaxy_id);
+    $dataset_id = $dataset['id'];
+    $name = $dataset['name'];
+
     $url = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['url'];
     $uid = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['uid'];
     $sid = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['sid'];
@@ -1738,9 +1731,21 @@ function tripal_galaxy_results_viewer_page(string $proxy_id) {
  *   A unique proxy ID that maps to a URL.
  */
 function tripal_galaxy_results_download(string $proxy_id) {
-  $url = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['url'];
-  // $url = $url . '?key=' .
-  // $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['key'];.
+
+  // Get the current proxy details, so we can map links for download.
+  $cproxy = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id];
+  $dataset = $cproxy['dataset'];
+  $uid = $cproxy['uid'];
+  $sid = $cproxy['sid'];
+
+  // retrieve the pertinents needed to download the file.
+  $submission = tripal_galaxy_get_submission($sid);
+  $galaxy_id = $submission->workflow->galaxy_id;
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
+  $dataset_id = $dataset['id'];
+
+  $url = $galaxy->getURL() . $dataset['download_url'];
+
   $headers = get_headers($url);
   foreach ($headers as $header) {
     $results = preg_split('/:/', $header, 2);
