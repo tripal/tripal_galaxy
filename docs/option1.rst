@@ -5,7 +5,6 @@ The Tripal Galaxy module can automatically connect to a remote Galaxy server, an
 .. toctree::
    :maxdepth: 4
 
-   ./option1/install
    ./option1/site_wide_files
    ./option1/remote_servers
    ./option1/workflows

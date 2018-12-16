@@ -17,6 +17,7 @@ Development of the Tripal Galaxy module and accompanying starter workflows was f
    ./install
    ./option1
    ./option2
+   ./workflow_settings
    ./usage
    ./settings
    ./API/api
