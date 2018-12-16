@@ -343,3 +343,192 @@ function tripal_galaxy_admin_enable_workflow(int $galaxy_id) {
     return;
   }
 }
+
+/**
+ * Implements hook_form().
+ */
+function tripal_galaxy_admin_workflow_settings_form($form, &$form_state, int $workflow_id) {
+
+  // Set the breadcrumb.
+  $breadcrumb = [];
+  $breadcrumb[] = l(t('Home'), '<front>');
+  $breadcrumb[] = l(t('Administration'), 'admin');
+  $breadcrumb[] = l(t('Tripal'), 'admin/tripal');
+  $breadcrumb[] = l(t('Extensions'), 'admin/tripal/extension');
+  $breadcrumb[] = l(t('Galaxy'), 'admin/tripal/extension/galaxy');
+  $breadcrumb[] = l(t('Workflows'), 'admin/tripal/extension/galaxy/workflows');
+  drupal_set_breadcrumb($breadcrumb);
+
+  // Get the workflow
+  $workflows = tripal_galaxy_get_workflows(['id' => $workflow_id]);
+  if (empty($workflows)) {
+    drupal_set_message('Invalid workflow ID', 'error');
+    return $form;
+  }
+  $workflow = $workflows[0];
+
+  // Add the workflow to the form
+  $form['workflow'] = [
+    '#type' => 'value',
+    '#value' => $workflow,
+  ];
+
+  // Set the page title.
+  $name = $workflow->node_title ? $workflow->node_title : $workflow->name;
+  drupal_set_title('Workflow Settings: ' . $name);
+
+  // Build the list of tokens
+  $header = ['Token', 'Description'];
+  $rows = [
+    ['[site_name]', 'The name of this site'],
+    ['[workflow_title]', 'The title of the workflow.'],
+    ['[submission_init]', 'The time when the workflow was submitted to Tripal for execution.'],
+    ['[submission_start]', 'The time when the submitted workflow started.'],
+    ['[submission_end]', 'The time when the submitted workflow ended.'],
+    ['[submission_status]', 'The current status of the sumbitted workflow.'],
+    ['[user_name]', 'The name of the user that submitted the workflow.'],
+    ['[jobs_link]', "A link to the page where all submitted workflows are listed for the user."],
+    ['[results_link]', 'A link to the results page for the workflow. This link is only valid if the workflow completes successfully.'],
+  ];
+  $tokens = theme('table', array('header' => $header, 'rows' => $rows));
+
+  // Get the defaults
+  $defaults = tripal_galaxy_get_email_text($workflow);
+
+  // Fieldset for successful workflow completion.
+  $form['email_success_fieldset'] = [
+    '#type' => 'fieldset',
+    '#title' => 'Email Message on Success',
+    '#description' => t('Set the subject and body for emails that are sent to users when the workflow successfully completes. You may use the tokens as placeholders for values appropriate for the workflow, site and user. If nothing is provided then the defaults will be used.'),
+    '#collapsed' => TRUE,
+    '#collapsible' => True,
+  ];
+  $form['email_success_fieldset']['email_success_subject'] = [
+    '#type' => 'textfield',
+    '#title' => 'Subject Line',
+    '#description' => t('Enter the text that should appear on the subject line.'),
+    '#default_value' => $defaults['success']['subject'],
+  ];
+  $form['email_success_fieldset']['email_success_body'] = [
+    '#type' => 'textarea',
+    '#title' => 'Email Body',
+    '#description' => t('Enter the text that should appear in the body of the email.'),
+    '#default_value' => implode("\n", $defaults['success']['body']),
+  ];
+  $form['email_success_fieldset']['tokens'] = [
+    '#type' => 'fieldset',
+    '#title' => 'Available Tokens',
+    '#description' => t('Use any of these tokens in the subject line or body of your email. Appropriate values will be substituted in their place.'),
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+  ];
+  $form['email_success_fieldset']['tokens']['success_tokens'] = [
+    '#type' => 'markup',
+    '#markup' => $tokens,
+  ];
+
+  // Fieldset for failure of workflow.
+  $form['email_failure_fieldset'] = [
+    '#type' => 'fieldset',
+    '#title' => 'Email Message on Failure',
+    '#description' => t('Set the subject and body for emails that are sent to users when the workflow fails. You may use the tokens as placeholders for values appropriate for the workflow, site and user. If nothing is provided then the defaults will be used.'),
+    '#collapsed' => TRUE,
+    '#collapsible' => True,
+  ];
+  $form['email_failure_fieldset']['email_failure_subject'] = [
+    '#type' => 'textfield',
+    '#title' => 'Subject Line',
+    '#description' => t('Enter the text that should appear on the subject line.'),
+    '#default_value' => $defaults['failure']['subject'],
+  ];
+  $form['email_failure_fieldset']['email_failure_body'] = [
+    '#type' => 'textarea',
+    '#title' => 'Email Body',
+    '#description' => t('Enter the text that should appear in the body of the email.'),
+    '#default_value' => implode("\n", $defaults['failure']['body']),
+  ];
+  $form['email_failure_fieldset']['tokens'] = [
+    '#type' => 'fieldset',
+    '#title' => 'Available Tokens',
+    '#description' => t('Use any of these tokens in the subject line or body of your email. Appropriate values will be substituted in their place.'),
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+  ];
+  $form['email_failure_fieldset']['tokens']['failure_tokens'] = [
+    '#type' => 'markup',
+    '#markup' => $tokens,
+  ];
+
+  // Fieldset for invocation of workflow.
+  $form['email_invoke_fieldset'] = [
+    '#type' => 'fieldset',
+    '#title' => 'Email Message on Success',
+    '#description' => t('Set the subject and body for emails that are sent to users when the workflow is invoked. You may use the tokens as placeholders for values appropriate for the workflow, site and user. If nothing is provided then the defaults will be used.'),
+    '#collapsed' => TRUE,
+    '#collapsible' => True,
+  ];
+  $form['email_invoke_fieldset']['email_invoke_subject'] = [
+    '#type' => 'textfield',
+    '#title' => 'Subject Line',
+    '#description' => t('Enter the text that should appear on the subject line.'),
+    '#default_value' => $defaults['invoke']['subject'],
+  ];
+  $form['email_invoke_fieldset']['email_invoke_body'] = [
+    '#type' => 'textarea',
+    '#title' => 'Email Body',
+    '#description' => t('Enter the text that should appear in the body of the email.'),
+    '#default_value' => implode("\n", $defaults['invoke']['body']),
+  ];
+  $form['email_invoke_fieldset']['tokens'] = [
+    '#type' => 'fieldset',
+    '#title' => 'Available Tokens',
+    '#description' => t('Use any of these tokens in the subject line or body of your email. Appropriate values will be substituted in their place.'),
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+  ];
+  $form['email_invoke_fieldset']['tokens']['invoke_tokens'] = [
+    '#type' => 'markup',
+    '#markup' => $tokens,
+  ];
+
+  $form['submit'] = [
+    '#type' => 'submit',
+    '#name' => 'Submit',
+    '#value' => 'Submit',
+  ];
+
+  return $form;
+
+}
+
+/**
+ * Implements hook_form_submit().
+ */
+function tripal_galaxy_admin_workflow_settings_form_submit($form, &$form_state) {
+  // Get the form values.
+  $workflow = $form_state['values']['workflow'];
+
+  $email_failure_subject = trim($form_state['values']['email_failure_subject']);
+  $email_failure_body = trim($form_state['values']['email_failure_body']);
+
+  $email_success_subject = trim($form_state['values']['email_success_subject']);
+  $email_success_body = trim($form_state['values']['email_success_body']);
+
+  $email_invoke_subject = trim($form_state['values']['email_invoke_subject']);
+  $email_invoke_body = trim($form_state['values']['email_invoke_body']);
+
+  // Now store the settings.
+  try {
+    tripal_galaxy_add_workflow_setting($workflow, 'email_failure_subject', $email_failure_subject);
+    tripal_galaxy_add_workflow_setting($workflow, 'email_failure_body', $email_failure_body);
+    tripal_galaxy_add_workflow_setting($workflow, 'email_success_subject', $email_success_subject);
+    tripal_galaxy_add_workflow_setting($workflow, 'email_success_body', $email_success_body);
+    tripal_galaxy_add_workflow_setting($workflow, 'email_invoke_subject', $email_invoke_subject);
+    tripal_galaxy_add_workflow_setting($workflow, 'email_invoke_body', $email_invoke_body);
+    drupal_set_message('Settings successfully updated');
+    drupal_goto('admin/tripal/extension/galaxy/workflows');
+  }
+  catch (Exception $e) {
+    drupal_set_message("Could not save the settings. " . $e->getMessage(), 'error');
+  }
+}

@@ -64,7 +64,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="751" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="751" bodyend="786"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="746" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="746" bodyend="781"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -91,7 +91,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="432" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="432" bodyend="468"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="427" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="427" bodyend="463"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gac0e018b1fb585a9d09bbcc0844be3495" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -184,7 +184,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="526" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="526" bodyend="668"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="521" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="521" bodyend="663"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -197,7 +197,7 @@
 <para>Deletes expired histories.</para><para>Walks through the tripal_galaxy_workflow_submission table and deletes any workflows older than specified in the tripal_galaxy_history_age system variable.</para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1118" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1118" bodyend="1152"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1113" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1113" bodyend="1147"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga0c1d8391681ee16b93797089d9bad767" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -236,7 +236,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1169" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1169" bodyend="1194"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1164" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1164" bodyend="1189"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaa0e6b46831bf8ec128042d5a585c59e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -295,7 +295,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1330" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1330" bodyend="1387"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1325" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1325" bodyend="1382"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab25d14cbae238d1d2375db470d39fe42" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -309,7 +309,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="478" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="478" bodyend="508"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="473" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="473" bodyend="503"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga7ecc0a27c271f35edb4aa49d799eb9c9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -381,7 +381,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1286" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1286" bodyend="1304"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1281" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1281" bodyend="1299"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab4fa1a6f26abeddb5ac8ce2b0be47606" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -416,7 +416,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1217" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1217" bodyend="1263"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1212" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1212" bodyend="1258"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga8c44bcb1d8e06449fe1be78ef21f622b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -430,7 +430,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1094" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1094" bodyend="1107"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1089" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1089" bodyend="1102"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -444,7 +444,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="371" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="371" bodyend="379"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="366" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="366" bodyend="374"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga9ab413a396a4a875c1126ccde8ade9f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -471,7 +471,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="397" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="397" bodyend="410"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="392" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="392" bodyend="405"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga2d2f96c66a66a5599102db7f05cf74b6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -522,7 +522,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="993" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="993" bodyend="1019"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="988" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="988" bodyend="1014"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -548,7 +548,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="682" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="682" bodyend="684"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="677" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="677" bodyend="679"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga69ca83b6e177ea45df60f24c407e2c0a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -619,7 +619,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1419" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1419" bodyend="1439"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1414" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1414" bodyend="1434"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaf8ee6e07586607a7a28bae4bc6d4f315" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -646,7 +646,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="325" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="325" bodyend="358"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="329" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="329" bodyend="353"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga07df12107893bc6516804cc4e17ffefd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -685,7 +685,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="707" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="707" bodyend="731"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="702" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="702" bodyend="726"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga8abde38e7305740399ad8559def04c62" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -713,7 +713,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="237" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="237" bodyend="264"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="237" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="237" bodyend="268"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga402915ec024f4de2df5d437c901e69da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -750,7 +750,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="282" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="282" bodyend="304"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="286" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="286" bodyend="308"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gad26f04e74dc76a75413530315ff8ffb2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -838,7 +838,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="845" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="845" bodyend="894"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="840" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="840" bodyend="889"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga59906aa5301eccfee60f1ac153f02f92" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -865,7 +865,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1039" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1039" bodyend="1080"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1034" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1034" bodyend="1075"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gafd57170f587e9a82dd233b0723d34b12" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -935,7 +935,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="920" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="920" bodyend="971"/>
+        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="915" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="915" bodyend="966"/>
       </memberdef>
       </sectiondef>
     <briefdescription>

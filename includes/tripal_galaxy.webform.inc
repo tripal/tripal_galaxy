@@ -1362,7 +1362,7 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
  * @param scalar $value
  *   The value to add to the array.
  */
-function _tripal_galaxy_invoke_webform_build_values(array &$values, string $input_full_name, scalar $value) {
+function _tripal_galaxy_invoke_webform_build_values(array &$values, string $input_full_name, $value) {
   // Pop the first name off the list.
   $names = explode('|', $input_full_name);
   $name = array_shift($names);

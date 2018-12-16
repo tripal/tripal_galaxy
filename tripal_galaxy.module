@@ -264,6 +264,23 @@ function tripal_galaxy_menu() {
     'weight' => 10,
   ];
 
+  $items['admin/tripal/extension/galaxy/workflows/settings/%'] = [
+    'description' => 'Settings for the workflow',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => [
+      'tripal_galaxy_admin_workflow_settings_form',
+      6,
+    ],
+    'access arguments' => [
+      'administer galaxy',
+    ],
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/tripal_galaxy.admin.inc',
+    'file path' => drupal_get_path('module', 'tripal_galaxy'),
+    'weight' => 10,
+  ];
+
+
   // Admin submission report.
   $items['admin/tripal/extension/galaxy/workflows/report/%'] = [
     'title' => 'Workflow Submission Details',
@@ -1365,43 +1382,176 @@ function tripal_galaxy_mail($key, &$message, $params) {
   $submission = $params['submission'];
   $title = $params['title'];
 
+  $workflow = $submission->workflow;
+  $email_text = tripal_galaxy_get_email_text($workflow);
+
   switch ($key) {
     case 'submission-started':
-      $message['subject'] = t("Your job at !site_name has started", [
-        '!site_name' => $site_name,
-      ]);
-      $message['body'][] = t("You recently submitted a job titled '!title'.", [
-        '!title' => $title,
-      ]);
-      $message['body'][] = "This job has started.";
-      $message['body'][] = "You may check the status of all submitted jobs in the " . l(t('Galaxy Jobs'), '/user/' . $submission->uid . '/galaxy-jobs') . ' section of your user account.';
-      $message['body'][] = "Thank you.";
+      $email_text = tripal_galaxy_untokenize_email_text($submission, 'invoke');
+      $message['subject'] = $email_text['subject'];
+      $message['body'] = $email_text['body'];
       break;
 
     case 'submission-ended':
-      $message['subject'] = t("Your job at !site_name has completed", [
-        '!site_name' => $site_name,
-      ]);
-      $message['body'][] = t("You recently submitted a job titled '!title'.", [
-        '!title' => $title,
-      ]);
-      $message['body'][] = "This job has completed.";
-      $message['body'][] = "You may obtain results of this job in the " . l(t('Galaxy Jobs'), '/user/' . $submission->uid . '/galaxy-jobs') . ' section of your user account.';
-      $message['body'][] = "Thank you.";
+      $email_text = tripal_galaxy_untokenize_email_text($submission, 'success');
+      $message['subject'] = $email_text['subject'];
+      $message['body'] = $email_text['body'];
       break;
 
     case 'submission-failed':
-      $message['subject'] = t("Your job at !site_name has failed", [
-        '!site_name' => $site_name,
-      ]);
-      $message['body'][] = t("You recently submitted a job titled '!title'.", [
-        '!title' => $title,
-      ]);
-      $message['body'][] = "This job has failed.";
-      $message['body'][] = "You may check the error logs of this job in the " . l(t('Galaxy Jobs'), '/user/' . $submission->uid . '/galaxy-jobs') . ' section of your user account.';
-      $message['body'][] = "Thank you.";
+      $email_text = tripal_galaxy_untokenize_email_text($submission, 'failure');
+      $message['subject'] = $email_text['subject'];
+      $message['body'] = $email_text['body'];
       break;
   }
+}
+
+/**
+ * Replaces tokens in the email text.
+ */
+function tripal_galaxy_untokenize_email_text($submission, $type) {
+  $message = tripal_galaxy_get_email_text($submission->workflow);
+  $new_message = [];
+  $new_message['subject'] = tripal_galaxy_untokenize_email_line($submission, $message[$type]['subject']);
+  $new_message['body'] = [];
+  foreach ($message[$type]['body'] as $line) {
+    $new_message['body'][] = tripal_galaxy_untokenize_email_line($submission, $line);
+  }
+  return $new_message;
+}
+
+/**
+ * A helper function for tripal_galaxy_untokenize_email_text().
+ */
+function tripal_galaxy_untokenize_email_line($submission, $line) {
+  $user = user_load($submission->uid);
+  $line = preg_replace('/\[site_name\]/', variable_get('site_name'), $line);
+  $line = preg_replace('/\[workflow_title\]/', $submission->node_title ? $submission->node_title : $submission->workflow->workflow_name, $line);
+  $line = preg_replace('/\[submission_init\]/', $submission->submit_date ? format_date($submission->submit_date) : '', $line);
+  $line = preg_replace('/\[submission_start\]/', $submission->start_time ? format_date($submission->start_time) : '', $line);
+  $line = preg_replace('/\[submission_end\]/', $submission->end_time ? format_date($submission->end_time) : '', $line);
+  $line = preg_replace('/\[submission_status\]/', $submission->status, $line);
+  $line = preg_replace('/\[user_name\]/', $user->name, $line);
+  $line = preg_replace('/\[jobs_link\]/', url('/user/' . $user->uid . '/galaxy-jobs', ['absolute' => TRUE]), $line);
+  $line = preg_replace('/\[results_link\]/', url('/user/' . $user->uid . '/galaxy-jobs/'. $submission->sid, ['absolute' => TRUE]), $line);
+
+  return $line;
+}
+
+
+/**
+ * Retrieves the email content defaults.
+ */
+function tripal_galaxy_get_email_text($workflow) {
+
+  // Set the defaults.
+  $email_text = [
+    'success' => [
+      'subject' => 'Your job at [site_name] has completed',
+      'body' => [
+        "You recently submitted a job titled: [workflow_title].",
+        "This job has completed.",
+        "You may view results of this job at [results_link].",
+        "Thank you.",
+      ],
+    ],
+    'failure' => [
+      'subject' => 'Your job at [site_name] has failed',
+      'body' => [
+        "You recently submitted a job titled: [workflow_title].",
+        "This job has failed.",
+        "You may view error reports for this job at [jobs_link].",
+        "Thank you.",
+      ],
+    ],
+    'invoke' => [
+      'subject' => 'Your job at [site_name] has started',
+      'body' => [
+        "You recently submitted a job titled: [workflow_title].",
+        "This job has started.",
+        "You may check the status of all your submitted jobs at [jobs_link].",
+        "Thank you.",
+      ],
+    ],
+  ];
+
+  // Check the settings for the failure email.
+  $value = tripal_galaxy_get_workflow_setting($workflow, 'email_failure_subject');
+  if ($value) {
+    $email_text['failure']['subject'] = $value;
+  }
+  $value = tripal_galaxy_get_workflow_setting($workflow, 'email_failure_body');
+  if ($value) {
+    $email_text['failure']['body'] = explode("\n", $value);
+  }
+
+  // Check the settings for the success email.
+  $value = tripal_galaxy_get_workflow_setting($workflow, 'email_success_subject');
+  if ($value) {
+    $email_text['success']['subject'] = $value;
+  }
+  $value = tripal_galaxy_get_workflow_setting($workflow, 'email_success_body');
+  if ($value) {
+    $email_text['success']['body'] = explode("\n", $value);
+  }
+
+  // Check the settings for the invocation email.
+  $value = tripal_galaxy_get_workflow_setting($workflow, 'email_invoke_subject');
+  if ($value) {
+    $email_text['invoke']['subject'] = $value;
+  }
+  $value = tripal_galaxy_get_workflow_setting($workflow, 'email_invoke_body');
+  if ($value) {
+    $email_text['invoke']['body'] = explode("\n", $value);
+  }
+  return $email_text;
+}
+
+/**
+ *  Adds a new setting for the workflow.
+ */
+function tripal_galaxy_get_workflow_setting($workflow, $setting_name) {
+
+  $value = db_select('tripal_galaxy_workflow_settings', 'tgws')
+    ->fields('tgws', ['value'])
+    ->condition('workflow_id', $workflow->galaxy_workflow_id)
+    ->condition('setting_name', $setting_name)
+    ->execute()
+    ->fetchField();
+  return $value;
+}
+
+/**
+ *  Adds a new setting for the workflow.
+ */
+function tripal_galaxy_add_workflow_setting($workflow, $setting_name, $value) {
+
+  // The primary keys is set if this is an update.
+  $pkeys = [];
+
+  // Create the object for inserting/updating the table.
+  $setting = new stdClass();
+  $setting->workflow_id = $workflow->galaxy_workflow_id;
+  $setting->setting_name = $setting_name;
+  $setting->value = $value;
+
+  // Before adding the setting, make sure it doesn't already exists. If so
+  // then this is an update.
+  $setting_id = db_select('tripal_galaxy_workflow_settings', 'tgws')
+    ->fields('tgws', ['setting_id'])
+    ->condition('workflow_id', $workflow->galaxy_workflow_id)
+    ->condition('setting_name', $setting_name)
+    ->execute()
+    ->fetchField();
+  if ($setting_id) {
+    $pkeys = 'setting_id';
+    $setting->setting_id = $setting_id;
+  }
+  $success = drupal_write_record('tripal_galaxy_workflow_settings', $setting, $pkeys);
+  if ($success === FALSE) {
+    throw new Exception('Could not save setting' . $setting_name);
+  }
+
 }
 
 /**

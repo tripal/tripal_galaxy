@@ -343,6 +343,9 @@ Retrieving Results from Galaxy
 ------------------------------
 There are two primary cases in which result files from an executed workflow can be made available to end-users.  First, you may wish to retrieve the files so that they can be analyzed for visualization or for use in other workflows. This results in the files being stored locally to the Drupal server, and retrieved files will count towards Tripal's user file quota.  Second, you may simply wish to provide a download link to these files but not download them to the server.  This way, the files can remain on the Galaxy server, the files don't count towards the Tripal user quota, yet users can still retrieve them from within your application.  
 
+Retrieving a Dataset
+~~~~~~~~~~~~~~~~~~~~ 
+
 For either option, you must first know the dataset ID. Result files are stored within the history on the remote Galaxy server. The quickest way to find the dataset ID is to retrieve a list of datasets using the ``tripal_galaxy_get_datasets`` function.
 
 .. code-block:: php
