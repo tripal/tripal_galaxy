@@ -1261,7 +1261,8 @@ function tripal_galaxy_submission_admin_report($sid) {
  */
 function tripal_galaxy_cron() {
   $args = [];
-  tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy', 'tripal_galaxy_check_status', $args, 1, [], TRUE, $ignore_duplicates = TRUE);
+  tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy',
+    'tripal_galaxy_check_status', $args, 1, [], TRUE, $ignore_duplicates = TRUE);
 
   $interval = variable_get('tripal_galaxy_cron_frequency', 24 * 60 * 60);
 
@@ -1454,6 +1455,7 @@ function tripal_galaxy_get_email_text($workflow) {
         "You may view results of this job at [results_link].",
         "Thank you.",
       ],
+      'no_email' => 0
     ],
     'failure' => [
       'subject' => 'Your job at [site_name] has failed',
@@ -1463,6 +1465,7 @@ function tripal_galaxy_get_email_text($workflow) {
         "You may view error reports for this job at [jobs_link].",
         "Thank you.",
       ],
+      'no_email' => 0
     ],
     'invoke' => [
       'subject' => 'Your job at [site_name] has started',
@@ -1472,6 +1475,7 @@ function tripal_galaxy_get_email_text($workflow) {
         "You may check the status of all your submitted jobs at [jobs_link].",
         "Thank you.",
       ],
+      'no_email' => 0
     ],
   ];
 
@@ -1484,6 +1488,10 @@ function tripal_galaxy_get_email_text($workflow) {
   if ($value) {
     $email_text['failure']['body'] = explode("\n", $value);
   }
+  $value = tripal_galaxy_get_workflow_setting($workflow, 'no_failure_email');
+  if ($value) {
+    $email_text['failure']['no_email'] = $value;
+  }
 
   // Check the settings for the success email.
   $value = tripal_galaxy_get_workflow_setting($workflow, 'email_success_subject');
@@ -1494,6 +1502,10 @@ function tripal_galaxy_get_email_text($workflow) {
   if ($value) {
     $email_text['success']['body'] = explode("\n", $value);
   }
+  $value = tripal_galaxy_get_workflow_setting($workflow, 'no_success_email');
+  if ($value) {
+    $email_text['success']['no_email'] = $value;
+  }
 
   // Check the settings for the invocation email.
   $value = tripal_galaxy_get_workflow_setting($workflow, 'email_invoke_subject');
@@ -1503,6 +1515,10 @@ function tripal_galaxy_get_email_text($workflow) {
   $value = tripal_galaxy_get_workflow_setting($workflow, 'email_invoke_body');
   if ($value) {
     $email_text['invoke']['body'] = explode("\n", $value);
+  }
+  $value = tripal_galaxy_get_workflow_setting($workflow, 'no_invoke_email');
+  if ($value) {
+    $email_text['invoke']['no_email'] = $value;
   }
   return $email_text;
 }
@@ -1563,6 +1579,12 @@ function tripal_galaxy_add_workflow_setting($workflow, $setting_name, $value) {
 function tripal_galaxy_send_submission_start_mail(int $sid) {
   $submission = tripal_galaxy_get_submission($sid);
 
+  // If the email should not be sent then just return.
+  $no_send = tripal_galaxy_get_workflow_setting($submission->workflow, 'no_invoke_email');
+  if ($no_send) {
+    return;
+  }
+
   $user = user_load($submission->uid);
   $module = 'tripal_galaxy';
   $key = 'submission-started';
@@ -1602,7 +1624,14 @@ function tripal_galaxy_send_submission_start_mail(int $sid) {
  *   The Submission ID of the job.
  */
 function tripal_galaxy_send_submission_ended_mail(int $sid) {
+
   $submission = tripal_galaxy_get_submission($sid);
+
+  // If the email should not be sent then just return.
+  $no_send = tripal_galaxy_get_workflow_setting($submission->workflow, 'no_success_email');
+  if ($no_send) {
+    return;
+  }
 
   $user = user_load($submission->uid);
   $module = 'tripal_galaxy';
@@ -1656,6 +1685,13 @@ function tripal_galaxy_send_submission_ended_mail(int $sid) {
  */
 function tripal_galaxy_send_submission_failed_mail($sid) {
   $submission = tripal_galaxy_get_submission($sid);
+
+  // If the email should not be sent then just return.
+  $no_send = tripal_galaxy_get_workflow_setting($submission->workflow, 'no_failure_email');
+  if ($no_send) {
+    return;
+  }
+
   $user = user_load($submission->uid);
   $module = 'tripal_galaxy';
   $key = 'submission-failed';

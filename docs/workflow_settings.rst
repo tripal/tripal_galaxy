@@ -12,7 +12,7 @@ Currently the setting page allows you to customize the email text that is sent t
 
 .. image:: workflow_settings.2.png
 
-You can change the text of the subject line and the body of the email by altering the text in the fields.  Additionally, you can use tokens as placeholders for text that you want included in the messages.  You can find a list of available tokens by opening the ``Available Tokens`` fieldset.
+You can change the text of the subject line and the body of the email by altering the text in the fields.  Additionally, you can use tokens as placeholders for text that you want included in the messages.  You can find a list of available tokens by opening the ``Available Tokens`` fieldset. If you do not want a workflow to send email you can disable the email by clicking the checkbox whose title begins: ``do not send email``.
 
 .. image:: workflow_settings.3.png
 

@@ -8,6 +8,3 @@ The first setting ensures that results submitted by users do not pile up and use
 
 1. **Server Status Checks**: All Galaxy servers registered with Tripal are checked to see if they are available. If not then workflows are automatically marked as disabled preventing further submissions. If workflows are disabled, a message is added to the Drupal dashboard.
 2. **History Cleanup**: All histories on the remote Galaxy servers that are older than the number of days specified by the **History Age Experiation** value are deleted.
-
-
- 

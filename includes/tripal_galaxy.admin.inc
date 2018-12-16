@@ -403,6 +403,11 @@ function tripal_galaxy_admin_workflow_settings_form($form, &$form_state, int $wo
     '#collapsed' => TRUE,
     '#collapsible' => True,
   ];
+  $form['email_success_fieldset']['no_success_email'] = [
+    '#type' => 'checkbox',
+    '#title' => 'Do not send email on success',
+    '#default_value' => $defaults['success']['no_email'],
+  ];
   $form['email_success_fieldset']['email_success_subject'] = [
     '#type' => 'textfield',
     '#title' => 'Subject Line',
@@ -435,6 +440,11 @@ function tripal_galaxy_admin_workflow_settings_form($form, &$form_state, int $wo
     '#collapsed' => TRUE,
     '#collapsible' => True,
   ];
+  $form['email_failure_fieldset']['no_failure_email'] = [
+    '#type' => 'checkbox',
+    '#title' => 'Do not send email on failure',
+    '#default_value' => $defaults['failure']['no_email'],
+  ];
   $form['email_failure_fieldset']['email_failure_subject'] = [
     '#type' => 'textfield',
     '#title' => 'Subject Line',
@@ -466,6 +476,11 @@ function tripal_galaxy_admin_workflow_settings_form($form, &$form_state, int $wo
     '#description' => t('Set the subject and body for emails that are sent to users when the workflow is invoked. You may use the tokens as placeholders for values appropriate for the workflow, site and user. If nothing is provided then the defaults will be used.'),
     '#collapsed' => TRUE,
     '#collapsible' => True,
+  ];
+  $form['email_invoke_fieldset']['no_invoke_email'] = [
+    '#type' => 'checkbox',
+    '#title' => 'Do not send email on workflow invocation.',
+    '#default_value' => $defaults['invoke']['no_email'],
   ];
   $form['email_invoke_fieldset']['email_invoke_subject'] = [
     '#type' => 'textfield',
@@ -510,12 +525,15 @@ function tripal_galaxy_admin_workflow_settings_form_submit($form, &$form_state) 
 
   $email_failure_subject = trim($form_state['values']['email_failure_subject']);
   $email_failure_body = trim($form_state['values']['email_failure_body']);
+  $no_failure_email = trim($form_state['values']['no_failure_email']);
 
   $email_success_subject = trim($form_state['values']['email_success_subject']);
   $email_success_body = trim($form_state['values']['email_success_body']);
+  $no_success_email = trim($form_state['values']['no_success_email']);
 
   $email_invoke_subject = trim($form_state['values']['email_invoke_subject']);
   $email_invoke_body = trim($form_state['values']['email_invoke_body']);
+  $no_invoke_email = trim($form_state['values']['no_invoke_email']);
 
   // Now store the settings.
   try {
@@ -525,6 +543,9 @@ function tripal_galaxy_admin_workflow_settings_form_submit($form, &$form_state) 
     tripal_galaxy_add_workflow_setting($workflow, 'email_success_body', $email_success_body);
     tripal_galaxy_add_workflow_setting($workflow, 'email_invoke_subject', $email_invoke_subject);
     tripal_galaxy_add_workflow_setting($workflow, 'email_invoke_body', $email_invoke_body);
+    tripal_galaxy_add_workflow_setting($workflow, 'no_invoke_email', $no_invoke_email);
+    tripal_galaxy_add_workflow_setting($workflow, 'no_success_email', $no_success_email);
+    tripal_galaxy_add_workflow_setting($workflow, 'no_failure_email', $no_failure_email);
     drupal_set_message('Settings successfully updated');
     drupal_goto('admin/tripal/extension/galaxy/workflows');
   }

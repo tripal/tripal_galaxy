@@ -1,9 +1,8 @@
 Install Tripal Galaxy
 =================================
 
-
 Installation
-~~~~~~~~~~~~~
+------------
 
 The Tripal Galaxy module is available as a full Drupal module.  Therefore, it can be installed following the typical Drupal module installation either via the GUI or via Drush.  However it requires a few dependencies:
 
@@ -38,7 +37,7 @@ You will be asked if you would like to download and then enable the module.  Now
 
 
 Set Permissions
-~~~~~~~~~~~~~~~
+---------------
 Now that the Tripal Galaxy module is installed, we must set permissions so that users can add submit workflows and administrators can manage the workflows.  To set permissions, navigate to **People** page and click the **Permissions** tab in the top right.  Search through the list of permissions until you find the section titled **Tripal Galaxy**.  In this section you will find two types of permissions, one for providing access to execute published workflows and one for administering the Galaxy module.  By default Drupal install provides three types of roles:  **Anonymous**, **Authenticated** and **Administrator** users.  
 
 .. image:: ./install.2.png
