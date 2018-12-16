@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="d0/d81/namespacephpDocumentor_1_1Reflection_1_1Types_1_1This" kind="namespace" language="PHP">
+    <compoundname>phpDocumentor::Reflection::Types::This</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1" column="1"/>
+  </compounddef>
+</doxygen>
