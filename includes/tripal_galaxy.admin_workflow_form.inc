@@ -58,10 +58,13 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
     elseif ($workflow->status == 'disabled') {
       $status_change = l(t("Enable"), '/admin/tripal/extension/galaxy/workflows/enable/' . $workflow->galaxy_workflow_id);
     }
+    $remove_link = l(t('Remove'), '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_workflow_id);
+    $settings_link = l(t("Settings"), '/admin/tripal/extension/galaxy/workflows/settings/' . $workflow->galaxy_workflow_id);
     $form['rows'][$i]['actions-' . $i] = array(
       '#type' => 'item',
-      '#markup' => l(t('Remove'), '/admin/tripal/extension/galaxy/workflows/remove/' . $workflow->galaxy_workflow_id) . '  |  ' . $status_change,
+      '#markup' =>  $settings_link . ' | ' . $status_change . ' | ' . $remove_link ,
     );
+
 
     $i++;
   }
@@ -69,12 +72,6 @@ function tripal_galaxy_admin_workflows_form($form, &$form_state) {
   // Theme this form.
   $form['rows']['#theme'] = 'tripal_galaxy_admin_workflows_form_rows';
 
-  // Default submit.
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#name' => 'submit',
-    '#value' => t('Submit Changes'),
-  );
 
   return $form;
 }

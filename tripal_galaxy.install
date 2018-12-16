@@ -19,6 +19,7 @@ function tripal_galaxy_schema() {
   tripal_galaxy_add_workflow_submission_table($schema);
   tripal_galaxy_add_site_wide_files_table($schema);
   tripal_galaxy_add_webform_table($schema);
+  tripal_galaxy_add_workflow_settings_table($schema);
 
   return $schema;
 }
@@ -292,6 +293,44 @@ function tripal_galaxy_add_webform_table(&$schema) {
 }
 
 /**
+ * Adds the 'tripal_galaxy' table to Drupal schema.
+ *
+ * @ingroup tripal_galaxy
+ */
+function tripal_galaxy_add_workflow_settings_table(&$schema) {
+  $schema['tripal_galaxy_workflow_settings'] = array(
+    'table' => 'tripal_galaxy_workflow_settings',
+    'fields' => array(
+      'setting_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'workflow_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'setting_name' => array(
+        'type' => 'varchar',
+        'length ' => 128,
+        'not null' => TRUE,
+      ),
+      'value' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array(
+      0 => 'setting_id',
+    ),
+    'unique keys' => array(
+      'tripal_galaxy_workflow_settings_uq1' => array(
+        'workflow_id', 'setting_name',
+      ),
+    ),
+  );
+}
+
+/**
  * Implements hook_requirements().
  */
 function tripal_galaxy_requirements($phase) {
@@ -549,5 +588,20 @@ function tripal_galaxy_update_7107() {
     $transaction->rollback();
     $error = $e->getMessage();
     throw new DrupalUpdateException('Could not update the tripal_galaxy table: ' . $error);
+  }
+}
+
+/**
+ * Adds the tripal_galaxy_workflow_settings table.
+ */
+function tripal_galaxy_update_7108() {
+  try {
+    $schema = array();
+    tripal_galaxy_add_workflow_settings_table($schema);
+    db_create_table('tripal_galaxy_workflow_settings', $schema['tripal_galaxy_workflow_settings']);
+  }
+  catch (\PDOException $e) {
+    $error = $e->getMessage();
+    throw new DrupalUpdateException('Could not perform update: ' . $error);
   }
 }

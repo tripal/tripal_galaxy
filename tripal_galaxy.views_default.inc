@@ -350,9 +350,9 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['nothing_3']['id'] = 'nothing_3';
   $handler->display->display_options['fields']['nothing_3']['table'] = 'views';
   $handler->display->display_options['fields']['nothing_3']['field'] = 'nothing';
-  $handler->display->display_options['fields']['nothing_3']['label'] = 'View Details';
+  $handler->display->display_options['fields']['nothing_3']['label'] = 'View Submission';
   $handler->display->display_options['fields']['nothing_3']['exclude'] = TRUE;
-  $handler->display->display_options['fields']['nothing_3']['alter']['text'] = 'View Details';
+  $handler->display->display_options['fields']['nothing_3']['alter']['text'] = 'View Submission';
   $handler->display->display_options['fields']['nothing_3']['alter']['make_link'] = TRUE;
   $handler->display->display_options['fields']['nothing_3']['alter']['path'] = 'node/[nid]/submission/[sid]';
   $handler->display->display_options['fields']['nothing_3']['element_label_colon'] = FALSE;

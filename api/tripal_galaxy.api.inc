@@ -257,6 +257,10 @@ function tripal_galaxy_get_workflows(array $values = []) {
   $results = $query->execute();
 
   while ($workflow = $results->fetchObject()) {
+    if ($workflow->nid) {
+      $node = node_load($workflow->nid);
+      $workflow->node_title = $node->title;
+    }
     $workflows[] = $workflow;
   }
 
@@ -324,16 +328,7 @@ function tripal_galaxy_init_submission($workflow, $user) {
  */
 function tripal_galaxy_get_submission(int $sid) {
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
-  $query->fields('tgws', [
-    'invocation_id',
-    'galaxy_workflow_id',
-    'sid',
-    'submit_date',
-    'status',
-    'email',
-    'uid',
-    'errors',
-  ]);
+  $query->fields('tgws');
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
   $query->fields('tgw', [
     'galaxy_id',
