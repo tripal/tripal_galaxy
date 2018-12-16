@@ -1,5 +1,9 @@
 <?php
 
+use PharIo\Version\OrVersionConstraintGroup;
+use TheSeer\Tokenizer\Token;
+use phpDocumentor\Reflection\Types\This;
+
 /**
  * @file
  * An application programming interface (API) for the Tripal Galaxy module.
@@ -208,7 +212,13 @@ function tripal_galaxy_add_workflow(int $galaxy_id, array $values, bool $create_
 }
 
 /**
- * Retrieves a list of workflows matching the given criteria.
+ * Retrieves a list of workflows integrated with Tripal.
+ *
+ * The returned workflows can be filtered using a set of matching criteria
+ * given by the $values argument.  This list only includes workflows that
+ * have been integrated with Tripal and not the list of workflows available
+ * on a remote galaxy server.  Use blend4php functions to retrieve a list of
+ * workflows available on a remote Galaxy server.
  *
  * @param array $values
  *   An associative array used to find workflows. The following keys are
@@ -296,11 +306,19 @@ function tripal_galaxy_init_submission($workflow, $user) {
 /**
  * Retrieves a workflow submission object using the submission ID.
  *
+ * The returned submission object includes all information about the submission.
+ * If the submission has been invoked then the 'errors' element will have
+ * more information about the run including the history information, the
+ * history name, and the state of the history_contents from the last time
+ * the status of the submission was checked. If the status of the submission
+ * is 'Completed' then the history_contents should contain all the history
+ * contents.
+ *
  * @param int $sid
  *   The submission ID of the workflow.
  *
  * @return object
- *   An object containing the submisssion information.
+ *   An object containing the submission information.
  *
  * @ingroup tripal_galaxy_api
  */
@@ -330,6 +348,12 @@ function tripal_galaxy_get_submission(int $sid) {
   $query->addField('n', 'title', 'webform_title');
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
+  $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
+
+  // Now add the workflow details:
+  $workflows = tripal_galaxy_get_workflows(['id' => $submission->galaxy_workflow_id]);
+  $workflow = $workflows[0];
+  $submission->workflow = $workflow;
   return $submission;
 }
 
@@ -779,9 +803,18 @@ function _tripal_galaxy_get_workflow_defaults(array $tool_inputs, array &$parame
  *   using the tripal_galaxy_get_submission() function.
  * @param array $parameters
  *   A mapping of tool parameters that are non-datasets parameters. The map
- *   must be in the following format: @code [ {step_id_or_UUID} =>
- *   [{param_name} => {value}], {step_id_or_UUID} => [{param_name} =>
- *   {value}] ]; @endcode.
+ *   must be in the following format:
+ *   @code
+ *   [
+ *     {step_id_or_UUID} => [
+ *       {param_name} => {value}
+ *     ],
+ *     {step_id_or_UUID} => [
+ *       {param_name} =>
+ *       {value}
+ *     ]
+ *   ];
+ *   @endcode
  * @param array $inputs
  *   An array of file inputs. These files should already be uploaded to the
  *   history on the Galaxy server. This array contains a mapping of
@@ -791,12 +824,12 @@ function _tripal_galaxy_get_workflow_defaults(array $tool_inputs, array &$parame
  *   HistoryDatasetCollectionAssociation (hdca). The map must be in the
  *   following format.
  *   @code
- *    [
- *      {step index} => [
- *        'id' => {encoded dataset ID},
- *        'src' => {'ldda'|'ld'|'hda'|'hdca'},
- *      ],
- *    ];
+ *   [
+ *     {step index} => [
+ *       'id' => {encoded dataset ID},
+ *       'src' => {'ldda'|'ld'|'hda'|'hdca'},
+ *     ],
+ *   ];
  *   @endcode
  *   The id's are data set IDs and can be found using the data set class's
  *   index() function. The data set must be present in a history, and the data
@@ -1158,4 +1191,249 @@ function tripal_galaxy_delete_remote_history(int $galaxy_id, string $history_nam
     watchdog_exception('tripal_galaxy', $e);
     return FALSE;
   }
+}
+
+/**
+ * Retrieves a list of datasets for a workflow invocation.
+ *
+ * This function returns an array of datasets as reported by the remote Galaxy
+ * server. The key/value pairs of the array are dependent on the Galaxy server
+ * version.
+ *
+ * Note, this function may take a few seconds to complete as it must communicate
+ * with the remote Galaxy server to retrieve dataset information.
+ *
+ * @param stdClass $submission
+ *   An object for the submission as returned by the
+ *   tripal_galaxy_get_sumbission() function.
+ *
+ * @throws Exception
+ *
+ * @return array
+ *   An array of datasets as reporte by the Remote Galaxy server.
+ *
+ * @ingroup tripal_galaxy_api
+ */
+function tripal_galaxy_get_datasets(stdClass $submission) {
+
+  if (!$submission->status == 'Completed') {
+    throw new Exception('Cannot retrieve results for a workflow invocation that has not yet completed.');
+  }
+
+  // Connect to the Galaxy server and get the history.
+  $galaxy_id = $submission->workflow->galaxy_id;
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
+  $error = [];
+  $history_name = $submission->errors['history']['name'];
+  $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
+  if (!$history) {
+    $error = $galaxy->getError();
+    throw new Exception("Cannot find history, $history_name :" . $error['message']);
+  }
+
+  // Get the history contents
+  $ghistory_contents = new GalaxyHistoryContents($galaxy);
+  $history_contents = $ghistory_contents->index([
+    'history_id' => $history['id'],
+  ]);
+  if (!$history_contents) {
+    $error = $galaxy->getError();
+    throw new Exception("Cannot find the history contents with name '$history_name' :" . $error['message']);
+  }
+
+  // Iterate through the history contents and get a list of datasets.
+  $datasets = [];
+  foreach ($history_contents as $entry) {
+    $dataset_id = $entry['dataset_id'];
+
+    // Get the record for the dataset.
+    $gdataset = new GalaxyDatasets($galaxy);
+    $dataset = $gdataset->show(['dataset_id' => $dataset_id]);
+    if (!$dataset) {
+      $error = $galaxy->getError();
+      throw new Exception("Cannot find the dataset with ID '$dataset_id' :" . $error['message']);
+    }
+
+    // Generate a filename for this file.
+    $file_name = preg_replace('/[^\w]/', '_', $dataset['name']) . '.' . $dataset['file_ext'];
+    $datasets[] = $dataset;
+  }
+
+  return $datasets;
+}
+
+/**
+ * Retrieves a single datasets for a workflow invocation.
+ *
+ * This function returns a single datasets as reported by the remote Galaxy
+ * server. The key/value pairs of the array are dependent on the Galaxy server
+ * version.
+ *
+ * @param stdClass $submission
+ *   An object for the submission as returned by the
+ *   tripal_galaxy_get_sumbission() function.
+ *
+ * @param
+ *   The ID of the dataset to retrieve.
+ *
+ * @throws Exception
+ *
+ * @return array
+ *   An array of datasets as reporte by the Remote Galaxy server.
+ *
+ * @ingroup tripal_galaxy_api
+ */
+function tripal_galaxy_get_dataset(stdClass $submission, $dataset_id) {
+  if (!$submission->status == 'Completed') {
+    throw new Exception('Cannot retrieve results for a workflow invocation that has not yet completed.');
+  }
+
+  // Connect to the Galaxy server and get the history.
+  $galaxy_id = $submission->workflow->galaxy_id;
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
+
+  // Get the record for the dataset.
+  $gdataset = new GalaxyDatasets($galaxy);
+  $dataset = $gdataset->show(['dataset_id' => $dataset_id]);
+  if (!$dataset) {
+    $error = $galaxy->getError();
+    throw new Exception("Cannot find the dataset with ID '$dataset_id' :" . $error['message']);
+  }
+
+  return $dataset;
+}
+
+
+/**
+ * Downloads a file from a Galaxy history.
+ *
+ * Downloads a single file from a history.  The file will be stored in the
+ * user's Tripal space and count towards their quota.  If the file has already
+ * been downloaded it will be retrieved again and overwrite any existing file.
+ *
+ * @param stdClass $submission
+ *   A submission object as obtained by the tripal_galaxy_get_submission()
+ *   function.
+ * @param array $dataset
+ *   An array describing the dataset as returned by the
+ *   tripal_galaxy_get_dataset() or tripal_galaxy_get_datasets() functions.
+ * @param int $uid
+ *   The user that should own this file after it is downloaded.
+ *
+ * @throws Exception
+ *
+ * @return object
+ *   Returns a Drupal File object.
+ *
+ * @ingroup tripal_galaxy_api
+ */
+function tripal_galaxy_download_file(stdClass $submission, array $dataset, int $uid) {
+
+  $user = user_load($uid);
+
+  // Connect to the remote Galaxy server.
+  $galaxy_id = $submission->workflow->galaxy_id;
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
+
+  // Generate the file_name and URL for downloading.
+  $file_name = preg_replace('/[^\w]/', '_', $dataset['name']) . '.' . $dataset['file_ext'];
+  $url = $galaxy->getURL() . $dataset['download_url'];
+
+  // Now save the file
+  $history_name = $submission->errors['history']['name'];
+  $destination = tripal_get_user_files_dir($user) . '/analyses/' . $history_name;
+  file_prepare_directory($destination, FILE_CREATE_DIRECTORY);
+  $file_uri = $destination . '/' . $file_name;
+  $url_fh = fopen($url, "r");
+  if (!$url_fh) {
+    throw new Exception("Unable to download the file at $url.");
+  }
+  $fh = fopen($file_uri, "w");
+  if (!$url_fh) {
+    throw new Exception("Unable to save file $file_name.");
+  }
+  while (!feof($url_fh)) {
+    fwrite($fh, fread($url_fh, 255), 255);
+  }
+  fclose($url_fh);
+  fclose($fh);
+
+  // See if this file is already managed if so, then it has been uploaded
+  // before and we don't need to add a managed item again.
+  $fid = db_select('file_managed', 'fm')
+    ->fields('fm', ['fid'])
+    ->condition('uri', $file_uri)
+    ->execute()
+    ->fetchField();
+
+  // Now register the file with Drupal
+  if (!$fid) {
+    $file = new stdClass();
+    $file->uri = $file_uri;
+    $file->filename = $file_name;
+    $file->filemime = file_get_mimetype($file_uri);
+    $file->uid = $user->uid;
+    $file->status = FILE_STATUS_PERMANENT;
+    $file = file_save($file);
+  }
+  else {
+    $file = file_load($fid);
+  }
+
+  // Set the file as being managed by Tripal and Tripal Galaxy
+  file_usage_add($file, 'tripal', 'galaxy_dataset', 0);
+  file_usage_add($file, 'tripal_galaxy', 'galaxy_dataset', 0);
+  return $file;
+}
+
+/**
+ * Adds a URL to the proxy array.
+ *
+ * This function can be used to create a URL for downloading of a dataset from
+ * a remote Galaxy server.
+ *
+ * @param stdClass $submission
+ *   A submission object as obtained by the tripal_galaxy_get_submission()
+ *   function.
+ * @param array $dataset
+ *   An array describing the dataset as returned by the
+ *   tripal_galaxy_get_dataset() or tripal_galaxy_get_datasets() functions.
+ * @param int $uid
+ *   The user that is allowed to view this link.
+ * @param string $action
+ *   The action to perform when the link is clicked. Can be 'viewer',
+ *   'viewer-full', or 'download'. The action 'viewer' will create a link for
+ *   results to be shown inside of a page on the Drupal site. The action
+ *   'viewer-full' will create a link for results to be shown stand-alone. The
+ *   action 'download' will create a link that will start a download of the
+ *   file.
+ *
+ * @throws Exception
+ *
+ * @return
+ *   A URL that can be used, when clicked by the end-user, to either view or
+ *   download the dataset.
+ *
+ * @ingroup tripal_galaxy_api
+ */
+function tripal_galaxy_get_proxy_url(stdClass $submission, array $dataset, int $uid, string $action) {
+
+  if (!in_array($action, ['viewer', 'viewer-full', 'download'])) {
+    throw new Exception('Please indicate the action as: "viewer" or "download".');
+  }
+
+  $galaxy_id = $submission->workflow->galaxy_id;
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
+
+  if (!array_key_exists('tripal_galaxy_proxy_urls', $_SESSION)) {
+    $_SESSION['tripal_galaxy_proxy_urls'] = [];
+  };
+  $id = uniqid('TGPX', TRUE);
+  $_SESSION['tripal_galaxy_proxy_urls'][$id]['dataset'] = $dataset;
+  $_SESSION['tripal_galaxy_proxy_urls'][$id]['sid'] = $submission->sid;
+  $_SESSION['tripal_galaxy_proxy_urls'][$id]['uid'] = $uid;
+
+  // Create the link.
+  $url = 'galaxy/' . $action . '/' . $id;
+  return $url;
 }
