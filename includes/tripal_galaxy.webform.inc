@@ -854,11 +854,11 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step, $
  *   The tool input from the tool that will be added as a component.
  * @param array $data_inputs
  *   The array that maps the data_input steps to the component IDs.
- * @param array $webform
+ * @param $webform
  *   The webform object containing conditionals and components that can be
  *   added to.
  */
-function tripal_laxy_build_webform_set_input_extensions(array $workflow, array $input, array $data_inputs, array &$webform) {
+function tripal_galaxy_build_webform_set_input_extensions(array $workflow, array $input, array $data_inputs, &$webform) {
   $full_name = $input['full_name'];
 
   // Add some additional allowances.
