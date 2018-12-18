@@ -258,6 +258,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['ctools_dropdown']['id'] = 'ctools_dropdown';
   $handler->display->display_options['fields']['ctools_dropdown']['table'] = 'views';
   $handler->display->display_options['fields']['ctools_dropdown']['field'] = 'ctools_dropdown';
+  $handler->display->display_options['fields']['ctools_dropdown']['label'] = 'Actions';
   $handler->display->display_options['fields']['ctools_dropdown']['fields'] = array(
     'view_results' => 'view_results',
     'nothing_1' => 'nothing_1',
@@ -450,6 +451,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['ctools_dropdown']['id'] = 'ctools_dropdown';
   $handler->display->display_options['fields']['ctools_dropdown']['table'] = 'views';
   $handler->display->display_options['fields']['ctools_dropdown']['field'] = 'ctools_dropdown';
+  $handler->display->display_options['fields']['ctools_dropdown']['label'] = 'Actions';
   $handler->display->display_options['fields']['ctools_dropdown']['fields'] = array(
     'view_results' => 'view_results',
     'nothing_1' => 'nothing_1',
@@ -465,6 +467,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['menu']['name'] = 'user-menu';
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
+
 
   return $view;
 }
