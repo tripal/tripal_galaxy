@@ -25,17 +25,13 @@ function tripal_galaxy_views_default_views() {
 function tripal_galaxy_views_job_queue() {
   $view = new view();
   $view->name = 'galaxy_usage';
-  $view->description = 'The Galaxy job queue';
+  $view->description = 'The Galaxy job queue for both administrators and users.';
   $view->tag = 'galaxy,job queue';
   $view->base_table = 'tripal_galaxy_workflow';
   $view->human_name = 'Galaxy Job Queue';
   $view->core = 7;
   $view->api_version = '3.0';
-  $view->disabled = FALSE;
-
-  /*
-   * Edit this to true to make a default view disabled initially
-   */
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
@@ -255,8 +251,8 @@ function tripal_galaxy_views_job_queue() {
     3 => 0,
   );
 
-  /* Display: Galaxy Job Queue */
-  $handler = $view->new_display('page', 'Galaxy Job Queue', 'galaxy_job_queue');
+  /* Display: Admin Galaxy Job Queue */
+  $handler = $view->new_display('page', 'Admin Galaxy Job Queue', 'galaxy_job_queue');
   $handler->display->display_options['path'] = 'admin/tripal/extension/galaxy/job-queue';
   $handler->display->display_options['menu']['type'] = 'tab';
   $handler->display->display_options['menu']['title'] = 'Job Queue';
@@ -308,6 +304,15 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['title']['relationship'] = 'sid';
   $handler->display->display_options['fields']['title']['label'] = 'Workflow';
   $handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
+  /* Field: Webform submissions: Sid */
+  $handler->display->display_options['fields']['sid_1']['id'] = 'sid_1';
+  $handler->display->display_options['fields']['sid_1']['table'] = 'webform_submissions';
+  $handler->display->display_options['fields']['sid_1']['field'] = 'sid';
+  $handler->display->display_options['fields']['sid_1']['relationship'] = 'sid';
+  $handler->display->display_options['fields']['sid_1']['label'] = '';
+  $handler->display->display_options['fields']['sid_1']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['sid_1']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['sid_1']['separator'] = '';
   /* Field: Galaxy Server: Server Name */
   $handler->display->display_options['fields']['servername']['id'] = 'servername';
   $handler->display->display_options['fields']['servername']['table'] = 'tripal_galaxy';
@@ -354,7 +359,7 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['nothing_3']['exclude'] = TRUE;
   $handler->display->display_options['fields']['nothing_3']['alter']['text'] = 'View Submission';
   $handler->display->display_options['fields']['nothing_3']['alter']['make_link'] = TRUE;
-  $handler->display->display_options['fields']['nothing_3']['alter']['path'] = 'node/[nid]/submission/[sid]';
+  $handler->display->display_options['fields']['nothing_3']['alter']['path'] = 'node/[nid]/submission/[sid_1]';
   $handler->display->display_options['fields']['nothing_3']['element_label_colon'] = FALSE;
   /* Field: Global: Custom text */
   $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
