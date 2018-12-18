@@ -78,7 +78,7 @@ function tripal_galaxy_views_data() {
   );
   $data['tripal_galaxy_workflow']['nid'] = array(
     'title' => t('Node'),
-    'help' => t('The submission node for this workflow.'),
+    'help' => t('The webform submission node for this workflow. If the workflow was not submitted via the webform then this value will be NULL.'),
     'relationship' => array(
       'base' => 'node',
       'field' => 'nid',
@@ -151,12 +151,6 @@ function tripal_galaxy_views_data() {
   $data['tripal_galaxy_workflow_submission']['sid'] = array(
     'title' => t('Submission ID'),
     'help' => t('The submission ID for this workflow.'),
-    'relationship' => array(
-      'base' => 'webform_submissions',
-      'field' => 'sid',
-      'handler' => 'views_handler_relationship',
-      'label' => t('The webform submission of this workflow.'),
-    ),
     'field' => array(
       'handler' => 'views_handler_field',
       'click sortable' => TRUE,
@@ -229,6 +223,28 @@ function tripal_galaxy_views_data() {
     ),
   );
 
+  $data['tripal_galaxy_workflow_submission']['uid'] = array(
+    'title' => t('Submitting User'),
+    'help' => t('The ID of the user submitting the workflow.'),
+    'relationship' => array(
+      'base' => 'users',
+      'field' => 'uid',
+      'handler' => 'views_handler_relationship',
+      'label' => t('The submitting User'),
+    ),
+  );
+
+  $data['tripal_galaxy_workflow_submission']['galaxy_workflow_id'] = array(
+    'title' => t('The Galaxy Workflow'),
+    'help' => t('The ID of the user submitting the workflow.'),
+    'relationship' => array(
+      'base' => 'tripal_galaxy_workflow',
+      'field' => 'galaxy_workflow_id',
+      'handler' => 'views_handler_relationship',
+      'label' => t('The Galaxy Workflow'),
+    ),
+  );
+
   $data['tripal_galaxy_workflow_submission']['view_results'] = array(
     'title' => t('View Results'),
     'help' => t('Link to the submission result page.'),
@@ -237,25 +253,59 @@ function tripal_galaxy_views_data() {
     ),
   );
 
-  // Joins.
-  $data['tripal_galaxy']['table']['join'] = array(
-    'tripal_galaxy_workflow' => array(
-      'left_field' => 'galaxy_id',
-      'field' => 'galaxy_id',
-      'type' => 'INNER',
+
+  $data['tripal_galaxy_webform']['table']['group'] = t('Galaxy Workflow to Webform Submission');
+  $data['tripal_galaxy_webform']['wf_sid'] = array(
+    'title' => t('Webform Submission ID'),
+    'help' => t('The webform submission ID for this workflow.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
     ),
   );
+  $data['tripal_galaxy_webform']['tg_sid'] = array(
+    'title' => t('Galaxy Submission ID'),
+    'help' => t('The Galaxy submission ID for this workflow.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+
+  // Joins.
+  $data['tripal_galaxy']['table']['join'] = array(
+   'tripal_galaxy_workflow' => array(
+     'left_field' => 'galaxy_id',
+     'field' => 'galaxy_id',
+     'type' => 'INNER',
+   ),
+  );
   $data['tripal_galaxy_workflow_submission']['table']['join'] = array(
-    'tripal_galaxy_workflow' => array(
-      'left_field' => 'galaxy_workflow_id',
-      'field' => 'galaxy_workflow_id',
-      'type' => 'INNER',
-    ),
-    'webform_submissions' => array(
-      'left_field' => 'sid',
-      'field' => 'sid',
-      'type' => 'INNER',
-    ),
+   'tripal_galaxy_workflow' => array(
+     'left_field' => 'galaxy_workflow_id',
+     'field' => 'galaxy_workflow_id',
+     'type' => 'INNER',
+   ),
+  );
+  $data['tripal_galaxy_webform']['table']['join'] = array(
+   'tripal_galaxy_workflow_submission' => array(
+     'left_field' => 'sid',
+     'field' => 'tg_sid',
+     'type' => 'INNER',
+   ),
   );
 
   return $data;
