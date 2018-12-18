@@ -343,7 +343,7 @@ function tripal_galaxy_get_submission(int $sid) {
   $query->addField('n', 'title', 'webform_title');
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
-  $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
+  $submission->errors = !empty($submission->errors) ? unserialize($submission->errors) : [];
 
   // Now add the workflow details:
   $workflows = tripal_galaxy_get_workflows(['id' => $submission->galaxy_workflow_id]);
