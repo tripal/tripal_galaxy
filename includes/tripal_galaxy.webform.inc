@@ -1044,12 +1044,9 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
   $query = db_select('webform_submitted_data', 'wsd');
   $query->fields('wsd');
   $query->join('webform_component', 'wc', 'wc.cid = wsd.cid');
-  $query->fields('wc', [
-    'form_key',
-    'type',
-    'extra',
-  ]);
-  $query->condition('wsd.sid', $submission->sid);
+  $query->join('tripal_galaxy_webform', 'tgw', 'tgw.wf_sid = wsd.sid');
+  $query->fields('wc', ['form_key', 'type', 'extra']);
+  $query->condition('tgw.tg_sid', $submission->sid);
   $query->condition('wc.nid', $submission->nid);
   $query->orderBy('wsd.cid');
   $submitted_data = $query->execute()->fetchAll();
