@@ -41,8 +41,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
 
   // Create a history which will be used for building tools. We have to build
   // the tools so that we can get all of the inputs and their default values.
-  $error = [];
-  $history = tripal_galaxy_get_history($galaxy, 'TG-import-tools', $error);
+  $history = tripal_galaxy_create_history($galaxy, 'TG-import-tools');
   if (!$history) {
     drupal_set_message('Error retrieving tool build history. ' . $error['message'], 'error');
     return FALSE;
@@ -1054,7 +1053,7 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
   // Get the history that we'll use for this submission.
   $error = [];
   $history_name = tripal_galaxy_get_history_name($submission);
-  $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
+  $history = tripal_galaxy_create_history($galaxy, $history_name);
   if (!$history) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);

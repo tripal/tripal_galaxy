@@ -903,7 +903,7 @@ function tripal_galaxy_workflow_report(int $sid) {
   $galaxy_instance = tripal_galaxy_get_connection($submission->galaxy_id);
   $history_name = tripal_galaxy_get_history_name($submission);
   $error = [];
-  $history = tripal_galaxy_get_history($galaxy_instance, $history_name, $error);
+  $history = tripal_galaxy_get_history($galaxy_instance, $history_name);
 
   if ($history['deleted'] === TRUE) {
     $content['deleted'] = [
@@ -1261,72 +1261,24 @@ function tripal_galaxy_submission_admin_report($sid) {
  */
 function tripal_galaxy_cron() {
   $args = [];
-  tripal_add_job('Cron: Checking Galaxy workflow status', 'tripal_galaxy',
-    'tripal_galaxy_check_status', $args, 1, [], TRUE, $ignore_duplicates = TRUE);
 
-  $interval = variable_get('tripal_galaxy_cron_frequency', 24 * 60 * 60);
+  // We only want to execute the following tasks on a specific interval. The
+  // cron may be set to run every 30 minutes but some of our Galaxy
+  // housekeeping activities only need to run every day at least.  If the
+  // tripal_galaxy_cron_last variable has never been used before we'll set
+  // a default to just 1 second over the $hours_between_runs.
+  $hours_between_runs = variable_get('tripal_galaxy_cron_hours', 24);
+  $last_execution = variable_get('tripal_galaxy_cron_last', time() - ($hours_between_runs * 60 * 60 + 1));
+  $next_execution = $last_execution + ($hours_between_runs * 60 * 60);
 
-  if (time() >= variable_get('tripal_galaxy_next_execution', 0)) {
+  if (time() > $next_execution) {
     try {
-      // Retrieve the list of galaxy servers that have been added and generate
-      // the rows for the table.
-      $sql = "SELECT * FROM {tripal_galaxy}";
-      $results = db_query($sql);
-
-      while ($result = $results->fetchObject()) {
-        $server_status = tripal_galaxy_test_connection([
-          'galaxy_id' => $result->galaxy_id,
-        ]);
-        if ($server_status === FALSE) {
-          // Update status in the db.
-          db_update('tripal_galaxy')->fields([
-            'serverstatus' => 'unavailable',
-          ])
-            ->condition('galaxy_id', $result->galaxy_id, '=')
-            ->execute();
-
-          // Put a message on the dashboard.
-          $title = t('Galaxy Server %servername was unreachable when tested at %time', [
-            '%server' => $result->servername,
-            '%time' => format_date(time()),
-          ]);
-          $details = t('Galaxy Server %servername was unreachable when tested at %time. Please check the server status. If the server is down you may disable the workflows associated with that server by going to the Tripal Galaxy admin page.', [
-            '%server' => $result->servername,
-            '%time' => format_date(time()),
-          ]);
-          $actions['Disable Server\'s Workflows'] = 'admin/tripal/extension/galaxy/disable/' . $result->galaxy_id;
-          $type = 'Tripal Galaxy';
-          $submitter_id = 'tripal_galaxy' . $result->servername . time();
-          tripal_add_notification($title, $details, $type, $actions, $submitter_id);
-          // $result->servername,
-          // $result->description,.
-        }
-        else {
-          if ($server_status === TRUE) {
-            db_update('tripal_galaxy')->fields([
-              'serverstatus' => 'available',
-            ])
-              ->condition('galaxy_id', $result->galaxy_id, '=')
-              ->execute();
-
-            // Make sure no notification is up about the server being down.
-            $submitter_id = 'tripal_galaxy' . $result->servername;
-            $note = db_select('tripal_admin_notfications', 'tan')->fields('tan')
-              ->condition('submitter_id', $submitter_id, '=')
-              ->execute()
-              ->fetchAll();
-            if ($note) {
-              db_delete('tripal_admin_notfications')->condition('submitter_id', $submitter_id)->execute();
-            }
-          }
-        }
-      }
+      tripal_galaxy_check_servers();
     }
     catch (Exception $e) {
       drupal_set_message($e->getMessage(), 'error');
       drupal_set_message(t('Cannot disable the workflows'), 'error');
       watchdog_exception('tripal_galaxy', $e);
-      drupal_goto("/admin/tripal/extension/galaxy/workflows");
       return;
     }
 
@@ -1338,7 +1290,60 @@ function tripal_galaxy_cron() {
       watchdog_exception('tripal_galaxy', $e);
       return;
     }
-    variable_set('tripal_galaxy_next_execution', time() + $interval);
+    variable_set('tripal_galaxy_cron_last', time());
+  }
+}
+
+/**
+ * Checks the remote Galaxy servers to make sure they are up and running.
+ */
+function tripal_galaxy_check_servers() {
+  // Retrieve the list of galaxy servers
+  $sql = "SELECT * FROM {tripal_galaxy}";
+  $results = db_query($sql);
+
+  while ($result = $results->fetchObject()) {
+    $server_status = tripal_galaxy_test_connection(['galaxy_id' => $result->galaxy_id,]);
+    if ($server_status === FALSE) {
+
+      // Update status in the db.
+      db_update('tripal_galaxy')->fields(['serverstatus' => 'unavailable'])
+        ->condition('galaxy_id', $result->galaxy_id, '=')
+        ->execute();
+
+      // Put a message on the dashboard.
+      $title = t('Galaxy Server %servername was unreachable when tested at %time', [
+        '%server' => $result->servername,
+        '%time' => format_date(time()),
+      ]);
+      $details = t('Galaxy Server %servername was unreachable when tested at %time. Please check the server status. If the server is down you may disable the workflows associated with that server by going to the Tripal Galaxy admin page.', [
+        '%server' => $result->servername,
+        '%time' => format_date(time()),
+      ]);
+      $actions['Disable Server\'s Workflows'] = 'admin/tripal/extension/galaxy/disable/' . $result->galaxy_id;
+      $type = 'Tripal Galaxy';
+      $submitter_id = 'tripal_galaxy' . $result->servername . time();
+      tripal_add_notification($title, $details, $type, $actions, $submitter_id);
+    }
+    else {
+      if ($server_status === TRUE) {
+        db_update('tripal_galaxy')->fields(['serverstatus' => 'available',])
+          ->condition('galaxy_id', $result->galaxy_id, '=')
+          ->execute();
+
+        // Make sure no notification is up about the server being down.
+        $submitter_id = 'tripal_galaxy' . $result->servername;
+        $note = db_select('tripal_admin_notfications', 'tan')->fields('tan')
+          ->condition('submitter_id', $submitter_id, '=')
+          ->execute()
+          ->fetchAll();
+        if ($note) {
+          db_delete('tripal_admin_notfications')
+            ->condition('submitter_id', $submitter_id)
+            ->execute();
+        }
+      }
+    }
   }
 }
 

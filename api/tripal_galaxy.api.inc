@@ -489,10 +489,7 @@ function tripal_galaxy_get_active_submissions() {
   ]);
   $query->leftJoin('node', 'n', '(n.nid = tgw.nid)');
   $query->addField('n', 'title', 'webform_title');
-  $query->condition('tgws.status', [
-    'Error',
-    'Completed',
-  ], 'NOT IN');
+  $query->condition('tgws.status', ['Error','Completed'], 'NOT IN');
   $results = $query->execute();
 
   $submissions = [];
@@ -531,6 +528,8 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
   }
 
   foreach ($submissions as $submission) {
+    $status = '';
+
     // If the job hasn't yet been invoked then skip it.
     if (!$submission->invocation_id) {
       continue;
@@ -561,36 +560,23 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
 
     // Find the History for this submission.
     $history_name = tripal_galaxy_get_history_name($submission);
-    $ghistories = new GalaxyHistories($galaxy);
-    $histories = $ghistories->index();
-    $history = '';
-    if ($histories) {
-      foreach ($histories as $index => $temp) {
-        if ($temp['name'] == $history_name) {
-          $history = $temp;
-        }
-      }
+    $history = tripal_galaxy_get_history($galaxy, $history_name);
+
+    // If the history doesn't exist then it must have been deleted.
+    if (!$history) {
+      $status = 'Deleted';
     }
 
     // Check state details for all jobs
-    // below are valid state names:
-    // paused
-    // ok
-    // failed_metadata
-    // upload
-    // discarded
-    // running
-    // setting_metadata
-    // error
-    // queued
-    // empty
+    // valid state names are:  paused, ok, failed_metadata, upload,
+    //   discarded, running, setting_metadata, error, queued,  empty.
     // if 'ok' state has value larger than 0 and all other states' values being
-    // 0,
-    // then this history has completed successfully. We can set the $status =
+    // 0, then this history has completed successfully. We can set the $status =
     // 'Completed'.
-    $status = '';
 
     if ($history) {
+      // Get greater details about this history
+      $ghistories = new GalaxyHistories($galaxy);
       $history_info = $ghistories->show([
         'history_id' => $history['id'],
       ]);
@@ -599,6 +585,8 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
       // If no jobs are in the state of 'paused', 'running', or 'queued', the
       // history is completed.
       if (!isset($state_details['paused']) and !isset($state_details['running']) and !isset($state_details['queued'])) {
+
+        // Get the history contents for this history.
         $ghistory_contents = new GalaxyHistoryContents($galaxy);
         $history_contents = $ghistory_contents->index([
           'history_id' => $history['id'],
@@ -654,7 +642,8 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     if ($end_time != NULL) {
       $fields['end_time'] = $end_time;
     }
-    db_update('tripal_galaxy_workflow_submission')->fields($fields)
+    db_update('tripal_galaxy_workflow_submission')
+      ->fields($fields)
       ->condition('sid', $submission->sid)
       ->execute();
   }
@@ -968,26 +957,50 @@ function tripal_galaxy_upload_file($galaxy, int $fid, string $history_id, array 
 /**
  * Retrieves a history by name from Galaxy.
  *
- * If the history does not exist then one is created.
+ * You must first create the history using tripal_galaxy_create_history()
+ * if it does not already exist.
  *
  * @param GalaxyInstance $galaxy
  *   A GalaxyInstance object.
  * @param string $history_name
  *   The name of the history to retrieve. If the history doesn't exist then
  *   it will be created.
- * @param array $error
- *   An empty array into which the error type and message will be placed if
- *   an error occurs.
  *
  * @return array|bool
- *   A history array for the specified history. If a failure
- *   occured then FALSE is returned and the $error argument is set.
+ *   A history array for the specified history or FALSE if the history
+ *   could not be found.
  *
  * @ingroup tripal_galaxy_api
  */
-function tripal_galaxy_get_history(GalaxyInstance $galaxy, string $history_name, array &$error) {
+function tripal_galaxy_get_history(GalaxyInstance $galaxy, string $history_name) {
 
-  // TODO: should this go into blend4php?
+  $ghistories = new GalaxyHistories($galaxy);
+
+  // Look through existing histories to find what we're looking for.
+  $histories = $ghistories->index();
+  if (!$histories) {
+    throw new Exception($error['message']);
+  }
+  foreach ($histories as $history) {
+    if ($history['name'] == $history_name) {
+      return $history;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Creates a history on the Galaxy server.
+ *
+ * @param GalaxyInstance $galaxy
+ * @param string $history_name
+ *
+ * @return array
+ *   A history array for the created history.
+ *
+ * @ingroup tripal_galaxy_api
+ */
+function tripal_galaxy_create_history(GalaxyInstance $galaxy, string $history_name) {
   $ghistories = new GalaxyHistories($galaxy);
 
   // Look through existing histories to find what we're looking for.
@@ -1007,8 +1020,7 @@ function tripal_galaxy_get_history(GalaxyInstance $galaxy, string $history_name,
     'name' => $history_name,
   ]);
   if (!$history) {
-    $error = $galaxy->getError();
-    return FALSE;
+    throw new Exception($error['message']);
   }
   return $history;
 }
@@ -1105,43 +1117,48 @@ function tripal_galaxy_get_files_dir() {
  * Deletes expired histories.
  *
  * Walks through the tripal_galaxy_workflow_submission table and deletes any
- * workflows older than specified in the tripal_galaxy_history_age system
- * variable.
+ * workflows older in days than specified in the
+ * tripal_galaxy_history_days_limit system variable.
  *
  * @ingroup tripal_galaxy_api.
  */
 function tripal_galaxy_delete_expired_histories() {
-  $max_history_age = time() - variable_get('tripal_galaxy_history_age');
-  $old_workflows = db_select('tripal_galaxy_workflow_submission', 'tgws')->fields('tgws')
-    ->condition('start_time', $max_history_age, '<')
+
+  // Calculate the timestamp for how old a history has to be in order to get
+  // deleted. The default is 60 days.
+  // 60 secs * 60 mins * 24 hours * x days == total seconds.
+  $history_days_limit = variable_get('tripal_galaxy_history_days_limit', 60) * 60 * 60 * 24;
+  $history_max_age_date = time() - $history_days_limit;
+
+  // Find workflows that are as older or older than our max history age.
+  $old_workflows = db_select('tripal_galaxy_workflow_submission', 'tgws')
+    ->fields('tgws')
+    ->condition('start_time', $history_max_age_date, '<')
+    ->condition('status', 'Deleted', '!=')
     ->execute();
   while ($old_workflow = $old_workflows->fetchObject()) {
 
-    // Skip already delated workflow invocations.
+    // Skip already deleted workflow invocations.
     if ($old_workflow->status == 'Deleted') {
       continue;
     }
 
-    $tp_workflow = db_select('tripal_galaxy_workflow', 'tgw')->fields('tgw')
-      ->condition('galaxy_workflow_id', $old_workflow->galaxy_workflow_id, '=')
-      ->execute()
-      ->fetchObject();
+    $submission = tripal_galaxy_get_submission($old_workflow->sid);
+    $history_name = tripal_galaxy_get_history_name($submission);
+    $success = tripal_galaxy_delete_remote_history($submission->galaxy_id, $history_name);
 
-    $node = node_load($tp_workflow->nid);
-    $history_name = tripal_galaxy_get_history_name($old_workflow, $node);
-    $success = tripal_galaxy_delete_remote_history($tp_workflow->galaxy_id, $history_name);
-
+    // Disable the workflow on the site if history deletion was successful.
     if ($success) {
       drupal_set_message('Successfully deleted workflow invocation: ' . $old_workflow->invocation_id);
-      // Disable the workflow on the site.
-      db_update('tripal_galaxy_workflow_submission')->fields(array(
-        'status' => 'Deleted',
-      ))
+      db_update('tripal_galaxy_workflow_submission')
+        ->fields(array(
+          'status' => 'Deleted',
+        ))
         ->condition('invocation_id', $old_workflow->invocation_id)
         ->execute();
     }
     else {
-      drupal_set_message('Failed to deleted workflow invocation: ' . $old_workflow->invocation_id, 'error');
+      drupal_set_message('Failed to deleted history for workflow invocation: ' . $old_workflow->invocation_id, 'error');
     }
   }
 }
@@ -1165,7 +1182,7 @@ function tripal_galaxy_delete_remote_history(int $galaxy_id, string $history_nam
   $error = [];
   try {
     $galaxy = tripal_galaxy_get_connection($galaxy_id);
-    $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
+    $history = tripal_galaxy_get_history($galaxy, $history_name);
     if (!$history) {
       $error = $galaxy->getError();
       throw new Exception("Cannot find history, $history_name :" . $error['message']);
@@ -1218,9 +1235,8 @@ function tripal_galaxy_get_datasets(stdClass $submission) {
   // Connect to the Galaxy server and get the history.
   $galaxy_id = $submission->workflow->galaxy_id;
   $galaxy = tripal_galaxy_get_connection($galaxy_id);
-  $error = [];
   $history_name = $submission->errors['history']['name'];
-  $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
+  $history = tripal_galaxy_get_history($galaxy, $history_name);
   if (!$history) {
     $error = $galaxy->getError();
     throw new Exception("Cannot find history, $history_name :" . $error['message']);

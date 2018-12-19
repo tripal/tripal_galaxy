@@ -11,6 +11,7 @@
     <member refid="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" kind="function"><name>tripal_galaxy_add_galaxy</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gac0e018b1fb585a9d09bbcc0844be3495" kind="function"><name>tripal_galaxy_add_workflow</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaa666f881b052ec82ed674da24eb100c2" kind="function"><name>tripal_galaxy_check_submission_status</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1gaf580037935dcd174927d3b0404d452d8" kind="function"><name>tripal_galaxy_create_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" kind="function"><name>tripal_galaxy_delete_expired_histories</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga0c1d8391681ee16b93797089d9bad767" kind="function"><name>tripal_galaxy_delete_remote_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaa0e6b46831bf8ec128042d5a585c59e8" kind="function"><name>tripal_galaxy_download_file</name></member>
@@ -21,7 +22,7 @@
     <member refid="de/db0/group__tripal__galaxy__api_1ga8c44bcb1d8e06449fe1be78ef21f622b" kind="function"><name>tripal_galaxy_get_files_dir</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" kind="function"><name>tripal_galaxy_get_galaxies</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga9ab413a396a4a875c1126ccde8ade9f3" kind="function"><name>tripal_galaxy_get_galaxy</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga2d2f96c66a66a5599102db7f05cf74b6" kind="function"><name>tripal_galaxy_get_history</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1gab81573a1e45464b19d9a2c32520bbf87" kind="function"><name>tripal_galaxy_get_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" kind="function"><name>tripal_galaxy_get_history_name</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga69ca83b6e177ea45df60f24c407e2c0a" kind="function"><name>tripal_galaxy_get_proxy_url</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaf8ee6e07586607a7a28bae4bc6d4f315" kind="function"><name>tripal_galaxy_get_submission</name></member>
@@ -38,6 +39,7 @@
     <member refid="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" kind="function"><name>tripal_galaxy_add_galaxy</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gac0e018b1fb585a9d09bbcc0844be3495" kind="function"><name>tripal_galaxy_add_workflow</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaa666f881b052ec82ed674da24eb100c2" kind="function"><name>tripal_galaxy_check_submission_status</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1gaf580037935dcd174927d3b0404d452d8" kind="function"><name>tripal_galaxy_create_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" kind="function"><name>tripal_galaxy_delete_expired_histories</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga0c1d8391681ee16b93797089d9bad767" kind="function"><name>tripal_galaxy_delete_remote_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaa0e6b46831bf8ec128042d5a585c59e8" kind="function"><name>tripal_galaxy_download_file</name></member>
@@ -48,7 +50,7 @@
     <member refid="de/db0/group__tripal__galaxy__api_1ga8c44bcb1d8e06449fe1be78ef21f622b" kind="function"><name>tripal_galaxy_get_files_dir</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" kind="function"><name>tripal_galaxy_get_galaxies</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga9ab413a396a4a875c1126ccde8ade9f3" kind="function"><name>tripal_galaxy_get_galaxy</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga2d2f96c66a66a5599102db7f05cf74b6" kind="function"><name>tripal_galaxy_get_history</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1gab81573a1e45464b19d9a2c32520bbf87" kind="function"><name>tripal_galaxy_get_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" kind="function"><name>tripal_galaxy_get_history_name</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga69ca83b6e177ea45df60f24c407e2c0a" kind="function"><name>tripal_galaxy_get_proxy_url</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaf8ee6e07586607a7a28bae4bc6d4f315" kind="function"><name>tripal_galaxy_get_submission</name></member>

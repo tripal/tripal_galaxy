@@ -9,15 +9,9 @@
  * The settings form.
  */
 function tripal_galaxy_admin_settings_form($form, &$form_state) {
-  $cron_default = variable_get('tripal_galaxy_history_age') / 86400;
-  if (!$cron_default) {
-    $cron_default = 60;
-  }
+  $cron_default = variable_get('tripal_galaxy_history_days_limit', 60);
+  $exp_default = variable_get('tripal_galaxy_cron_hours', 24);
 
-  $exp_default = variable_get('tripal_galaxy_cron_frequency') / 60;
-  if (!$exp_default) {
-    $exp_default = 60;
-  }
   $form['#tree'] = TRUE;
 
   $form['expiration'] = array(
@@ -32,8 +26,8 @@ function tripal_galaxy_admin_settings_form($form, &$form_state) {
 
   $form['cron'] = array(
     '#type' => 'textfield',
-    '#title' => t('Galaxy cron run (in minutes)'),
-    '#description' => t('How frequently the galaxy cron run should happen. We recoomend at least once per day as workflow expiration is tied into this.'),
+    '#title' => t('Galaxy cron run (in hours)'),
+    '#description' => t('Specify how frequently the galaxy cron run should happen. We recommend at least once per day (e.g. 24).'),
     '#default_value' => $exp_default,
     '#size' => 60,
     '#maxlength' => 128,
@@ -53,10 +47,10 @@ function tripal_galaxy_admin_settings_form($form, &$form_state) {
  */
 function tripal_galaxy_admin_settings_form_submit($form, &$form_state) {
   if ($form_state['values']['expiration']) {
-    variable_set('tripal_galaxy_history_age', round($form_state['values']['expiration'] * 60 * 60 * 24));
+    variable_set('tripal_galaxy_history_days_limit', round($form_state['values']['expiration']));
   }
   if ($form_state['values']['cron']) {
-    variable_set('tripal_galaxy_cron_frequency', round($form_state['values']['cron'] * 60));
+    variable_set('tripal_galaxy_cron_hours', round($form_state['values']['cron']));
   }
   drupal_set_message(t('Your configuration has been saved.'));
 }

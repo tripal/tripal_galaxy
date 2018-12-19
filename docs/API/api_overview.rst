@@ -157,8 +157,9 @@ Before invoking a workflow you will need to create the history and you should fo
   // Get the history name.
   $history_name = tripal_galaxy_get_history_name($submission);
 
-Upload Files to Galaxy
-----------------------
+
+Create a History and Upload Files
+---------------------------------
 Before we invoke a workflow we must ensure that the requried input data files are in a history on the remote Galxy server. For loading files from your local Tripal site into Galaxy use the ``tripal_galaxy_upload_file`` function.  This function expects that any files you upload to Galaxy are also know by Drupal, therefore you must use the `Drupal 7 File API <https://www.drupal.org/docs/7/api/file-api>`_.  The following shows an example for how to do this:
 
 .. code-block:: php
@@ -185,7 +186,7 @@ Before we invoke a workflow we must ensure that the requried input data files ar
   // documentation for the meaning of the input arguments.
   file_usage_add($file, 'my_module', 'workflow1_reads', $sid);
 
-Now that Drupal is aware of the file there are a few additional steps before we can upload it to Galaxy. First, we must ensure that a history exists on the remote Galaxy server. Remember, that all workflow submissions use a unique history name. We should use that history name to create the history. The history is created using the ``tripal_galaxy_get_history`` function which is used to retrieve information about a history, but will also create it if it doesn't exist.
+Now that Drupal is aware of the file there are a few additional steps before we can upload it to Galaxy. First, we must ensure that a history exists on the remote Galaxy server. Remember, that all workflow submissions use a unique history name. We should use that history name to create the history. The history is created using the ``tripal_galaxy_create_history`` function.
 
 .. code-block:: php
 
@@ -194,7 +195,7 @@ Now that Drupal is aware of the file there are a few additional steps before we 
   
   // Get the history name.
   $history_name = tripal_galaxy_get_history_name($submission);
-  $history = tripal_galaxy_get_history($galaxy, $history_name, $error);
+  $history = tripal_galaxy_create_history($galaxy, $history_name);
   if (!$history) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);
