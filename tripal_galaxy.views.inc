@@ -246,12 +246,33 @@ function tripal_galaxy_views_data() {
   );
 
   $data['tripal_galaxy_workflow_submission']['view_results'] = array(
-    'title' => t('View Results'),
+    'title' => t('View Results Link'),
     'help' => t('Link to the submission result page.'),
     'field' => array(
       'handler' => 'views_handler_view_results_field',
     ),
   );
+//   $data['tripal_galaxy_workflow_submission']['view_submission'] = array(
+//     'title' => t('View Submissions Link'),
+//     'help' => t('Link to the submission page.'),
+//     'field' => array(
+//       'handler' => 'views_handler_view_submission_field',
+//     ),
+//   );
+//   $data['tripal_galaxy_workflow_submission']['rerun'] = array(
+//     'title' => t('Rerun Link'),
+//     'help' => t('Link to re-run the workflow.'),
+//     'field' => array(
+//       'handler' => 'views_handler_view_rerun_field',
+//     ),
+//   );
+//   $data['tripal_galaxy_workflow_submission']['delete'] = array(
+//     'title' => t('Delete Link'),
+//     'help' => t('Link to the delete the submission.'),
+//     'field' => array(
+//       'handler' => 'views_handler_view_delete_field',
+//     ),
+//   );
 
 
   $data['tripal_galaxy_webform']['table']['group'] = t('Galaxy Workflow to Webform Submission');

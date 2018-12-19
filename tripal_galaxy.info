@@ -14,4 +14,7 @@ scripts[]          = theme/js/tripal_galaxy.js
 dependencies[] = libraries
 dependencies[] = webform
 
- files[] = includes/views_handler_view_results_field.inc
+files[] = includes/views_handler_view_results_field.inc
+files[] = includes/views_handler_view_delete_field.inc
+files[] = includes/views_handler_view_rerun_field.inc
+files[] = includes/views_handler_view_submission_field.inc

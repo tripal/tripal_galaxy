@@ -14,7 +14,7 @@
  *
  * @ingroup views_field_handlers
  */
-class views_handler_view_results_field extends views_handler_field {
+class views_handler_view_delete_field extends views_handler_field {
 
   /**
    * Perform any database or cache data retrieval here.
@@ -63,7 +63,7 @@ class views_handler_view_results_field extends views_handler_field {
       $path = 'user/' . $submission->uid . '/galaxy-jobs/' . $values->sid;
       $this->options['alter']['make_link'] = TRUE;
       $this->options['alter']['path'] = $path;
-      return 'View Results';
+      return 'Delete';
     }
     $this->last_render_text = '';
 

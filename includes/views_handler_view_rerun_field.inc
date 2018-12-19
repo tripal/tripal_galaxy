@@ -14,7 +14,7 @@
  *
  * @ingroup views_field_handlers
  */
-class views_handler_view_results_field extends views_handler_field {
+class views_handler_view_rerun_field extends views_handler_field {
 
   /**
    * Perform any database or cache data retrieval here.
