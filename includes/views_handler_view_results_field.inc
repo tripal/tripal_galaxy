@@ -57,12 +57,10 @@ class views_handler_view_results_field extends views_handler_field {
     if ($values->tripal_galaxy_workflow_submission_status == 'Completed') {
       return t("View Results");
     }
-    elseif ($values->tripal_galaxy_workflow_submission_status == 'Error') {
+    if ($values->tripal_galaxy_workflow_submission_status == 'Error') {
       return t("View Error");
     }
-    else {
-      return;
-    }
+    return '';
   }
 
 }

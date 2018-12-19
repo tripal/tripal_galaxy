@@ -1003,7 +1003,7 @@ function tripal_galaxy_workflow_report(int $sid) {
   if ($submission->status == 'Error') {
     $content['status_message'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="messages error">' . t('This analysis failed to complete succesfully. See the report below for error and output logs.') . '</div>',
+      '#markup' => '<div class="messages error">' . t('This analysis failed to complete successfully. The the report below may indicate the cause of the error. If not, check your input files to ensure they are correct. Please contact this site for assistance if you are unable to determine the problem.') . '</div>',
     ];
   }
 
@@ -1885,11 +1885,6 @@ function tripal_galaxy_results_viewer_page(string $proxy_id) {
     $galaxy = tripal_galaxy_get_connection($galaxy_id);
     $dataset_id = $dataset['id'];
     $name = $dataset['name'];
-
-    $url = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['url'];
-    $uid = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['uid'];
-    $sid = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['sid'];
-    $name = $_SESSION['tripal_galaxy_proxy_urls'][$proxy_id]['name'];
 
     $content['sub_title'] = [
       '#type' => 'markup',

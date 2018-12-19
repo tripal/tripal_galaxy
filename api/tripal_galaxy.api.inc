@@ -482,14 +482,10 @@ function tripal_galaxy_get_active_submissions() {
     'uid',
   ]);
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
-  $query->fields('tgw', [
-    'galaxy_id',
-    'workflow_id',
-    'nid',
-  ]);
+  $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
   $query->leftJoin('node', 'n', '(n.nid = tgw.nid)');
   $query->addField('n', 'title', 'webform_title');
-  $query->condition('tgws.status', ['Error','Completed'], 'NOT IN');
+  $query->condition('tgws.status', ['Error','Completed', 'Deleted'], 'NOT IN');
   $results = $query->execute();
 
   $submissions = [];
@@ -574,6 +570,7 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     // 0, then this history has completed successfully. We can set the $status =
     // 'Completed'.
 
+    $invocation_info = [];
     if ($history) {
       // Get greater details about this history
       $ghistories = new GalaxyHistories($galaxy);
@@ -582,48 +579,52 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
       ]);
       $state_details = array_filter($history_info['state_details']);
 
-      // If no jobs are in the state of 'paused', 'running', or 'queued', the
-      // history is completed.
-      if (!isset($state_details['paused']) and !isset($state_details['running']) and !isset($state_details['queued'])) {
+      // Get the history contents for this history.
+      $ghistory_contents = new GalaxyHistoryContents($galaxy);
+      $history_contents = $ghistory_contents->index([
+        'history_id' => $history['id'],
+      ]);
 
-        // Get the history contents for this history.
-        $ghistory_contents = new GalaxyHistoryContents($galaxy);
-        $history_contents = $ghistory_contents->index([
+      // Get more details about each history content item.
+      foreach ($history_contents as $index => $history_content) {
+        $history_contents[$index] = $ghistory_contents->show([
+          'id' => $history_content['id'],
           'history_id' => $history['id'],
         ]);
+        switch ($history_content['type']) {
+          case 'file':
+            $params = [];
+            $params['history_id'] = $history['id'];
+            $params['url_only'] = TRUE;
+            $params['history_content_id'] = $history_content['id'];
+            $link = $ghistory_contents->download_history_content($params);
+            $history_contents[$index]['content_link'] = $link;
+            break;
 
-        // Get more details about each history content item.
-        foreach ($history_contents as $index => $history_content) {
-          $history_contents[$index] = $ghistory_contents->show([
-            'id' => $history_content['id'],
-            'history_id' => $history['id'],
-          ]);
-          switch ($history_content['type']) {
-            case 'file':
-              $params = [];
-              $params['history_id'] = $history['id'];
-              $params['url_only'] = TRUE;
-              $params['history_content_id'] = $history_content['id'];
-              $link = $ghistory_contents->download_history_content($params);
-              $history_contents[$index]['content_link'] = $link;
-              break;
-
-            default:
-              break;
-          }
-        }
-
-        $invocation_info['history'] = $history;
-        $invocation_info['history_contents'] = $history_contents;
-        $invocation_info['history_info'] = $history_info;
-        if (isset($state_details['error'])) {
-          $status = 'Error';
-        }
-        else {
-          $status = 'Completed';
-          $end_time = $update_time->getTimestamp();
+          default:
+            break;
         }
       }
+
+      // Save all this history information so we can cahce it.
+      $invocation_info['history'] = $history;
+      $invocation_info['history_info'] = $history_info;
+      $invocation_info['history_contents'] = $history_contents;
+
+      // If any of the jobs have a state of error then that's it.
+      if (isset($state_details['error'])) {
+        $status = 'Error';
+      }
+
+      // If no jobs are in the state of 'paused', 'running', or 'queued', the
+      // history is completed.
+      else if (!isset($state_details['paused']) and !isset($state_details['running']) and
+          !isset($state_details['queued']) and !isset($state_details['new'])) {
+        $status = 'Completed';
+        $end_time = $update_time->getTimestamp();
+      }
+
+      // For all other job states we're still processing.
       else {
         $status = 'Processing';
       }
@@ -638,6 +639,12 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
       'status' => $status,
       'errors' => serialize($invocation_info),
     ];
+
+    // We should never set a history to have an empty status. If this
+    // happens we need to fix the code above!
+    if (!$status) {
+      throw new Exception("Cannot set empty status for submission: " . $submission->sid);
+    }
 
     if ($end_time != NULL) {
       $fields['end_time'] = $end_time;
