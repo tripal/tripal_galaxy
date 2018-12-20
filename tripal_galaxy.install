@@ -539,42 +539,54 @@ function tripal_galaxy_update_7107() {
   $transaction = db_transaction();
   try {
 
-    // Add the field but don't allow it to have null's for now. We'll try to
-    // add those in.
-    $uid = array(
-      'type' => 'int',
-      'description' => 'The Drupal User ID of the user submitting the workflow.',
-    );
-    db_add_field('tripal_galaxy_workflow_submission', 'uid', $uid);
-
-    // Next try to find the UID for the submitted workflows. The UID is
-    // buried in the history name as the first element after the TG- prefix.
-    // We'll pull it out and store it in the field.
-    $results = db_select('tripal_galaxy_workflow_submission', 'tgws')->fields('tgws')->execute();
-    while ($submission = $results->fetchObject()) {
-      $sid = $submission->sid;
-      $errors = unserialize($submission->errors);
-      $history_name = $errors['history']['name'];
-      $matches = [];
-      if (preg_match('/^TG-(\d+?)-.*$/', $history_name, $matches)) {
-        $uid = $matches[1];
-        db_update('tripal_galaxy_workflow_submission')->fields([
-          'uid' => $uid,
-        ])
-          ->condition('sid', $sid)
-          ->execute();
-      }
+    if (!db_field_exists('tripal_galaxy_workflow_submission', 'uid')) {
+      // Add the field but don't allow it to have null's for now. We'll try to
+      // add those in.
+      $uid = array(
+        'type' => 'int',
+        'description' => 'The Drupal User ID of the user submitting the workflow.',
+      );
+      db_add_field('tripal_galaxy_workflow_submission', 'uid', $uid);
     }
 
-    // If there are any workflows that we can't find the user then we will
-    // just assign them to the admin user. At the time of the writing of this
-    // update function very few folks are using this module so it should only
-    // be an issue, if at all for a few cases.
-    db_upate('tripal_galaxy_workflow_submission')->fields([
-      'uid' => 1,
-    ])
-      ->isNull('sid')
+
+    // If there are any missing UIDs (which there should be if the uid
+    // field was added by this update. Then try to get the UID from
+    // webform submissions first and then from the history name second.
+    $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
+    $query->fields('tgws', ['sid', 'errors']);
+    $query->leftJoin('tripal_galaxy_webform', 'tgw', 'tgws.sid = tgw.tg_sid');
+    $query->leftJoin('webform_submissions', 'ws', 'ws.sid = tgw.wf_sid');
+    $query->fields('ws', ['uid']);
+    $query->isNull('tgws.uid');
+    $results = $query->execute();
+
+    // Iterate through the submissions.
+    while ($submission = $results->fetchObject()) {
+      // First try setting the UID from the webform submission UID.
+      $sid = $submission->sid;
+      $uid = $submission->uid;
+
+      // Second, if there is no UID then see if there are any errors.
+      if (!$uid and is_array($submission->errors) and array_key_exists('history', $submission->errors)) {
+        $errors = unserialize($submission->errors);
+        $history_name = $errors['history']['name'];
+        $matches = [];
+        if (preg_match('/^TG-(\d+?)-.*$/', $history_name, $matches)) {
+          $uid = $matches[1];
+        }
+      }
+
+      // Third, if we can't find a UID for the submission set it to be owned by
+      // the site admin.
+      else {
+        $uid = 1;
+      }
+      db_update('tripal_galaxy_workflow_submission')
+      ->fields(['uid' => $uid])
+      ->condition('sid', $sid)
       ->execute();
+    }
 
     // Now that we're all done we want to set the uid field to not allow
     // NULLs.
