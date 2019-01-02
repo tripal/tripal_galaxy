@@ -1118,7 +1118,12 @@ function tripal_galaxy_workflow_report(int $sid) {
               break;
             }
             $link = $history_content['content_link'];
-            $dataset_id = $history_content['dataset_id'];
+            // SPF: originally this was $history_content['dataset_id'] but for
+            // some reason that value seems off for v17.09 as it does not
+            // point to the correct dataset. Rather the 'id' does.  However,
+            // in v18.01 it seems fixed and both 'id' and 'dataset_id' are the
+            // same.
+            $dataset_id = $history_content['id'];
             $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
             $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'download');
             $file_size = tripal_format_bytes($history_content['file_size']);
@@ -1135,7 +1140,12 @@ function tripal_galaxy_workflow_report(int $sid) {
 
         switch ($history_content['extension']) {
           case 'html':
-            $dataset_id = $history_content['dataset_id'];
+            // SPF: originally this was $history_content['dataset_id'] but for
+            // some reason that value seems off for v17.09 as it does not
+            // point to the correct dataset. Rather the 'id' does.  However,
+            // in v18.01 it seems fixed and both 'id' and 'dataset_id' are the
+            // same.
+            $dataset_id = $history_content['id'];
             $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
             $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'viewer');
             $step_content['history_content_' . $history_content['id'] . '_' . $index]['html_view'] = [
@@ -1149,7 +1159,12 @@ function tripal_galaxy_workflow_report(int $sid) {
           default:
             // Any files that are smaller than 1MB can be shown in a browser.
             if ($history_content['file_size'] < pow(10, 6)) {
-              $dataset_id = $history_content['dataset_id'];
+              // SPF: originally this was $history_content['dataset_id'] but for
+              // some reason that value seems off for v17.09 as it does not
+              // point to the correct dataset. Rather the 'id' does.  However,
+              // in v18.01 it seems fixed and both 'id' and 'dataset_id' are the
+              // same.
+              $dataset_id = $history_content['id'];
               $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
               $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'viewer');
               $step_content['history_content_' . $history_content['id'] . '_' . $index]['html_view'] = [

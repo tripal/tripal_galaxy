@@ -583,9 +583,9 @@ function tripal_galaxy_update_7107() {
         $uid = 1;
       }
       db_update('tripal_galaxy_workflow_submission')
-      ->fields(['uid' => $uid])
-      ->condition('sid', $sid)
-      ->execute();
+        ->fields(['uid' => $uid])
+        ->condition('sid', $sid)
+        ->execute();
     }
 
     // Now that we're all done we want to set the uid field to not allow
