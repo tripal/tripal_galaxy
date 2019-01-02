@@ -1894,6 +1894,16 @@ function tripal_galaxy_results_viewer_page(string $proxy_id) {
     $uid = $cproxy['uid'];
     $sid = $cproxy['sid'];
 
+    $user = user_load($uid);
+
+    // Set the breadcrumb.
+    $breadcrumb = [];
+    $breadcrumb[] = l(t('Home'), '<front>');
+    $breadcrumb[] = l($user->name, 'user/' . $uid);
+    $breadcrumb[] = l(t('Analyses'), 'user/' . $uid . 'galaxy-jobs');
+    $breadcrumb[] = l(t('Analysis Results'), 'user/' . $uid . '/galaxy-jobs/'  . $sid);
+    drupal_set_breadcrumb($breadcrumb);
+
     // retrieve the pertinents needed to download the file.
     $submission = tripal_galaxy_get_submission($sid);
     $galaxy_id = $submission->workflow->galaxy_id;
