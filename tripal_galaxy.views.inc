@@ -325,7 +325,7 @@ function tripal_galaxy_views_data() {
    'tripal_galaxy_workflow_submission' => array(
      'left_field' => 'sid',
      'field' => 'tg_sid',
-     'type' => 'INNER',
+     'type' => 'LEFT',
    ),
   );
 
