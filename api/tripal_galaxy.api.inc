@@ -709,6 +709,7 @@ function tripal_galaxy_get_workflow_defaults(GalaxyInstance $galaxy, string $wor
 
   $parameters = [];
   foreach ($workflow['steps'] as $step => $details) {
+    $parameters[$step] = [];
     $step_inputs = $details['input_steps'];
     $step_input_key = '';
     _tripal_galaxy_get_workflow_defaults($details['tool_inputs'], $parameters[$step], $step_inputs, $step_input_key);
