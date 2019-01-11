@@ -124,10 +124,11 @@ If a web form was created for a workflow then your site visitors can submit the 
   $workflow = $workflows[0];
   
   // We can now initialize the workflow submission.
-  $submission = tripal_galaxy_init_submission($workflow, $user);
+  $sid = tripal_galaxy_init_submission($workflow, $user);
   
-  // The submission ID will uniquely identify this submission
-  $sid = $submission->sid;
+  // The submission ID will uniquely identify this submission.  Next get the
+  // submission object.
+  $submission = tripal_galaxy_get_submission($sid);
   
 The workflow is now ready to be invoked.
  
