@@ -1,9 +1,5 @@
 <?php
 
-use PharIo\Version\OrVersionConstraintGroup;
-use TheSeer\Tokenizer\Token;
-use phpDocumentor\Reflection\Types\This;
-
 /**
  * @file
  * An application programming interface (API) for the Tripal Galaxy module.
@@ -683,9 +679,9 @@ function tripal_galaxy_get_history_name($submission) {
  *
  * @param GalaxyInstance $galaxy
  *   A GalaxyInstance object.
- * @param int $workflow_id
+ * @param string $workflow_id
  *   The ID of the workflow to retrieve settings for. This is the Galaxy ID
- *   for the workflow.
+ *   for the workflow not Tripal's internal workflow ID.
  *
  * @return bool|array
  *   An array compatible with the $parameters argument for the
@@ -695,7 +691,7 @@ function tripal_galaxy_get_history_name($submission) {
  *
  * @ingroup tripal_galaxy_api
  */
-function tripal_galaxy_get_workflow_defaults(GalaxyInstance $galaxy, int $workflow_id) {
+function tripal_galaxy_get_workflow_defaults(GalaxyInstance $galaxy, string $workflow_id) {
   $gworkflows = new GalaxyWorkflows($galaxy);
   $workflow = $gworkflows->show([
     'workflow_id' => $workflow_id,
@@ -736,8 +732,6 @@ function tripal_galaxy_get_workflow_defaults(GalaxyInstance $galaxy, int $workfl
  *   The key used to lookup up if an element has a key in the $step_inputs.
  *   For nested keys they are concatenated. with a '|' separating each
  *   level.
- *
- * @ingroup tripal_galaxy_api
  */
 function _tripal_galaxy_get_workflow_defaults(array $tool_inputs, array &$parameters, array $step_inputs, string $step_input_key) {
   foreach ($tool_inputs as $key => $value) {
