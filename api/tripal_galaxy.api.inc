@@ -667,6 +667,23 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
  * @ingroup tripal_galaxy_api
  */
 function tripal_galaxy_get_history_name($submission) {
+
+  if (!$submission) {
+    throw new Exception('Please provide a valid submission object.');
+  }
+  if (!property_exists($submission, 'galaxy_workflow_id')) {
+    throw new Exception('The submission is missing the "galaxy_workflow_id" property');
+  }
+  if (!property_exists($submission, 'uid')) {
+    throw new Exception('The submission is missing the "uid" property');
+  }
+  if (!property_exists($submission, 'sid')) {
+    throw new Exception('The submission is missing the "sid" property');
+  }
+  if (!property_exists($submission, 'submit_date')) {
+    throw new Exception('The submission is missing the "sid" property');
+  }
+
   return "TG-" . $submission->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s', $submission->submit_date);
 }
 
@@ -829,6 +846,20 @@ function _tripal_galaxy_get_workflow_defaults(array $tool_inputs, array &$parame
  * @ingroup tripal_galaxy_api.
  */
 function tripal_galaxy_invoke_workflow(GalaxyInstance $galaxy, $submission, array $parameters, array $inputs, array $history) {
+
+  // Make sure we have the correct inputs
+  if (!$submission) {
+    throw new Exception('Please provide a valid submission argument.');
+  }
+  if (!property_exists($submission, 'sid')) {
+    throw new Exception('The submission argument is missing the "sid" property.');
+  }
+  if (!$history) {
+    throw new Exception('Please provide a valid history argument.');
+  }
+  if (!array_key_exists('name', $history)) {
+    throw new Exception('The history argument is missing the "sid" property.');
+  }
 
   $history_id = $history['id'];
   // Create some handy variables for working with this submission.
