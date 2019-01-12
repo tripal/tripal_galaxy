@@ -551,7 +551,7 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
 
     // Find the History for this submission.
-    $history_name = tripal_galaxy_get_history_name($submission);
+    $history_name = $submission->error['history']['name'];
     $history = tripal_galaxy_get_history($galaxy, $history_name);
 
     // If the history doesn't exist then it must have been deleted.
