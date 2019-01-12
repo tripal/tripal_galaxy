@@ -551,7 +551,7 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
 
     // Find the History for this submission.
-    $history_name = $submission->error['history']['name'];
+    $history_name = $submission->errors['history']['name'];
     $history = tripal_galaxy_get_history($galaxy, $history_name);
 
     // If the history doesn't exist then it must have been deleted.
@@ -829,8 +829,9 @@ function _tripal_galaxy_get_workflow_defaults(array $tool_inputs, array &$parame
  * @ingroup tripal_galaxy_api.
  */
 function tripal_galaxy_invoke_workflow(GalaxyInstance $galaxy, $submission, array $parameters, array $inputs, array $history) {
+
   $history_id = $history['id'];
-  // Create some handy vairables for working with this submission.
+  // Create some handy variables for working with this submission.
   $workflow_id = $submission->workflow_id;
   $uid = $submission->uid;
   $sid = $submission->sid;
@@ -872,6 +873,11 @@ function tripal_galaxy_invoke_workflow(GalaxyInstance $galaxy, $submission, arra
       'start_time' => REQUEST_TIME,
       'end_time' => NULL,
       'invocation_id' => $invocation['id'],
+      'errors' => serialize([
+        'history' => $history,
+        'history_contents' => '',
+        'history_info' => '',
+      ]),
     ])
       ->condition('sid', $sid)
       ->execute();
