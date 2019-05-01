@@ -1307,6 +1307,20 @@ function tripal_galaxy_cron() {
     }
     variable_set('tripal_galaxy_cron_last', time());
   }
+
+  // To update the status of submission we need to check them on the remote
+  // galaxy server.
+  try { 
+  $includes = [];
+    $job_id = tripal_add_job("Check workflow status of all submissions that are
+              not marked as error or complete.", 'tripal_galaxy',
+              'tripal_galaxy_check_status', $args, 1, 10, $includes,
+              $ignore_duplicates = FALSE);
+  } 
+  catch (Exception $e) {
+    watchdog_exception('tripal_galaxy', $e);
+    return;
+  }
 }
 
 /**
@@ -1370,7 +1384,7 @@ function tripal_galaxy_check_servers() {
  * @param TripalJob $job
  *   An instance of a TripalJob object.
  */
-function tripal_galaxy_check_status(TripalJob $job) {
+function tripal_galaxy_check_status(TripalJob $job = NULL) {
   // Update the status of running workflows.
   $query = db_select('tripal_galaxy_workflow_submission', 'tgws');
   $query->fields('tgws', [
