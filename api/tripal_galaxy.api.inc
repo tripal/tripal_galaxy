@@ -476,6 +476,7 @@ function tripal_galaxy_get_active_submissions() {
     'status',
     'email',
     'uid',
+    'errors',
   ]);
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
   $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
@@ -536,6 +537,10 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     // There is no submission go no further, danger Will Robinson.
     if ($submission === NULL) {
       continue;
+    }
+    //Check if $submission->errors needs to be unserialized to access history name.
+    if (unserialize($submission->errors)) {
+      $submission->errors = unserialize($submission->errors);
     }
 
     // Connect to the Galaxy instance.
