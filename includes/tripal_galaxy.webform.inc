@@ -24,7 +24,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   $galaxy = tripal_galaxy_get_connection($galaxy_id);
   if (!$galaxy) {
     $error = $galaxy->getError();
-    drupal_set_message('Could not connect to Galaxy server. ' . $error['message'], 'error');
+    drupal_set_message('Could not connect to Galaxy server. Galaxy Server response: ' . $error['message'], 'error');
     return FALSE;
   }
 
@@ -35,7 +35,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   ]);
   if (!$workflow) {
     $error = $galaxy->getError();
-    drupal_set_message('Error retrieving workflow. ' . $error['message'], 'error');
+    drupal_set_message('Error retrieving workflow. Galaxy Server response: ' . $error['message'], 'error');
     return FALSE;
   }
 
@@ -43,7 +43,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // the tools so that we can get all of the inputs and their default values.
   $history = tripal_galaxy_create_history($galaxy, 'TG-import-tools');
   if (!$history) {
-    drupal_set_message('Error retrieving tool build history. ' . $error['message'], 'error');
+    drupal_set_message('Error retrieving tool build history. Galaxy Server response: ' . $error['message'], 'error');
     return FALSE;
   }
 
@@ -194,12 +194,12 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         $tool_id = $step['tool_id'];
         $gtools = new GalaxyTools($galaxy);
         $tool = $gtools->build([
-          'tool_id' => urlencode($tool_id),
+          'tool_id' => $tool_id,
           'history_id' => $history['id'],
         ]);
         if (!$tool) {
           $error = $galaxy->getError();
-          drupal_set_message('Error building tool: ' . $tool_id . '. ' . $error['message'], 'error');
+          drupal_set_message('Error building tool: ' . $tool_id . '. Galaxy Server response: ' . $error['message'], 'error');
           return FALSE;
         }
 
@@ -1034,7 +1034,7 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
   $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
   if (!$galaxy) {
     $error = $galaxy->getError();
-    throw new Exception('Cannot connect to Galaxy server:' . $error['message']);
+    throw new Exception('Cannot connect to Galaxy server.  Galaxy Server response: ' . $error['message']);
   }
 
   // The array where the workflow input parameters are stored.

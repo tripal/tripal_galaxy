@@ -162,6 +162,20 @@ function tripal_galaxy_views_data() {
       'handler' => 'views_handler_sort',
     ),
   );
+  $data['tripal_galaxy_workflow_submission']['uid'] = array(
+      'title' => t('Submitter ID'),
+      'help' => t('The user ID of the user that submitted this workflow.'),
+      'field' => array(
+          'handler' => 'views_handler_field',
+          'click sortable' => TRUE,
+      ),
+      'filter' => array(
+          'handler' => 'views_handler_filter_numeric',
+      ),
+      'sort' => array(
+          'handler' => 'views_handler_sort',
+      ),
+  );
 
   $data['tripal_galaxy_workflow_submission']['submit_date'] = array(
     'title' => t('Submission Time'),
@@ -327,6 +341,13 @@ function tripal_galaxy_views_data() {
      'field' => 'tg_sid',
      'type' => 'LEFT',
    ),
+  );
+  $data['tripal_galaxy_workflow_submission']['table']['join'] = array(
+    'users' => array(
+      'left_field' => 'uid',
+      'field' => 'uid',
+      'type' => 'LEFT',
+    ),
   );
 
   return $data;

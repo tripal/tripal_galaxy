@@ -245,6 +245,10 @@ function tripal_galaxy_admin_add_workflow_form_submit($form, &$form_state) {
           'workflow_id' => $form_rows[$i]['workflow_id-server-' . $i],
         ];
         $workflow = tripal_galaxy_add_workflow($galaxy_id, $values, TRUE);
+        
+        if (!$workflow) {
+            throw new Exception("Could not create workflow");
+        }
 
         $nid = $workflow->nid;
         if (!$nid) {

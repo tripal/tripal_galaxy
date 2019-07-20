@@ -46,115 +46,115 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['pager']['options']['items_per_page'] = '25';
   $handler->display->display_options['style_plugin'] = 'table';
   $handler->display->display_options['style_options']['columns'] = array(
-    'galaxy_workflow_id' => 'galaxy_workflow_id',
-    'sid' => 'sid',
-    'wf_sid' => 'wf_sid',
-    'nid' => 'nid',
-    'workflow_name' => 'workflow_name',
-    'servername' => 'servername',
-    'name' => 'name',
-    'submit_date' => 'submit_date',
-    'start_time' => 'start_time',
-    'end_time' => 'end_time',
-    'status' => 'status',
-    'view_results' => 'view_results',
-    'nothing_1' => 'nothing_1',
-    'ctools_dropdown' => 'ctools_dropdown',
+      'galaxy_workflow_id' => 'galaxy_workflow_id',
+      'sid' => 'sid',
+      'wf_sid' => 'wf_sid',
+      'nid' => 'nid',
+      'workflow_name' => 'workflow_name',
+      'servername' => 'servername',
+      'name' => 'name',
+      'submit_date' => 'submit_date',
+      'start_time' => 'start_time',
+      'end_time' => 'end_time',
+      'status' => 'status',
+      'view_results' => 'view_results',
+      'nothing_1' => 'nothing_1',
+      'ctools_dropdown' => 'ctools_dropdown',
   );
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
-    'galaxy_workflow_id' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'sid' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'wf_sid' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'nid' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'workflow_name' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'servername' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'name' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'submit_date' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'start_time' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'end_time' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'status' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'view_results' => array(
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'nothing_1' => array(
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'ctools_dropdown' => array(
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
+      'galaxy_workflow_id' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'sid' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'wf_sid' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'nid' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'workflow_name' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'servername' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'name' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'submit_date' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'start_time' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'end_time' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'status' => array(
+          'sortable' => 0,
+          'default_sort_order' => 'asc',
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'view_results' => array(
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'nothing_1' => array(
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
+      'ctools_dropdown' => array(
+          'align' => '',
+          'separator' => '',
+          'empty_column' => 0,
+      ),
   );
   $handler->display->display_options['style_options']['sticky'] = TRUE;
   $handler->display->display_options['style_options']['empty_table'] = TRUE;
@@ -283,8 +283,8 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['ctools_dropdown']['field'] = 'ctools_dropdown';
   $handler->display->display_options['fields']['ctools_dropdown']['label'] = 'Actions';
   $handler->display->display_options['fields']['ctools_dropdown']['fields'] = array(
-    'view_results' => 'view_results',
-    'nothing_1' => 'nothing_1',
+      'view_results' => 'view_results',
+      'nothing_1' => 'nothing_1',
   );
   $handler->display->display_options['fields']['ctools_dropdown']['check_access'] = 0;
   /* Sort criterion: Galaxy Workflow Submission: Submission Time */
@@ -307,36 +307,36 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['status']['group_info']['identifier'] = 'status';
   $handler->display->display_options['filters']['status']['group_info']['default_group'] = '1';
   $handler->display->display_options['filters']['status']['group_info']['group_items'] = array(
-    1 => array(
-      'title' => '- Active -',
-      'operator' => 'word',
-      'value' => 'Completed Waiting Processing Error',
-    ),
-    2 => array(
-      'title' => 'Completed',
-      'operator' => '=',
-      'value' => 'Completed',
-    ),
-    3 => array(
-      'title' => 'Processing',
-      'operator' => '=',
-      'value' => 'Processing',
-    ),
-    4 => array(
-      'title' => 'Waiting',
-      'operator' => '=',
-      'value' => 'Waiting',
-    ),
-    5 => array(
-      'title' => 'Error',
-      'operator' => '=',
-      'value' => 'Error',
-    ),
-    6 => array(
-      'title' => 'Deleted',
-      'operator' => '=',
-      'value' => 'Deleted',
-    ),
+      1 => array(
+          'title' => '- Active -',
+          'operator' => 'word',
+          'value' => 'Completed Waiting Processing Error',
+      ),
+      2 => array(
+          'title' => 'Completed',
+          'operator' => '=',
+          'value' => 'Completed',
+      ),
+      3 => array(
+          'title' => 'Processing',
+          'operator' => '=',
+          'value' => 'Processing',
+      ),
+      4 => array(
+          'title' => 'Waiting',
+          'operator' => '=',
+          'value' => 'Waiting',
+      ),
+      5 => array(
+          'title' => 'Error',
+          'operator' => '=',
+          'value' => 'Error',
+      ),
+      6 => array(
+          'title' => 'Deleted',
+          'operator' => '=',
+          'value' => 'Deleted',
+      ),
   );
   /* Filter criterion: Galaxy Workflow: Workflow Name */
   $handler->display->display_options['filters']['workflow_name']['id'] = 'workflow_name';
@@ -350,9 +350,9 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['workflow_name']['expose']['operator'] = 'workflow_name_op';
   $handler->display->display_options['filters']['workflow_name']['expose']['identifier'] = 'workflow_name';
   $handler->display->display_options['filters']['workflow_name']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
+      2 => '2',
+      1 => 0,
+      3 => 0,
   );
   /* Filter criterion: User: Name */
   $handler->display->display_options['filters']['uid']['id'] = 'uid';
@@ -366,17 +366,17 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['uid']['expose']['operator'] = 'uid_op';
   $handler->display->display_options['filters']['uid']['expose']['identifier'] = 'uid';
   $handler->display->display_options['filters']['uid']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
+      2 => '2',
+      1 => 0,
+      3 => 0,
   );
   $handler->display->display_options['filters']['uid']['group_info']['label'] = 'Name';
   $handler->display->display_options['filters']['uid']['group_info']['identifier'] = 'uid';
   $handler->display->display_options['filters']['uid']['group_info']['remember'] = FALSE;
   $handler->display->display_options['filters']['uid']['group_info']['group_items'] = array(
-    1 => array(),
-    2 => array(),
-    3 => array(),
+      1 => array(),
+      2 => array(),
+      3 => array(),
   );
 
   /* Display: Admin Galaxy Job Queue */
@@ -516,10 +516,10 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['fields']['ctools_dropdown']['field'] = 'ctools_dropdown';
   $handler->display->display_options['fields']['ctools_dropdown']['label'] = 'Actions';
   $handler->display->display_options['fields']['ctools_dropdown']['fields'] = array(
-    'view_results' => 'view_results',
-    'nothing_1' => 'nothing_1',
-    'nothing' => 'nothing',
-    'nothing_2' => 'nothing_2',
+      'view_results' => 'view_results',
+      'nothing_1' => 'nothing_1',
+      'nothing' => 'nothing',
+      'nothing_2' => 'nothing_2',
   );
   $handler->display->display_options['fields']['ctools_dropdown']['check_access'] = 0;
   $handler->display->display_options['fields']['ctools_dropdown']['destination'] = FALSE;
@@ -539,36 +539,41 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['status']['group_info']['identifier'] = 'status';
   $handler->display->display_options['filters']['status']['group_info']['default_group'] = '1';
   $handler->display->display_options['filters']['status']['group_info']['group_items'] = array(
-    1 => array(
-      'title' => '- Active -',
-      'operator' => 'word',
-      'value' => 'Completed Waiting Processing Error',
-    ),
-    2 => array(
-      'title' => 'Completed',
-      'operator' => '=',
-      'value' => 'Completed',
-    ),
-    3 => array(
-      'title' => 'Processing',
-      'operator' => '=',
-      'value' => 'Processing',
-    ),
-    4 => array(
-      'title' => 'Waiting',
-      'operator' => '=',
-      'value' => 'Waiting',
-    ),
-    5 => array(
-      'title' => 'Error',
-      'operator' => '=',
-      'value' => 'Error',
-    ),
-    6 => array(
-      'title' => 'Deleted',
-      'operator' => '=',
-      'value' => 'Deleted',
-    ),
+      1 => array(
+          'title' => '- Active -',
+          'operator' => 'word',
+          'value' => 'Completed Waiting Processing Error Submitted',
+      ),
+      2 => array(
+          'title' => 'Completed',
+          'operator' => '=',
+          'value' => 'Completed',
+      ),
+      3 => array(
+          'title' => 'Processing',
+          'operator' => '=',
+          'value' => 'Processing',
+      ),
+      4 => array(
+          'title' => 'Submitted',
+          'operator' => '=',
+          'value' => 'Submitted',
+      ),
+      5 => array(
+          'title' => 'Waiting',
+          'operator' => '=',
+          'value' => 'Waiting',
+      ),
+      6 => array(
+          'title' => 'Error',
+          'operator' => '=',
+          'value' => 'Error',
+      ),
+      7 => array(
+          'title' => 'Deleted',
+          'operator' => '=',
+          'value' => 'Deleted',
+      ),
   );
   /* Filter criterion: Galaxy Workflow: Workflow Name */
   $handler->display->display_options['filters']['workflow_name']['id'] = 'workflow_name';
@@ -582,10 +587,16 @@ function tripal_galaxy_views_job_queue() {
   $handler->display->display_options['filters']['workflow_name']['expose']['operator'] = 'workflow_name_op';
   $handler->display->display_options['filters']['workflow_name']['expose']['identifier'] = 'workflow_name';
   $handler->display->display_options['filters']['workflow_name']['expose']['remember_roles'] = array(
-    2 => '2',
-    1 => 0,
-    3 => 0,
+      2 => '2',
+      1 => 0,
+      3 => 0,
   );
+  /* Filter criterion: User: Current */
+  $handler->display->display_options['filters']['uid_current']['id'] = 'uid_current';
+  $handler->display->display_options['filters']['uid_current']['table'] = 'users';
+  $handler->display->display_options['filters']['uid_current']['field'] = 'uid_current';
+  $handler->display->display_options['filters']['uid_current']['relationship'] = 'uid';
+  $handler->display->display_options['filters']['uid_current']['value'] = '1';
   $handler->display->display_options['path'] = 'user/%/galaxy-jobs';
   $handler->display->display_options['menu']['type'] = 'tab';
   $handler->display->display_options['menu']['title'] = 'Analyses';

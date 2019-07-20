@@ -62,11 +62,11 @@ class TripalGalaxyAPITest extends TripalTestCase {
   }
 
   /**
-   * Tests tripal_galaxy_test_connection().
+   * Tests tripal_galaxy_get_galaxy().
    *
    * @depends testAddGalaxy
    */
-  public function tripal_galaxy_get_galaxy($galaxy) {
+  public function testGetGalaxy($galaxy) {
     // Make sure we can find the Galaxy server we already added.
     $found = tripal_galaxy_get_galaxy($galaxy->galaxy_id);
     $this->assertTrue($galaxy->galaxy_id == $found->galaxy_id, 'tripal_galaxy_add_galaxy: should return the same galaxy_id ' . 'for a duplicated entry.');
@@ -95,12 +95,30 @@ class TripalGalaxyAPITest extends TripalTestCase {
   }
 
   /**
-   * Setup the Galaxy server to have the workflow we need for testing.
-   * This will
-   * use blend4php directly and since we aren't testing that library we'll ust
-   * load up the data here as a provider. @depends testAddGalaxy.
+   * Tests adding a workflow
+   *
+   * @depends testAddGalaxy
    */
-  public function loadWorkflow() {
+  public function testAddWorkflow($galaxy) {
+
+    // Get a GalaxyInstance object.
+    $conn_details = tripal_galaxy_split_url($galaxy->url);
+    $galaxy = new \GalaxyInstance($conn_details['host'], $conn_details['host'], $conn_details['use_https']);
+    $error = $galaxy->getErrorType();
+    $this->assertNULL($error);
+
+    // Set our test API key.
+    $galaxy->setAPIKey('HSNiugRFvgT574F43jZ7N9F3');
+
+    // First add a workflow to the test Galaxy server. We can use the
+    // StatonLab repository
+    $gwf = new \GalaxyWorkflows($galaxy);
+    $ga = "https://raw.githubusercontent.com/statonlab/galaxy-workflows/master/mapping-hisat2-paired-end.ga";
+    $workflow = file_get_contents($ga);
+    print $workflow;
+    $gwf->create(['workflow' => $workflow]);
+    $error = $galaxy->getError();
+    $this->assertNULL($error, $error['message']);
   }
 
 }

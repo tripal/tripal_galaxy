@@ -8,6 +8,6 @@ services:
     volumes:
       - .:/modules/tripal_galaxy
   galaxy:
-    image: 'bgruening/galaxy-stable:18.05'
+    image: 'bgruening/galaxy-stable:18.09'
     ports:
       - "8084:80"
