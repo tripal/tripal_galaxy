@@ -476,6 +476,7 @@ function tripal_galaxy_get_active_submissions() {
     'status',
     'email',
     'uid',
+    'errors',
   ]);
   $query->join('tripal_galaxy_workflow', 'tgw', 'tgw.galaxy_workflow_id = tgws.galaxy_workflow_id');
   $query->fields('tgw', ['galaxy_id', 'workflow_id', 'nid']);
@@ -518,7 +519,6 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
   elseif ($sid) {
     $submissions[] = tripal_galaxy_get_submission($sid);
   }
-
   foreach ($submissions as $submission) {
     $status = '';
 
@@ -529,6 +529,18 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     // If the job is complete skip it unless $force is set to TRUE.
     if ($submission->status == 'Completed' and !$force) {
       continue;
+    }
+    // If the job is deleted skip it unless $force is set to TRUE.
+    if ($submission->status == 'Deleted' and !$force) {
+      continue;
+    }
+    // There is no submission go no further, danger Will Robinson.
+    if ($submission === NULL) {
+      continue;
+    }
+    //Check if $submission->errors needs to be unserialized to access history name.
+    if (unserialize($submission->errors)) {
+      $submission->errors = unserialize($submission->errors);
     }
 
     // Connect to the Galaxy instance.
@@ -551,90 +563,103 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     $update_time = date_create_from_format('Y-m-d*G:i:s.ue', $invocation['update_time'] . 'UTC');
 
     // Find the History for this submission.
-    $history_name = $submission->errors['history']['name'];
-    $history = tripal_galaxy_get_history($galaxy, $history_name);
-
-    // If the history doesn't exist then it must have been deleted.
-    if (!$history) {
-      $status = 'Deleted';
-    }
-
-    // Check state details for all jobs
-    // valid state names are:  paused, ok, failed_metadata, upload,
-    //   discarded, running, setting_metadata, error, queued,  empty.
-    // if 'ok' state has value larger than 0 and all other states' values being
-    // 0, then this history has completed successfully. We can set the $status =
-    // 'Completed'.
-
     $invocation_info = [];
-    if ($history) {
-      // Get greater details about this history
-      $ghistories = new GalaxyHistories($galaxy);
-      $history_info = $ghistories->show([
-        'history_id' => $history['id'],
-      ]);
-      $state_details = array_filter($history_info['state_details']);
+    if ($submission->errors) {
+      $history_name = $submission->errors['history']['name'];
+      if ($history_name) {
+        $history = tripal_galaxy_get_history($galaxy, $history_name);
 
-      // Get the history contents for this history.
-      $ghistory_contents = new GalaxyHistoryContents($galaxy);
-      $history_contents = $ghistory_contents->index([
-        'history_id' => $history['id'],
-      ]);
+        // If the history doesn't exist then it must have been deleted.
+        if (!$history) {
+          $status = 'Deleted';
+        }
 
-      // Get more details about each history content item.
-      foreach ($history_contents as $index => $history_content) {
-        $history_contents[$index] = $ghistory_contents->show([
-          'id' => $history_content['id'],
-          'history_id' => $history['id'],
-        ]);
-        switch ($history_content['type']) {
-          case 'file':
-            $params = [];
-            $params['history_id'] = $history['id'];
-            $params['url_only'] = TRUE;
-            $params['history_content_id'] = $history_content['id'];
-            $link = $ghistory_contents->download_history_content($params);
-            $history_contents[$index]['content_link'] = $link;
-            break;
+        // Check state details for all jobs
+        // valid state names are:  paused, ok, failed_metadata, upload,
+        //   discarded, running, setting_metadata, error, queued,  empty.
+        // if 'ok' state has value larger than 0 and all other states' values being
+        // 0, then this history has completed successfully. We can set the $status =
+        // 'Completed'.
+        if ($history) {
+          // Get greater details about this history
+          $ghistories = new GalaxyHistories($galaxy);
+          $history_info = $ghistories->show([
+            'history_id' => $history['id'],
+          ]);
+          $state_details = array_filter($history_info['state_details']);
 
-          default:
-            break;
+          // Get the history contents for this history.
+          $ghistory_contents = new GalaxyHistoryContents($galaxy);
+          $history_contents = $ghistory_contents->index([
+            'history_id' => $history['id'],
+          ]);
+
+          // Get more details about each history content item.
+          foreach ($history_contents as $index => $history_content) {
+            $history_contents[$index] = $ghistory_contents->show([
+              'id' => $history_content['id'],
+              'history_id' => $history['id'],
+            ]);
+            switch ($history_content['type']) {
+              case 'file':
+                $params = [];
+                $params['history_id'] = $history['id'];
+                $params['url_only'] = TRUE;
+                $params['history_content_id'] = $history_content['id'];
+                $link = $ghistory_contents->download_history_content($params);
+                $history_contents[$index]['content_link'] = $link;
+                break;
+
+              default:
+                break;
+            }
+          }
+
+          // Save all this history information so we can cahce it.
+          $invocation_info['history'] = $history;
+          $invocation_info['history_info'] = $history_info;
+          $invocation_info['history_contents'] = $history_contents;
+
+          // If any of the jobs have a state of error then that's it.
+          if (isset($state_details['error'])) {
+            $status = 'Error';
+          }
+
+          // If no jobs are in the state of 'paused', 'running', or 'queued', the
+          // history is completed.
+          else if (
+            !isset($state_details['paused']) and !isset($state_details['running']) and
+            !isset($state_details['queued']) and !isset($state_details['new'])
+          ) {
+            $status = 'Completed';
+            $end_time = $update_time->getTimestamp();
+          }
+
+          // For all other job states we're still processing.
+          else {
+            $status = 'Processing';
+          }
         }
       }
-
-      // Save all this history information so we can cahce it.
-      $invocation_info['history'] = $history;
-      $invocation_info['history_info'] = $history_info;
-      $invocation_info['history_contents'] = $history_contents;
-
-      // If any of the jobs have a state of error then that's it.
-      if (isset($state_details['error'])) {
-        $status = 'Error';
-      }
-
-      // If no jobs are in the state of 'paused', 'running', or 'queued', the
-      // history is completed.
-      else if (!isset($state_details['paused']) and !isset($state_details['running']) and
-          !isset($state_details['queued']) and !isset($state_details['new'])) {
-        $status = 'Completed';
-        $end_time = $update_time->getTimestamp();
-      }
-
-      // For all other job states we're still processing.
-      else {
-        $status = 'Processing';
-      }
     }
-
     // Now inform the user that the job is done!
     if (!$force && $submission->email != 'SENT') {
-      tripal_galaxy_send_submission_ended_mail($submission->sid, $node->uid);
+      tripal_galaxy_send_submission_ended_mail($submission->sid);
     }
 
-    $fields = [
-      'status' => $status,
-      'errors' => serialize($invocation_info),
-    ];
+    if (!empty($invocation_info)) {
+      $fields = [
+        'status' => $status,
+        'errors' => serialize($invocation_info),
+      ];
+    }
+    else {
+      $fields = [
+        'status' => $status,
+        'errors' => serialize('No innovation info.'),
+      ];
+    }
+
 
     // We should never set a history to have an empty status. If this
     // happens we need to fix the code above!
@@ -650,7 +675,6 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
       ->condition('sid', $submission->sid)
       ->execute();
   }
-
   return TRUE;
 }
 
@@ -685,6 +709,28 @@ function tripal_galaxy_get_history_name($submission) {
   }
 
   return "TG-" . $submission->uid . "-" . $submission->galaxy_workflow_id . "-" . $submission->sid . '-' . date('Y_m_d_H:i:s', $submission->submit_date);
+}
+
+/**
+ * Retrieve all submission IDs for a user.
+ *
+ * @param int $userid
+ *   User id number.
+ *
+ * @return array
+ *   A list of submission ids.
+ *
+ * @ingroup tripal_galaxy_api
+ */
+function tripal_galaxy_get_user_submissions(int $userid) {
+  $submissions = db_select('tripal_galaxy_workflow_submission', 'tgws')
+    ->fields('tgws')
+    ->condition('uid', $userid, '=')
+    ->execute();
+  while ($submission = $submissions->fetchObject()) {
+    $sids[] = $submission->sid;
+  }
+  return $sids;
 }
 
 /**
