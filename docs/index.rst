@@ -1,7 +1,7 @@
 Tripal Galaxy Extension Module
 ==============================
 
-.. warning::
+.. note::
 
   The Tripal Galaxy module is currently compatible only with release 19.01 of the Galaxy Project.
 
