@@ -99,6 +99,7 @@ class TripalGalaxyAPITest extends TripalTestCase {
    *
    * @depends testAddGalaxy
    */
+  /*
   public function testAddWorkflow($galaxy) {
 
     // Get a GalaxyInstance object.
@@ -115,10 +116,8 @@ class TripalGalaxyAPITest extends TripalTestCase {
     $gwf = new \GalaxyWorkflows($galaxy);
     $ga = "https://raw.githubusercontent.com/statonlab/galaxy-workflows/master/mapping-hisat2-paired-end.ga";
     $workflow = file_get_contents($ga);
-    print $workflow;
     $gwf->create(['workflow' => $workflow]);
     $error = $galaxy->getError();
     $this->assertNULL($error, $error['message']);
-  }
-
+  }*/
 }
