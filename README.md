@@ -13,6 +13,9 @@ The Tripal Galaxy module is designed to support integration of [Tripal](http://t
 
 The Tripal Galaxy module provides more than just a “wrapper” for Galaxy. Site administrators can provide files to help end-users easily integrate data from the site within workflows. On Tripal v3 sites, user’s can create data collection containing data gleaned from the site which in turn can be used in Galaxy workflows. Quotas are provided to prevent users from overunning the storage space of the server and usage statistics help a site admin learn which workflows are most used and who are the biggest users.
 
+# Compatibility
+The Tripal Galaxy module is currently only compatible with Galaxy release v19.01.  
+
 # How does it work!
 ## Option 1: Create a web form for a workflow
 1. Identify users who need analyatical workflows within the research community that your Tripal site supports.
