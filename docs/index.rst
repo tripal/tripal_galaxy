@@ -1,6 +1,10 @@
 Tripal Galaxy Extension Module
 ==============================
 
+.. note::
+
+  The Tripal Galaxy module is currently compatible only with release 19.01 of the Galaxy Project.
+
 The Tripal Galaxy module is designed to support integration of `Tripal <http://tripal.info>`_ with `Galaxy <https://galaxyproject.org/>`_.  In the past, community databases have often provided analytical tools that come prepared with site-specific data.  Examples include BLAST, CAP3, and InterProScan servers, for example.  These tools eased the informatic burden for some researchers by providing tools with site-specific data in easy to use web interfaces.  With larger datasets and more complicated analytical workflows creating online tools becomes a more challenging task.
 
 By integrating Tripal with Galaxy, the Tripal-based community database can offer more complicated analytical tools that support larger data sets using Galaxy as a backend.  To this end, analytical workflows are created by site developers or bioinformaticists inside of the Galaxy user interface.  Once tested and ready, the Tripal Galaxy module communicates with the Galaxy server to provide a web front-end for that workflow.  Users can execute the workflow within the Tripal site, providing a user interface that site-users are familiar and comfortable with.  Users need not know how to use Galaxy to execute the workflow, although, attribution is appropriately provided to the Galaxy server that provides the computation.
