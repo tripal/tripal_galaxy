@@ -611,6 +611,10 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step, $
       $webform_type = 'select';
       // Select should be the default list drop-down. Unless it has a display
       // of Checkbox.
+      if ($input['multiple'] == TRUE) {
+        $extra['multiple'] = TRUE;
+        $extra['description'] = 'You may select as many options as desired.';
+      }
       if (array_key_exists('options', $input)) {
         foreach ($input['options'] as $key => $val) {
           // The val is now that sub-array containing the human readable option
