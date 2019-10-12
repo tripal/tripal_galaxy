@@ -35,21 +35,18 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
     'fields' => array(
       'galaxy_id' => array(
         'type' => 'serial',
-        'not NULL' => TRUE,
+        'not null' => TRUE,
       ),
       'url' => array(
         'type' => 'text',
-        'not NULL' => TRUE,
       ),
       'uid' => array(
         'type' => 'int',
-        'not NULL' => TRUE,
       ),
       'save_auth' => array(
         'type' => 'int',
         'size' => 'tiny',
         'default' => 1,
-        'not NULL' => TRUE,
       ),
       'username' => array(
         'type' => 'varchar',
@@ -65,12 +62,10 @@ function tripal_galaxy_add_galaxy_table(&$schema) {
       ),
       'description' => array(
         'type' => 'text',
-        'not NULL' => FALSE,
       ),
       'serverstatus' => array(
         'type' => 'varchar',
         'length ' => 1024,
-        'not NULL' => FALSE,
       ),
     ),
     'primary key' => array(
@@ -96,7 +91,7 @@ function tripal_galaxy_add_workflow_submission_table(&$schema) {
     'fields' => array(
       'sid' => array(
         'type' => 'serial',
-        'not NULL' => TRUE,
+        'not null' => TRUE,
       ),
       'uid' => array(
         'type' => 'int',
@@ -105,7 +100,6 @@ function tripal_galaxy_add_workflow_submission_table(&$schema) {
       ),
       'galaxy_workflow_id' => array(
         'type' => 'int',
-        'not NULL' => TRUE,
       ),
       'errors' => array(
         'type' => 'text',
@@ -113,22 +107,18 @@ function tripal_galaxy_add_workflow_submission_table(&$schema) {
       'status' => array(
         'type' => 'varchar',
         'length' => 50,
-        'not NULL' => TRUE,
         'default' => 'Waiting',
       ),
       'submit_date' => array(
         'type' => 'int',
-        'not NULL' => TRUE,
         'description' => 'UNIX integer submit time',
       ),
       'start_time' => array(
         'type' => 'int',
-        'not NULL' => FALSE,
         'description' => 'UNIX integer start time',
       ),
       'end_time' => array(
         'type' => 'int',
-        'not NULL' => FALSE,
         'description' => 'UNIX integer end time',
       ),
       'invocation_id' => array(
@@ -167,15 +157,13 @@ function tripal_galaxy_add_workflow_table(&$schema) {
     'fields' => array(
       'galaxy_workflow_id' => array(
         'type' => 'serial',
-        'not NULL' => TRUE,
+        'not null' => TRUE,
       ),
       'nid' => array(
         'type' => 'int',
-        'not NULL' => TRUE,
       ),
       'galaxy_id' => array(
         'type' => 'int',
-        'not NULL' => TRUE,
       ),
       'status' => array(
         'type' => 'varchar',
@@ -185,18 +173,15 @@ function tripal_galaxy_add_workflow_table(&$schema) {
       'workflow_id' => array(
         'type' => 'varchar',
         'length' => 128,
-        'not NULL' => TRUE,
         'description' => 'The ID of the workflow on the Galaxy server.',
       ),
       'workflow_uuid' => array(
         'type' => 'varchar',
         'length' => 1024,
-        'not NULL' => TRUE,
         'description' => 'Each Galaxy workflow has a unique UUID nad each time ' . 'the workflow is changed the UUID changes. This way we can ensure that ' . 'workflows are disabled if the UUID changes.',
       ),
       'workflow_name' => array(
         'type' => 'text',
-        'not NULL' => TRUE,
       ),
     ),
     'primary key' => array(
@@ -279,11 +264,9 @@ function tripal_galaxy_add_webform_table(&$schema) {
     'fields' => array(
       'wf_sid' => array(
         'type' => 'int',
-        'not NULL' => TRUE,
       ),
       'tg_sid' => array(
         'type' => 'int',
-        'not NULL' => TRUE,
       ),
     ),
     'primary key' => array(
@@ -412,7 +395,6 @@ function tripal_galaxy_update_7103() {
     $status = array(
       'type' => 'varchar',
       'length ' => 1024,
-      'not NULL' => FALSE,
     );
     db_add_field('tripal_galaxy', 'serverstatus', $status);
   }
@@ -458,7 +440,6 @@ function tripal_galaxy_update_7104() {
       $holder = array(
         'type' => 'int',
         'length ' => 1024,
-        'not NULL' => FALSE,
       );
       db_add_field('tripal_galaxy_workflow_submission', 'sid_linker', $holder);
     }
@@ -477,7 +458,6 @@ function tripal_galaxy_update_7104() {
         if (!db_field_exists('tripal_galaxy_workflow_submission', 'sid')) {
           $status = array(
             'type' => 'serial',
-            'not NULL' => FALSE,
           );
           db_add_field('tripal_galaxy_workflow_submission', 'sid', $status);
         }
