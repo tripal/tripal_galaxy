@@ -65,7 +65,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
         'cid' => $markup_fieldset_cid,
         'pid' => 0,
         'form_key' => "Step_" . $step_index . "_annotation_fieldset",
-        'name' => 'Description',
+        'name' => 'Step Instructions',
         'type' => 'fieldset',
         'value' => '',
         'extra' => [
@@ -133,6 +133,8 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
       // If this is for a data 'file' input.
       case 'data_input':
         $tool_input_name = array_key_exists('name', $step['tool_inputs']) ? $step['tool_inputs']['name'] : 'Data File';
+        $tool_input_name = 'Data File';
+        $tool_input_name = $workflow['inputs'][$step_index]['label'];
 
         // Make a fake tool and input so we can add the component for a
         // data_input step.

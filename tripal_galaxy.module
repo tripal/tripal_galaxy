@@ -628,13 +628,14 @@ function tripal_galaxy_form_webform_client_form_alter(&$form, &$form_state, $for
 function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
   global $user;
 
+
   // Don't do anything if the webform isn't finished being filled out.
   if ($form_state['webform_completed'] != TRUE) {
     return;
   }
   try {
 
-    // Get the sub.
+    // Get the submissinon ID.
     $wf_sid = $form_state['storage']['details']['sid'];
 
     // Get the Galaxy server workflow ID from the form then
@@ -1074,6 +1075,7 @@ function tripal_galaxy_workflow_report(int $sid) {
 
   $has_any_results = FALSE;
   if (is_array($submission->errors)) {
+
     // If the workflow status is 'Completed' then there will be a history and
     // history contents. We'll get those out and remove them so we
     // can more easily iterate through the steps.

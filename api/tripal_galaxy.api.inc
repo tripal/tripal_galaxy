@@ -339,7 +339,10 @@ function tripal_galaxy_get_submission(int $sid) {
   $query->addField('n', 'title', 'webform_title');
   $query->condition('tgws.sid', $sid);
   $submission = $query->execute()->fetchObject();
-  $submission->errors = !empty($submission->errors) ? unserialize($submission->errors) : [];
+  if (!$submission) {
+    return NULL;
+  }
+  $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
 
   // Now add the workflow details:
   $workflows = tripal_galaxy_get_workflows(['id' => $submission->galaxy_workflow_id]);
@@ -517,7 +520,11 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     throw new Exception('tripal_galaxy_check_submission_status(): The $sid argument is not numeric');
   }
   elseif ($sid) {
-    $submissions[] = tripal_galaxy_get_submission($sid);
+    $submission = tripal_galaxy_get_submission($sid);
+    if (!$submission) {
+      throw new Exception('The provided submission ID does not exist');
+    }
+    $submissions[] = $submission;
   }
   foreach ($submissions as $submission) {
     $status = '';
@@ -537,10 +544,6 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
     // There is no submission go no further, danger Will Robinson.
     if ($submission === NULL) {
       continue;
-    }
-    //Check if $submission->errors needs to be unserialized to access history name.
-    if (unserialize($submission->errors)) {
-      $submission->errors = unserialize($submission->errors);
     }
 
     // Connect to the Galaxy instance.
@@ -923,7 +926,6 @@ function tripal_galaxy_invoke_workflow(GalaxyInstance $galaxy, $submission, arra
   ];
 
   $invocation = $gworkflows->invoke($params);
-
   if (!$invocation) {
     $error = $galaxy->getError();
     $error_msg = 'ERROR: ' . $error['message'];
@@ -954,8 +956,8 @@ function tripal_galaxy_invoke_workflow(GalaxyInstance $galaxy, $submission, arra
         'history' => $history,
         'history_contents' => '',
         'history_info' => '',
-      ]),
-    ])
+        ]),
+      ])
       ->condition('sid', $sid)
       ->execute();
     tripal_galaxy_send_submission_start_mail($sid);

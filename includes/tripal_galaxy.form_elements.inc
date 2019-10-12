@@ -131,7 +131,7 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
 
   $element['uploader_fset'] = array(
     '#type' => 'fieldset',
-    '#title' => 'Upload New Files',
+    '#title' => 'Upload a List of Files',
     '#group' => 'files_vset',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
@@ -141,7 +141,8 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   // We want to "inherit" the html5_file widget.
   $uploader = tripal_html5_file_process($element, $form_state, $complete_form);
   $uploader['html5_file_table']['#title'] = t('File Upload');
-  $uploader['html5_file_table']['#description'] = t('If your files do not already exist above please upload as many files as desired.');
+  $uploader['html5_file_table']['#description'] = t('Upload one ore more file. Each file must have a compatible file extension: !allowed_types.',
+      ['!allowed_types' => implode(', ', $allowed_types)]);
   $name = $element['#name'];
   $name = preg_replace('/[^\w]/', '_', $name);
 
@@ -169,7 +170,7 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   $existing_1_select_id = $existing_value_id . '-1';
 
   $element['existing_fset'] = array(
-    '#title' => 'User Uploaded Files',
+    '#title' => 'Use Uploaded List of Files',
     '#type' => 'fieldset',
     '#group' => 'files_vset',
     '#collapsible' => TRUE,
@@ -382,7 +383,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
     '#type' => 'item',
     '#title' => $element['#title'] ? '' : 'Data File',
     '#markup' => $element['#description'] . ' Please provide a data file. You may either select an
-      existing file or upload a new file. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+      existing file or upload a new one. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
 
@@ -399,7 +400,8 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
   // We want to "inherit" the html5_file widget.
   $uploader = tripal_html5_file_process($element, $form_state, $complete_form);
   $uploader['html5_file_table']['#title'] = t('File Upload');
-  $uploader['html5_file_table']['#description'] = t('If your files do not already exist above please upload as many pair of files as desired.');
+  $uploader['html5_file_table']['#description'] = t('Upload a single file. It must have a compatible file extension: !allowed_types.',
+        ['!allowed_types' => implode(', ', $allowed_types)]);
   $name = $element['#name'];
   $name = preg_replace('/[^\w]/', '_', $name);
 
@@ -425,7 +427,7 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
   }
   if (count(array_keys($files_list)) > 1) {
     $element['existing_fset'] = array(
-      '#title' => 'User Uploaded Files',
+      '#title' => 'Use an Uploaded File',
       '#type' => 'fieldset',
       '#group' => 'files_vset',
       '#collapsible' => TRUE,
@@ -565,7 +567,6 @@ function tripal_galaxy_sfile_process($element, $form_state, $complete_form) {
       'id' => $data_collection_value_id,
     ),
   );
-
   return $element;
 }
 
@@ -648,7 +649,7 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 
   $element['uploader_fset'] = array(
     '#type' => 'fieldset',
-    '#title' => 'Upload New Files',
+    '#title' => 'Upload New Paired Files',
     '#group' => 'files_vset',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
@@ -658,7 +659,8 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
   // We want to "inherit" the html5_file widget.
   $uploader = tripal_html5_file_process($element, $form_state, $complete_form);
   $uploader['html5_file_table']['#title'] = t('File Upload');
-  $uploader['html5_file_table']['#description'] = t('If your files do not already exist above please upload as many pair of files as desired.');
+  $uploader['html5_file_table']['#description'] = t('Upload one more sets of paired files. Each file must have a compatible file extension: !allowed_types.',
+      ['!allowed_types' => implode(', ', $allowed_types)]);
   $name = $element['#name'];
   $name = preg_replace('/[^\w]/', '_', $name);
 
@@ -687,7 +689,7 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
   $existing_2_select_id = $existing_value_id . '-2';
 
   $element['existing_fset'] = array(
-    '#title' => 'User Uploaded Files',
+    '#title' => 'Use Uploaded Paired Files',
     '#type' => 'fieldset',
     '#group' => 'files_vset',
     '#collapsible' => TRUE,
