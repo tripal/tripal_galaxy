@@ -38,10 +38,22 @@ You will be asked if you would like to download and then enable the module.  Now
 
 Set Permissions
 ---------------
-Now that the Tripal Galaxy module is installed, we must set permissions so that users can add submit workflows and administrators can manage the workflows.  To set permissions, navigate to **People** page and click the **Permissions** tab in the top right.  Search through the list of permissions until you find the section titled **Tripal Galaxy**.  In this section you will find two types of permissions, one for providing access to execute published workflows and one for administering the Galaxy module.  By default Drupal install provides three types of roles:  **Anonymous**, **Authenticated** and **Administrator** users.  
+Now that the Tripal Galaxy module is installed, we must set permissions so that users can add submit workflows and administrators can manage the workflows.  To set permissions, navigate to **People** page and click the **Permissions** tab in the top right. To allow end-users to submit workflows, you must set the following two permissions found in the **Tripal Galaxy** and **Tripal** sections of the permissions page:
+
+*  Tripal Galaxy > Execute Published Galaxy Workflows
+*  Tripal >  Upload files
+
+To allow a user to administer the Tripal Galaxy workflows you must set three permissions for the given role:
+
+*  Tripal Galaxy > Administer Galaxy
+*  Tripal Galaxy > Execute Published Galaxy Workflows
+*  Tripal >  Upload files
+
+ The following screenshot shows an example of the permissions in the **Tripal Galaxy** section of the **Permission** page:
 
 .. image:: ./install.2.png
 
 .. warning::
 
   If your site is not new you may have additional roles.  As a rule you should not give the anonymous user either permission.
+
