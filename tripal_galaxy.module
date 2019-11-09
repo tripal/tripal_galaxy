@@ -1097,6 +1097,11 @@ function tripal_galaxy_workflow_report(int $sid) {
         $has_step_results = TRUE;
         $has_any_results = TRUE;
 
+        // Skip history content items that should be hidden.
+        if ($history_content['visible'] != TRUE) {
+          continue;
+        }
+
         $step_content = [];
         $step_content['history_content_' . $history_content['id'] . '_' . $index] = [
           '#type' => 'fieldset',

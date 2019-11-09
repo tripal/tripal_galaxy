@@ -490,6 +490,7 @@ function tripal_galaxy_get_active_submissions() {
 
   $submissions = [];
   while ($submission = $results->fetchObject()) {
+    $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
     $submissions[] = $submission;
   }
   return $submissions;
@@ -567,6 +568,7 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
 
     // Find the History for this submission.
     $invocation_info = [];
+
     if ($submission->errors) {
       $history_name = $submission->errors['history']['name'];
       if ($history_name) {
