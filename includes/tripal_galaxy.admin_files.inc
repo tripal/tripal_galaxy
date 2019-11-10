@@ -247,6 +247,7 @@ function tripal_galaxy_admin_add_file_form_submit($form, &$form_state) {
     $file = file_load($file_upload);
     $filename = $file->filename;
     $fields['filename'] = $filename;
+    file_usage_add($file, 'tripal_galaxy', 'site-wide', 0);
     // Move the file out of the user upload directory that the Tripal
     // upload tool uses and into a new directory that is site-specific
     // rather than user-specific.

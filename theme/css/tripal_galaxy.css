@@ -30,3 +30,13 @@
 .tripal-galaxy-fieldset .fieldset-description {
 	color: #0099ff;
 }
+
+.tripal-galaxy-file-peek {
+	overflow: auto;
+	max-width: 500px;
+}
+
+.tripal-galaxy-submission-table tr.odd .form-item,
+.tripal-galaxy-submission-table tr.even .form-item {
+	white-space: normal;
+}
