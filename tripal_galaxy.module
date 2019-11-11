@@ -1019,7 +1019,7 @@ function tripal_galaxy_workflow_report(int $sid) {
   if ($submission->status == 'Error') {
     $content['status_message'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="messages error">' . t('This analysis failed to complete successfully. The the report below may indicate the cause of the error. If not, check your input files to ensure they are correct. Please contact this site for assistance if you are unable to determine the problem.') . '</div>',
+      '#markup' => '<div class="messages error">' . t('This analysis failed to complete successfully. The report below may indicate the cause of the error. If not, check your input files to ensure they are correct. Please contact this site for assistance if you are unable to determine the problem.') . '</div>',
     ];
   }
 
@@ -1075,15 +1075,14 @@ function tripal_galaxy_workflow_report(int $sid) {
 
     if (isset($history_contents) and isset($history_info)) {
       foreach ($history_contents as $index => $history_content) {
-        $has_any_results = TRUE;
 
         // Skip history items that does not have 'ok' or 'error' state.
         if (!in_array($history_content['id'], array_merge($history_info['state_ids']['ok'], $history_info['state_ids']['error']))) {
           continue;
         }
-        $has_step_results = TRUE;
-        $has_any_results = TRUE;
 
+        // If there are any errors on any file creation, then we'll add
+        // the error message to tour file_errors list.
         if ($history_content['state'] == 'error') {
           $file_errors[] = [
             '#type' => 'item',
@@ -1101,6 +1100,8 @@ function tripal_galaxy_workflow_report(int $sid) {
         if (in_array($history_content['name'], $input_files)) {
           continue;
         }
+
+        $has_any_results = TRUE;
 
         $step_content = [];
         $step_content['history_content_' . $history_content['id'] . '_' . $index] = [
@@ -1196,7 +1197,7 @@ function tripal_galaxy_workflow_report(int $sid) {
     $content['results'] = [
       '#type' => 'item',
       '#title' => t('Result Files'),
-      '#markup' => t('Both the submitted files and result files are listed below. Click the filename to view or download results. If an error occurred during
+      '#markup' => t('The result files are listed below. Click the filename to view or download results. If an error occurred during
         creation of any file it will be noted.  Expand the field for the result below to
         view the status, peek or download result files.'),
     ];
