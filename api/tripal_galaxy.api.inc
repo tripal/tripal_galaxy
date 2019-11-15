@@ -342,7 +342,7 @@ function tripal_galaxy_get_submission(int $sid) {
   if (!$submission) {
     return NULL;
   }
-  $submission->errors = $submission->errors ? unserialize($submission->errors) : [];
+  $submission->errors = !empty($submission->errors) ? unserialize($submission->errors) : [];
 
   // Now add the workflow details:
   $workflows = tripal_galaxy_get_workflows(['id' => $submission->galaxy_workflow_id]);
@@ -618,6 +618,15 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
               default:
                 break;
             }
+            $job_id = $history_contents[$index]['creating_job'];
+            $gJobs = new GalaxyJobs($galaxy);
+            $job = $gJobs->show(['job_id' => $job_id, 'full' => 'TRUE']);
+            if (!$job) {
+              $error = $galaxy->getError();
+              drupal_set_message('Could not retreive details about the submitting job. ' . $error['message'], 'error');
+              return FALSE;
+            }
+            $history_contents[$index]['creating_job'] = $job;
           }
 
           // Save all this history information so we can cahce it.
@@ -1094,7 +1103,7 @@ function tripal_galaxy_create_history(GalaxyInstance $galaxy, string $history_na
 
   // Look through existing histories to find what we're looking for.
   $histories = $ghistories->index();
-  if (!$histories) {
+  if (!is_array($histories)) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);
   }
