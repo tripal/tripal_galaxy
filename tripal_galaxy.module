@@ -1023,7 +1023,7 @@ function tripal_galaxy_workflow_report(int $sid) {
   if ($submission->status == 'Error') {
     $content['status_message'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="messages error">' . t('This analysis failed to complete successfully. The report below may indicate the cause of the error. If not, check your input files to ensure they are correct. Please contact this site for assistance if you are unable to determine the problem.') . '</div>',
+      '#markup' => '<div class="messages error">' . t('This analysis failed. Please view the error logs for more details.') . '</div>',
     ];
   }
 
@@ -1177,7 +1177,6 @@ function tripal_galaxy_workflow_report(int $sid) {
               '#type' => 'item',
               '#title' => t('View report'),
               '#markup' => l($history_content['name'], $proxy_url, ['attributes' => ['target' => '_blank']]),
-              '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
             ];
           }
           // If this is not an HTML file then provide link to view the file
@@ -1208,7 +1207,6 @@ function tripal_galaxy_workflow_report(int $sid) {
                 '#type' => 'item',
                 '#title' => t('View File'),
                 '#markup' => l($history_content['name'], $proxy_url, ['attributes' => ['target' => '_blank']] ),
-                '#description' => '<i>' . t('Note: It may take a few moments for the results page to load.') . '</i>',
               ];
             }
 
