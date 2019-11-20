@@ -53,6 +53,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // Iterate through each step of the workflow.
   $tool_list = [];
   $steps = $workflow['steps'];
+  //dpm($steps);
 
   foreach ($steps as $step_index => $step) {
     if (isset($step['annotation'])) {
@@ -204,6 +205,7 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           drupal_set_message('Error building tool: ' . $tool_id . '. Galaxy Server response: ' . $error['message'], 'error');
           return FALSE;
         }
+        //dpm($tool);
 
         $tool_list[] = '<b>' . $tool['name'] . ' (version ' . $tool['version'] . ')</b>: ' . $tool['description'];
         // We want to change the name of the fieldset to have the name of
@@ -733,12 +735,12 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step, $
 
     case 'integer':
       $webform_type = 'number';
-      $webform_value = (int) $webform_value;
+      $webform_value = $webform_value;
       break;
 
     case 'float':
       $webform_type = 'number';
-      $webform_value = (float) $webform_value;
+      $webform_value = $webform_value;
       break;
 
     case 'boolean':
@@ -1293,9 +1295,12 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
         $file = $inputs[$data->form_key];
         foreach ($history_contents as $hcontent) {
           if ($hcontent['name'] == $file['name']) {
-            $value = $hcontent['id'];
+            $value = [
+              'id' => $hcontent['dataset_id'],
+              'src' => 'hda',
+            ];
             $input_datasets[$step_index] = [
-              'id' => $value,
+              'id' => $hcontent['dataset_id'],
               'src' => 'hda',
             ];
           }
@@ -1306,7 +1311,7 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
           $dataset = $inputs[$data->form_key];
           $value = $dataset['id'];
           $input_datasets[$step_index] = [
-            'id' => $value,
+            'id' => $dataset['id'],
             'src' => 'hdca',
           ];
         }
@@ -1315,7 +1320,7 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
             $dataset = $inputs[$data->form_key];
             $value = $dataset['id'];
             $input_datasets[$step_index] = [
-              'id' => $value,
+              'id' => $dataset['id'],
               'src' => 'hdca',
             ];
           }
@@ -1335,17 +1340,8 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
       $parameters[$step_index] = [];
     }
     $current_values = $parameters[$step_index];
-
     _tripal_galaxy_invoke_webform_build_values($current_values, $input_name, $value);
     $parameters[$step_index] = $current_values;
-  }
-
-  if (key($parameters[0]) == 'vcf_input') {
-    $parameters[0]['Data File'] = $parameters[0]['vcf_input'];
-    $parameters[1]['vcf_input'] = $parameters[0]['vcf_input'];
-    // unset($parameters[0]['vcf_input']);
-    // $parameters[0]['vcf_input'] = $parameters[0]['Data File'];
-    // unset($parameters[0]['vcf_input']);.
   }
 
   // Call the Tripal Galaxy API function to invoke this workflow.

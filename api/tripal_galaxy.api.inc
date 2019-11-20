@@ -951,8 +951,12 @@ function tripal_galaxy_invoke_workflow(GalaxyInstance $galaxy, $submission, arra
     drupal_set_message($error_msg, 'error');
     db_update('tripal_galaxy_workflow_submission')->fields([
       'status' => 'Error',
-      'errors' => $error_msg,
-    ])
+      'errors' => serialize([
+        'history' => $history,
+        'history_contents' => '',
+        'history_info' => '',
+        'error' => $error_msg])
+      ])
       ->condition('sid', $sid)
       ->execute();
     tripal_galaxy_send_submission_failed_mail($sid);
@@ -967,7 +971,7 @@ function tripal_galaxy_invoke_workflow(GalaxyInstance $galaxy, $submission, arra
         'history' => $history,
         'history_contents' => '',
         'history_info' => '',
-        ]),
+        'error' => '']),
       ])
       ->condition('sid', $sid)
       ->execute();
@@ -1495,54 +1499,3 @@ function tripal_galaxy_download_file(stdClass $submission, array $dataset, int $
   return $file;
 }
 
-/**
- * Adds a URL to the proxy array.
- *
- * This function can be used to create a URL for downloading of a dataset from
- * a remote Galaxy server.
- *
- * @param stdClass $submission
- *   A submission object as obtained by the tripal_galaxy_get_submission()
- *   function.
- * @param array $dataset
- *   An array describing the dataset as returned by the
- *   tripal_galaxy_get_dataset() or tripal_galaxy_get_datasets() functions.
- * @param int $uid
- *   The user that is allowed to view this link.
- * @param string $action
- *   The action to perform when the link is clicked. Can be 'viewer',
- *   'viewer-full', or 'download'. The action 'viewer' will create a link for
- *   results to be shown inside of a page on the Drupal site. The action
- *   'viewer-full' will create a link for results to be shown stand-alone. The
- *   action 'download' will create a link that will start a download of the
- *   file.
- *
- * @throws Exception
- *
- * @return
- *   A URL that can be used, when clicked by the end-user, to either view or
- *   download the dataset.
- *
- * @ingroup tripal_galaxy_api
- */
-function tripal_galaxy_get_proxy_url(stdClass $submission, array $dataset, int $uid, string $action) {
-
-  if (!in_array($action, ['viewer', 'viewer-full', 'download'])) {
-    throw new Exception('Please indicate the action as: "viewer" or "download".');
-  }
-
-  $galaxy_id = $submission->workflow->galaxy_id;
-  $galaxy = tripal_galaxy_get_connection($galaxy_id);
-
-  if (!array_key_exists('tripal_galaxy_proxy_urls', $_SESSION)) {
-    $_SESSION['tripal_galaxy_proxy_urls'] = [];
-  };
-  $id = uniqid('TGPX', TRUE);
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['dataset'] = $dataset;
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['sid'] = $submission->sid;
-  $_SESSION['tripal_galaxy_proxy_urls'][$id]['uid'] = $uid;
-
-  // Create the link.
-  $url = 'galaxy/' . $action . '/' . $id;
-  return $url;
-}
