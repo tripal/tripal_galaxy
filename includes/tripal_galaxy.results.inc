@@ -15,21 +15,12 @@ function tripal_galaxy_workflow_report(int $sid) {
     return FALSE;
   }
 
-  // Create a galaxy logo clickable image.
-  $galaxy_logo = l('<img src="' . url(drupal_get_path('module', 'tripal_galaxy') . '/theme/images/PoweredByGalaxy120.png') . '" border="0"></img>', "https://galaxyproject.org/", [
-      'html' => TRUE,
-      'attributes' => [
-          'target' => '_blank',
-      ],
-  ]);
-
   // Get the submission details.
   $submission = tripal_galaxy_get_submission($sid);
   if (!$submission) {
     return FALSE;
   }
 
-  $title = $submission->workflow_name;
 
   // If this a webform submission make sure the user has access to the
   // node that this workflow belongs to.
@@ -56,6 +47,7 @@ function tripal_galaxy_workflow_report(int $sid) {
   $galaxy_instance = tripal_galaxy_get_connection($submission->galaxy_id);
   $history_name = tripal_galaxy_get_history_name($submission);
   $error = [];
+  $content = [];
   $history = tripal_galaxy_get_history($galaxy_instance, $history_name);
 
   if ($history['deleted'] === TRUE) {
@@ -80,6 +72,171 @@ function tripal_galaxy_workflow_report(int $sid) {
   $files_query->condition('fu.module', 'tripal_galaxy');
   $files_query->condition('fu.type', 'submission');
   $input_files = $files_query->execute()->fetchCol();
+
+
+  // Add a warning message at the top if there are errors.
+  if ($submission->status == 'Error') {
+    $content['status_message'] = [
+      '#type' => 'markup',
+      '#markup' => '<div class="messages error">' . t('This analysis failed. Check for errors in the subission details or in the error section if result files are present.') . '</div>',
+    ];
+  }
+
+  // Print the analysis name.
+  $content['analysis_name'] = [
+    '#type' => 'item',
+    '#title' => 'Analysis Name',
+    '#markup' => $title,
+  ];
+
+  // Add in a feildset for the submission details.
+  $content['submission_details'] = tripal_galaxy_workflow_report_build_submission($submission, $galaxy);
+
+
+  // Add a section now for errors, but it will only get shown if there
+  // are errors.
+  $content['errors'] = [
+    '#type' => 'fieldset',
+    '#title' => t('Errors'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => [
+      'class' => [
+        'collapsible',
+        'collapsed',
+      ],
+    ],
+    '#attached' => [
+      'js' => [
+        'misc/collapse.js',
+        'misc/form.js',
+      ],
+    ],
+  ];
+
+
+  // Get details about the galaxy server and the connection to Galaxy.
+  $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
+
+  // This is just a placeholder for the results text. It will get fully
+  // set below.
+  $content['results'] = [
+      '#type' => 'item',
+  ];
+
+  $errors = [];
+  $has_any_results = FALSE;
+  if (is_array($submission->errors)) {
+
+    // If the workflow status is 'Completed' then there will be a history and
+    // history contents. We'll get those out and remove them so we
+    // can more easily iterate through the steps.
+    if (array_key_exists('history_contents', $submission->errors)) {
+      $history_contents = $submission->errors['history_contents'];
+    }
+    if (array_key_exists('history_info', $submission->errors)) {
+      $history_info = $submission->errors['history_info'];
+    }
+
+    if (isset($history_contents) and is_array($history_contents) and
+        isset($history_info) and is_array($history_info)) {
+
+      $has_any_results = TRUE;
+      foreach ($history_contents as $index => $history_content) {
+
+        // Skip history content items that should be hidden.
+        if ($history_content['visible'] != TRUE) {
+          continue;
+        }
+
+        // Don't show input files.
+        if (in_array($history_content['name'], $input_files)) {
+          continue;
+        }
+
+        $content_id = 'history_content_' . $history_content['id'] . '_' . $index;
+
+        // Handle Dataset Collections.
+        if ($history_content['history_content_type']  == 'dataset_collection') {
+          $content[$content_id] = tripal_galaxy_workflow_report_build_result_dataset_collection(
+              $history_content, $submission, $node, $galaxy);
+        }
+        // Handle Datasets.
+        else {
+          // If there are any errors on any file creation, then we'll add
+          // the error message to our file_errors list.
+          if ($history_content['state'] == 'error') {
+            $errors[] = [
+              [
+                'data' => $history_content['name'],
+                'header' => TRUE,
+              ],
+              '<pre>' . $history_content['creating_job']['stderr'] . '</pre>'
+            ];
+            continue;
+          }
+          $content[$content_id] = tripal_galaxy_workflow_report_build_result_dataset($history_content,
+              $submission, $node, $galaxy);
+        }
+      }
+    }
+  }
+
+  if (count($errors) > 0) {
+    $content['errors']['table'] = [
+      '#type' => 'markup',
+      '#markup' => theme_table([
+        'header' => [],
+        'rows' => $errors,
+        'attributes' => [
+          'class' => 'tripal-galaxy-error-table'
+        ],
+        'sticky' => FALSE,
+        'caption' => '',
+        'colgroups' => [],
+        'empty' => '',
+      ]),
+    ];
+  }
+  else {
+    unset($content['errors']);
+  }
+
+  if ($has_any_results) {
+    $content['results'] = [
+        '#type' => 'item',
+        '#title' => t('Result Files'),
+        '#markup' => t('The result files are listed below. Click the filename to view or download results. Expand the field for the result below to
+        view the status, peek or download result files.'),
+    ];
+  }
+  else {
+    $content['results'] = [
+        '#type' => 'item',
+        '#title' => t('Results'),
+        '#markup' => t('Currently, no results exist for this job. The current state of the job is:  %state.', [
+            '%state' => $submission->status,
+        ]),
+    ];
+  }
+
+  return $content;
+}
+
+/**
+ * Builds the submission fieldset for the report page.
+ */
+function tripal_galaxy_workflow_report_build_submission($submission, $galaxy) {
+
+  // Create a galaxy logo clickable image.
+  $galaxy_logo = l('<img src="' . url(drupal_get_path('module', 'tripal_galaxy') . '/theme/images/PoweredByGalaxy120.png') . '" border="0"></img>', "https://galaxyproject.org/", [
+    'html' => TRUE,
+    'attributes' => [
+      'target' => '_blank',
+    ],
+  ]);
+
+  $title = $submission->workflow_name;
 
   $headers = [];
   $submission_details = [];
@@ -168,39 +325,26 @@ function tripal_galaxy_workflow_report(int $sid) {
       $galaxy->servername . '<br>' . $galaxy_logo,
   ];
 
-  if ($submission->status == 'Error') {
-    $content['status_message'] = [
-      '#type' => 'markup',
-      '#markup' => '<div class="messages error">' . t('This analysis failed. Check for errors in the subission details or in the error section if result files are present.') . '</div>',
-    ];
-  }
-
-  $content['analysis_name'] = [
-    '#type' => 'item',
-    '#title' => 'Analysis Name',
-    '#markup' => $title,
+  $submission_section = [
+      '#type' => 'fieldset',
+      '#title' => t('Submission Details'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#attributes' => [
+        'class' => [
+          'collapsible',
+          'collapsed',
+        ],
+      ],
+      '#attached' => [
+        'js' => [
+          'misc/collapse.js',
+          'misc/form.js',
+        ],
+      ],
   ];
 
-  $content['submission_details'] = [
-    '#type' => 'fieldset',
-    '#title' => t('Submission Details'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#attributes' => [
-      'class' => [
-        'collapsible',
-        'collapsed',
-      ],
-    ],
-    '#attached' => [
-      'js' => [
-        'misc/collapse.js',
-        'misc/form.js',
-      ],
-    ],
-  ];
-
-  $content['submission_details']['table'] = [
+  $submission_section['table'] = [
     '#type' => 'markup',
     '#markup' => theme_table([
       'header' => $headers,
@@ -215,17 +359,46 @@ function tripal_galaxy_workflow_report(int $sid) {
     ]),
   ];
 
-
-  $content['errors'] = [
+  return $submission_section;
+}
+/**
+ * Creates a result elemnt for a single file.
+ */
+function tripal_galaxy_workflow_report_build_result_dataset_collection($history_content, $submission, $node, $galaxy) {
+  $step_content = [
     '#type' => 'fieldset',
-    '#title' => t('Errors'),
-    '#collapsible' => TRUE,
+    '#title' => $history_content['name'] . ' (data collection)',
     '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
     '#attributes' => [
-      'class' => [
-        'collapsible',
-        'collapsed',
+      'class' => ['collapsible', 'collapsed'],
+    ],
+    '#attached' => [
+      'js' => [
+          'misc/collapse.js',
+          'misc/form.js',
       ],
+    ],
+  ];
+
+  foreach ($history_content['elements'] as $element) {
+    $step_content[$element['element_identifier']] = tripal_galaxy_workflow_report_build_result_dataset(
+        $element['contents'], $submission, $node, $galaxy);
+  }
+  return $step_content;
+}
+/**
+ * Creates a result elemnt for a single file.
+ */
+function tripal_galaxy_workflow_report_build_result_dataset($history_content, $submission, $node, $galaxy) {
+
+  $step_content = [
+    '#type' => 'fieldset',
+    '#title' => $history_content['name'],
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+    '#attributes' => [
+      'class' => ['collapsible', 'collapsed'],
     ],
     '#attached' => [
       'js' => [
@@ -235,188 +408,66 @@ function tripal_galaxy_workflow_report(int $sid) {
     ],
   ];
 
+  // If this is a file add viewing and download links
+  if ($history_content['type'] == 'file') {
+//     if (!isset($history_content['content_link'])) {
+//       continue;
+//     }
 
-  // Get details about the galaxy server and the connection to Galaxy.
-  $galaxy_server = tripal_galaxy_get_galaxy($submission->galaxy_id);
-  $galaxy = tripal_galaxy_get_connection($submission->galaxy_id);
-
-  // This is just a placeholder for the results text. It will get fully
-  // set below.
-  $content['results'] = [
-      '#type' => 'item',
-  ];
-
-  $errors = [];
-  $has_any_results = FALSE;
-  if (is_array($submission->errors)) {
-
-    // If the workflow status is 'Completed' then there will be a history and
-    // history contents. We'll get those out and remove them so we
-    // can more easily iterate through the steps.
-    if (array_key_exists('history_contents', $submission->errors)) {
-      $history_contents = $submission->errors['history_contents'];
+    // If this is an HTML file then add a view link.
+    if ($history_content['extension'] == 'html') {
+      $dataset_id = $history_content['id'];
+      $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
+      $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'download');
+      $step_content['html_view'] = [
+        '#type' => 'item',
+        '#title' => t('Download web page report'),
+        '#markup' => l($history_content['name'], $proxy_url, ['attributes' => ['target' => '_blank']]),
+      ];
     }
-    if (array_key_exists('history_info', $submission->errors)) {
-      $history_info = $submission->errors['history_info'];
-    }
+    // If this is not an HTML file then provide link to view the file
+    // unless it exceeds 1MB.  If Galaxy provides a peek then show that.
+    else {
+      $link = $history_content['content_link'];
+      $dataset_id = $history_content['id'];
+      $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
+      $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'download');
+      $file_size = tripal_format_bytes($history_content['file_size']);
+      $step_content['download_link'] = [
+        '#type' => 'item',
+        '#title' => t('Download File'),
+        '#markup' => l($history_content['name'], $proxy_url) . ' (' . $file_size . ')',
+      ];
 
-    if (isset($history_contents) and is_array($history_contents) and
-        isset($history_info) and is_array($history_info)) {
-      foreach ($history_contents as $index => $history_content) {
+      /*             // Any files that are smaller than 1MB can be shown in a browser.
+       if ($history_content['file_size'] < pow(10, 6)) {
+       // SPF: originally this was $history_content['dataset_id'] but for
+       // some reason that value seems off for v17.09 as it does not
+       // point to the correct dataset. Rather the 'id' does.  However,
+       // in v18.01 it seems fixed and both 'id' and 'dataset_id' are the
+       // same.
+       $dataset_id = $history_content['id'];
+       $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
+       $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'viewer-full');
+       $step_content['html_view'] = [
+       '#type' => 'item',
+       '#title' => t('View File'),
+       '#markup' => l($history_content['name'], $proxy_url, ['attributes' => ['target' => '_blank']] ),
+       ];
+       } */
 
-        // Skip history items that does not have 'ok' or 'error' state.
-        if (!in_array($history_content['id'], array_merge($history_info['state_ids']['ok'], $history_info['state_ids']['error']))) {
-          continue;
-        }
-
-        // If there are any errors on any file creation, then we'll add
-        // the error message to tour file_errors list.
-        if ($history_content['state'] == 'error') {
-          $errors[] = [
-            [
-              'data' => $history_content['name'],
-              'header' => TRUE,
-            ],
-            '<pre>' . $history_content['creating_job']['stderr'] . '</pre>'
-          ];
-          continue;
-        }
-
-        // Skip history content items that should be hidden.
-        if ($history_content['visible'] != TRUE) {
-          continue;
-        }
-
-        // Don't show input files.
-        if (in_array($history_content['name'], $input_files)) {
-          continue;
-        }
-
-        $has_any_results = TRUE;
-
-        $step_content = [];
-        $step_content['history_content_' . $history_content['id'] . '_' . $index] = [
-          '#type' => 'fieldset',
-          '#title' => $history_content['name'],
-          '#collapsed' => TRUE,
-          '#collapsible' => TRUE,
-          '#attributes' => [
-            'class' => ['collapsible', 'collapsed'],
-          ],
-          '#attached' => [
-            'js' => [
-              'misc/collapse.js',
-              'misc/form.js',
-            ],
-          ],
+      // Provide a peek if one is provided.
+      if ($history_content['peek'] != NULL) {
+        $step_content['peek'] = [
+          '#type' => 'item',
+          '#title' => 'Peek',
+          '#description' => 'A short view of the first few lines of the output file.',
+          '#markup' => '<div class="tripal-galaxy-file-peek">' . $history_content['peek'] . '</div>',
         ];
-
-        // If this is a file add viewing and download links
-        if ($history_content['type'] == 'file') {
-          if (!isset($history_content['content_link'])) {
-            break;
-          }
-
-          // If this is an HTML file then add a view link.
-          if ($history_content['extension'] == 'html') {
-            $dataset_id = $history_content['id'];
-            $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
-            $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'download');
-            $step_content['history_content_' . $history_content['id'] . '_' . $index]['html_view'] = [
-                '#type' => 'item',
-                '#title' => t('Download web page report'),
-                '#markup' => l($history_content['name'], $proxy_url, ['attributes' => ['target' => '_blank']]),
-            ];
-          }
-          // If this is not an HTML file then provide link to view the file
-          // unless it exceeds 1MB.  If Galaxy provides a peek then show that.
-          else {
-            $link = $history_content['content_link'];
-            $dataset_id = $history_content['id'];
-            $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
-            $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'download');
-            $file_size = tripal_format_bytes($history_content['file_size']);
-            $step_content['history_content_' . $history_content['id'] . '_' . $index]['download_link'] = [
-                '#type' => 'item',
-                '#title' => t('Download File'),
-                '#markup' => l($history_content['name'], $proxy_url) . ' (' . $file_size . ')',
-            ];
-
-            // Any files that are smaller than 1MB can be shown in a browser.
-            if ($history_content['file_size'] < pow(10, 6)) {
-              // SPF: originally this was $history_content['dataset_id'] but for
-              // some reason that value seems off for v17.09 as it does not
-              // point to the correct dataset. Rather the 'id' does.  However,
-              // in v18.01 it seems fixed and both 'id' and 'dataset_id' are the
-              // same.
-              $dataset_id = $history_content['id'];
-              $dataset = tripal_galaxy_get_dataset($submission, $dataset_id);
-              $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $node->uid, 'viewer-full');
-              $step_content['history_content_' . $history_content['id'] . '_' . $index]['html_view'] = [
-                  '#type' => 'item',
-                  '#title' => t('View File'),
-                  '#markup' => l($history_content['name'], $proxy_url, ['attributes' => ['target' => '_blank']] ),
-              ];
-            }
-
-            // Provide a peek if one is provided.
-            if ($history_content['peek'] != NULL) {
-              $step_content['history_content_' . $history_content['id'] . '_' . $index]['peek'] = [
-                  '#type' => 'item',
-                  '#title' => 'Peek',
-                  '#description' => 'A short view of the first few lines of the output file.',
-                  '#markup' => '<div class="tripal-galaxy-file-peek">' . $history_content['peek'] . '</div>',
-              ];
-            }
-          }
-        } // End switch ($history_content['extension']) { ...
-        // end foreach ($history_contents as $index => $history_content) { ...
-        $content['history_content_' . $history_content['id'] . '_' . $index] = $step_content['history_content_' . $history_content['id'] . '_' . $index];
       }
     }
   }
-
-  if (count($errors) > 0) {
-    $content['errors']['table'] = [
-        '#type' => 'markup',
-        '#markup' => theme_table([
-            'header' => $headers,
-            'rows' => $errors,
-            'attributes' => [
-                'class' => 'tripal-galaxy-error-table'
-            ],
-            'sticky' => FALSE,
-            'caption' => '',
-            'colgroups' => [],
-            'empty' => '',
-        ]),
-    ];
-  }
-  else {
-    unset($content['errors']);
-  }
-
-  if ($has_any_results) {
-    $content['results'] = [
-        '#type' => 'item',
-        '#title' => t('Result Files'),
-        '#markup' => t('The result files are listed below. Click the filename to view or download results. Expand the field for the result below to
-        view the status, peek or download result files.'),
-    ];
-  }
-  else {
-    $content['results'] = [
-        '#type' => 'item',
-        '#title' => t('Results'),
-        '#markup' => t('Currently, no results exist for this job. The current state of the job is:  %state.', [
-            '%state' => $submission->status,
-        ]),
-    ];
-  }
-
-
-
-  return $content;
+  return $step_content;
 }
 
 

@@ -1,13 +1,7 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
 <doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.8.13">
-  <compound refid="d5/db7/namespacePharIo_1_1Version_1_1OrVersionConstraintGroup" kind="namespace"><name>PharIo::Version::OrVersionConstraintGroup</name>
-  </compound>
-  <compound refid="d0/d81/namespacephpDocumentor_1_1Reflection_1_1Types_1_1This" kind="namespace"><name>phpDocumentor::Reflection::Types::This</name>
-  </compound>
-  <compound refid="d5/dbb/namespaceTheSeer_1_1Tokenizer_1_1Token" kind="namespace"><name>TheSeer::Tokenizer::Token</name>
-  </compound>
   <compound refid="df/d55/tripal__galaxy_8api_8inc" kind="file"><name>tripal_galaxy.api.inc</name>
-    <member refid="de/db0/group__tripal__galaxy__api_1gaee35f9000f503ad715947aa4af7d465e" kind="function"><name>_tripal_galaxy_get_workflow_defaults</name></member>
+    <member refid="df/d55/tripal__galaxy_8api_8inc_1aee35f9000f503ad715947aa4af7d465e" kind="function"><name>_tripal_galaxy_get_workflow_defaults</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" kind="function"><name>tripal_galaxy_add_galaxy</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gac0e018b1fb585a9d09bbcc0844be3495" kind="function"><name>tripal_galaxy_add_workflow</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaa666f881b052ec82ed674da24eb100c2" kind="function"><name>tripal_galaxy_check_submission_status</name></member>
@@ -24,9 +18,9 @@
     <member refid="de/db0/group__tripal__galaxy__api_1ga9ab413a396a4a875c1126ccde8ade9f3" kind="function"><name>tripal_galaxy_get_galaxy</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab81573a1e45464b19d9a2c32520bbf87" kind="function"><name>tripal_galaxy_get_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" kind="function"><name>tripal_galaxy_get_history_name</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga69ca83b6e177ea45df60f24c407e2c0a" kind="function"><name>tripal_galaxy_get_proxy_url</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaf8ee6e07586607a7a28bae4bc6d4f315" kind="function"><name>tripal_galaxy_get_submission</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga07df12107893bc6516804cc4e17ffefd" kind="function"><name>tripal_galaxy_get_workflow_defaults</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1ga86766383eb0518eeae28277a255d0677" kind="function"><name>tripal_galaxy_get_user_submissions</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1gabf03119507bfb737fd7b2af04501a18f" kind="function"><name>tripal_galaxy_get_workflow_defaults</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga8abde38e7305740399ad8559def04c62" kind="function"><name>tripal_galaxy_get_workflows</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga402915ec024f4de2df5d437c901e69da" kind="function"><name>tripal_galaxy_init_submission</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gad26f04e74dc76a75413530315ff8ffb2" kind="function"><name>tripal_galaxy_invoke_workflow</name></member>
@@ -35,7 +29,6 @@
     <member refid="de/db0/group__tripal__galaxy__api_1gafd57170f587e9a82dd233b0723d34b12" kind="function"><name>tripal_galaxy_upload_file</name></member>
   </compound>
   <compound refid="de/db0/group__tripal__galaxy__api" kind="group"><name>tripal_galaxy_api</name>
-    <member refid="de/db0/group__tripal__galaxy__api_1gaee35f9000f503ad715947aa4af7d465e" kind="function"><name>_tripal_galaxy_get_workflow_defaults</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" kind="function"><name>tripal_galaxy_add_galaxy</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gac0e018b1fb585a9d09bbcc0844be3495" kind="function"><name>tripal_galaxy_add_workflow</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaa666f881b052ec82ed674da24eb100c2" kind="function"><name>tripal_galaxy_check_submission_status</name></member>
@@ -52,15 +45,15 @@
     <member refid="de/db0/group__tripal__galaxy__api_1ga9ab413a396a4a875c1126ccde8ade9f3" kind="function"><name>tripal_galaxy_get_galaxy</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gab81573a1e45464b19d9a2c32520bbf87" kind="function"><name>tripal_galaxy_get_history</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" kind="function"><name>tripal_galaxy_get_history_name</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga69ca83b6e177ea45df60f24c407e2c0a" kind="function"><name>tripal_galaxy_get_proxy_url</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gaf8ee6e07586607a7a28bae4bc6d4f315" kind="function"><name>tripal_galaxy_get_submission</name></member>
-    <member refid="de/db0/group__tripal__galaxy__api_1ga07df12107893bc6516804cc4e17ffefd" kind="function"><name>tripal_galaxy_get_workflow_defaults</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1ga86766383eb0518eeae28277a255d0677" kind="function"><name>tripal_galaxy_get_user_submissions</name></member>
+    <member refid="de/db0/group__tripal__galaxy__api_1gabf03119507bfb737fd7b2af04501a18f" kind="function"><name>tripal_galaxy_get_workflow_defaults</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga8abde38e7305740399ad8559def04c62" kind="function"><name>tripal_galaxy_get_workflows</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga402915ec024f4de2df5d437c901e69da" kind="function"><name>tripal_galaxy_init_submission</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gad26f04e74dc76a75413530315ff8ffb2" kind="function"><name>tripal_galaxy_invoke_workflow</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1ga59906aa5301eccfee60f1ac153f02f92" kind="function"><name>tripal_galaxy_test_connection</name></member>
     <member refid="de/db0/group__tripal__galaxy__api_1gafd57170f587e9a82dd233b0723d34b12" kind="function"><name>tripal_galaxy_upload_file</name></member>
   </compound>
-  <compound refid="dir_0188a3e6da905bc60aceb35bf790b8c9" kind="dir"><name>/local/home/ficklin/Projects/tripal_galaxy/api</name>
+  <compound refid="dir_0188a3e6da905bc60aceb35bf790b8c9" kind="dir"><name>/local/Projects/tripal_galaxy/api</name>
   </compound>
 </doxygenindex>

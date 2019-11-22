@@ -601,32 +601,59 @@ function tripal_galaxy_check_submission_status(int $sid = NULL, bool $force = FA
 
           // Get more details about each history content item.
           foreach ($history_contents as $index => $history_content) {
-            $history_contents[$index] = $ghistory_contents->show([
-              'id' => $history_content['id'],
-              'history_id' => $history['id'],
-            ]);
-            switch ($history_content['type']) {
-              case 'file':
-                $params = [];
-                $params['history_id'] = $history['id'];
-                $params['url_only'] = TRUE;
-                $params['history_content_id'] = $history_content['id'];
-                $link = $ghistory_contents->download_history_content($params);
-                $history_contents[$index]['content_link'] = $link;
-                break;
+            // For datasets collections handle things differently.
+            if ($history_content['type'] == 'collection') {
+              $history_contents[$index] = $ghistory_contents->show([
+                'id' => 'dataset_collections/' . $history_content['id'],
+                'history_id' => $history['id'],
+              ]);
+              // Get history details for each element in the data collection.
+              foreach ($history_contents[$index]['elements'] as $eindex => $element) {
+                 $object_contents = $ghistory_contents->show([
+                  'id' =>  $element['object']['id'],
+                  'history_id' => $element['object']['history_id'],
+                ]);
+                if ($object_contents['type'] == 'file') {
+                  $params = [];
+                  $params['history_id'] = $object_contents['history_id'];
+                  $params['url_only'] = TRUE;
+                  $params['history_content_id'] = $object_contents['id'];
+                  $link = $ghistory_contents->download_history_content($params);
+                  $object_contents['content_link'] = $link;
+                }
+                $history_contents[$index]['elements'][$eindex]['contents'] = $object_contents;
+              }
+            }
+            // For datasets get the job information.
+            else {
+              $history_contents[$index] = $ghistory_contents->show([
+                'id' => $history_content['id'],
+                'history_id' => $history['id'],
+              ]);
 
-              default:
-                break;
+              switch ($history_content['type']) {
+                case 'file':
+                  $params = [];
+                  $params['history_id'] = $history['id'];
+                  $params['url_only'] = TRUE;
+                  $params['history_content_id'] = $history_content['id'];
+                  $link = $ghistory_contents->download_history_content($params);
+                  $history_contents[$index]['content_link'] = $link;
+                  break;
+
+                default:
+                  break;
+              }
+              $job_id = $history_contents[$index]['creating_job'];
+              $gJobs = new GalaxyJobs($galaxy);
+              $job = $gJobs->show(['job_id' => $job_id, 'full' => 'TRUE']);
+              if (!$job) {
+                $error = $galaxy->getError();
+                drupal_set_message('Could not retreive details about the submitting job. ' . $error['message'], 'error');
+                return FALSE;
+              }
+              $history_contents[$index]['creating_job'] = $job;
             }
-            $job_id = $history_contents[$index]['creating_job'];
-            $gJobs = new GalaxyJobs($galaxy);
-            $job = $gJobs->show(['job_id' => $job_id, 'full' => 'TRUE']);
-            if (!$job) {
-              $error = $galaxy->getError();
-              drupal_set_message('Could not retreive details about the submitting job. ' . $error['message'], 'error');
-              return FALSE;
-            }
-            $history_contents[$index]['creating_job'] = $job;
           }
 
           // Save all this history information so we can cahce it.

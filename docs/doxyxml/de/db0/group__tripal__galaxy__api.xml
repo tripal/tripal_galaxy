@@ -4,68 +4,6 @@
     <compoundname>tripal_galaxy_api</compoundname>
     <title>Tripal Galaxy API @{ Provides an application</title>
       <sectiondef kind="func">
-      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaee35f9000f503ad715947aa4af7d465e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type></type>
-        <definition>_tripal_galaxy_get_workflow_defaults</definition>
-        <argsstring>(array $tool_inputs, array &amp;$parameters, array $step_inputs, string $step_input_key)</argsstring>
-        <name>_tripal_galaxy_get_workflow_defaults</name>
-        <param>
-          <type>array</type>
-          <declname>$tool_inputs</declname>
-        </param>
-        <param>
-          <type>array &amp;</type>
-          <declname>$parameters</declname>
-        </param>
-        <param>
-          <type>array</type>
-          <declname>$step_inputs</declname>
-        </param>
-        <param>
-          <type>string</type>
-          <declname>$step_input_key</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-<para>A recursive helper function for tripal_galaxy_get_workflow_defaults.</para><para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametertype>array</parametertype>
-<parametername>$tool_inputs</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>The &apos;tool_inputs&apos; array for the step, or the sub elements on a recursive call. </para></parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametertype>array</parametertype>
-<parametername>$parameters</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>A pass-by-reference of the $parameters array. </para></parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametertype>array</parametertype>
-<parametername>$step_inputs</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>The &apos;input_steps&apos; array for the step. This is always passed as is at every recursion level. </para></parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametertype>string</parametertype>
-<parametername>$step_input_key</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>The key used to lookup up if an element has a key in the $step_inputs. For nested keys they are concatenated. with a &apos;|&apos; separating each level. </para></parameterdescription>
-</parameteritem>
-</parameterlist>
-</para>        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="735" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="735" bodyend="770"/>
-      </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab8c1fff132bd8085a3402283208ee422" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
         <definition>tripal_galaxy_add_galaxy</definition>
@@ -91,7 +29,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="427" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="427" bodyend="463"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="426" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="426" bodyend="462"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gac0e018b1fb585a9d09bbcc0844be3495" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -143,7 +81,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="127" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="127" bodyend="212"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="123" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="123" bodyend="208"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaa666f881b052ec82ed674da24eb100c2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -184,7 +122,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="518" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="518" bodyend="652"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="515" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="515" bodyend="693"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaf580037935dcd174927d3b0404d452d8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -223,7 +161,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1003" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1003" bodyend="1026"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1105" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1105" bodyend="1128"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab66a0326d58e3729e95cc28b1e69fa73" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -236,7 +174,7 @@
 <para>Deletes expired histories.</para><para>Walks through the tripal_galaxy_workflow_submission table and deletes any workflows older in days than specified in the tripal_galaxy_history_days_limit system variable.</para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1125" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1125" bodyend="1164"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1227" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1227" bodyend="1266"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga0c1d8391681ee16b93797089d9bad767" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -275,7 +213,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1181" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1181" bodyend="1206"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1283" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1283" bodyend="1308"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaa0e6b46831bf8ec128042d5a585c59e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -334,7 +272,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1341" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1341" bodyend="1398"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1443" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1443" bodyend="1500"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab25d14cbae238d1d2375db470d39fe42" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -348,7 +286,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="473" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="473" bodyend="500"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="472" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="472" bodyend="497"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga7ecc0a27c271f35edb4aa49d799eb9c9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -375,7 +313,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="31" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="31" bodyend="52"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="27" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="27" bodyend="48"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga6c6d71ff64c3101778972cfc949221e7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -420,7 +358,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1297" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1297" bodyend="1315"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1399" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1399" bodyend="1417"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab4fa1a6f26abeddb5ac8ce2b0be47606" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -455,7 +393,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1229" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1229" bodyend="1274"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1331" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1331" bodyend="1376"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga8c44bcb1d8e06449fe1be78ef21f622b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -469,7 +407,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1101" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1101" bodyend="1114"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1203" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1203" bodyend="1216"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaff8c487209d466050e3dd2fc7c8374f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -483,7 +421,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="366" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="366" bodyend="374"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="365" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="365" bodyend="373"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga9ab413a396a4a875c1126ccde8ade9f3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -510,7 +448,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="392" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="392" bodyend="405"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="391" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="391" bodyend="404"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gab81573a1e45464b19d9a2c32520bbf87" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -549,7 +487,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="975" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="975" bodyend="990"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1077" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1077" bodyend="1092"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga789e6cf6dc77ff76856cbe3d8c2d8d93" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -575,78 +513,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="666" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="666" bodyend="668"/>
-      </memberdef>
-      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga69ca83b6e177ea45df60f24c407e2c0a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type></type>
-        <definition>tripal_galaxy_get_proxy_url</definition>
-        <argsstring>(stdClass $submission, array $dataset, int $uid, string $action)</argsstring>
-        <name>tripal_galaxy_get_proxy_url</name>
-        <param>
-          <type>stdClass</type>
-          <declname>$submission</declname>
-        </param>
-        <param>
-          <type>array</type>
-          <declname>$dataset</declname>
-        </param>
-        <param>
-          <type>int</type>
-          <declname>$uid</declname>
-        </param>
-        <param>
-          <type>string</type>
-          <declname>$action</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-<para>Adds a URL to the proxy array.</para><para>This function can be used to create a URL for downloading of a dataset from a remote Galaxy server.</para><para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametertype>stdClass</parametertype>
-<parametername>$submission</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>A submission object as obtained by the <ref refid="de/db0/group__tripal__galaxy__api_1gaf8ee6e07586607a7a28bae4bc6d4f315" kindref="member">tripal_galaxy_get_submission()</ref> function. </para></parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametertype>array</parametertype>
-<parametername>$dataset</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>An array describing the dataset as returned by the <ref refid="de/db0/group__tripal__galaxy__api_1ga6c6d71ff64c3101778972cfc949221e7" kindref="member">tripal_galaxy_get_dataset()</ref> or <ref refid="de/db0/group__tripal__galaxy__api_1gab4fa1a6f26abeddb5ac8ce2b0be47606" kindref="member">tripal_galaxy_get_datasets()</ref> functions. </para></parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametertype>int</parametertype>
-<parametername>$uid</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>The user that is allowed to view this link. </para></parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametertype>string</parametertype>
-<parametername>$action</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>The action to perform when the link is clicked. Can be &apos;viewer&apos;, &apos;viewer-full&apos;, or &apos;download&apos;. The action &apos;viewer&apos; will create a link for results to be shown inside of a page on the Drupal site. The action &apos;viewer-full&apos; will create a link for results to be shown stand-alone. The action &apos;download&apos; will create a link that will start a download of the file.</para></parameterdescription>
-</parameteritem>
-</parameterlist>
-<parameterlist kind="exception"><parameteritem>
-<parameternamelist>
-<parametername>Exception</parametername>
-</parameternamelist>
-<parameterdescription>
-<para></para></parameterdescription>
-</parameteritem>
-</parameterlist>
-<simplesect kind="return"><para>A URL that can be used, when clicked by the end-user, to either view or download the dataset. </para></simplesect>
-</para>        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1430" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1430" bodyend="1450"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="707" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="707" bodyend="726"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gaf8ee6e07586607a7a28bae4bc6d4f315" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -673,19 +540,46 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="329" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="329" bodyend="353"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="325" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="325" bodyend="352"/>
       </memberdef>
-      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga07df12107893bc6516804cc4e17ffefd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga86766383eb0518eeae28277a255d0677" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>tripal_galaxy_get_user_submissions</definition>
+        <argsstring>(int $userid)</argsstring>
+        <name>tripal_galaxy_get_user_submissions</name>
+        <param>
+          <type>int</type>
+          <declname>$userid</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Retrieve all submission IDs for a user.</para><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametertype>int</parametertype>
+<parametername>$userid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>User id number.</para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>array A list of submission ids. </para></simplesect>
+</para>        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="739" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="739" bodyend="748"/>
+      </memberdef>
+      <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gabf03119507bfb737fd7b2af04501a18f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
         <definition>tripal_galaxy_get_workflow_defaults</definition>
-        <argsstring>(GalaxyInstance $galaxy, int $workflow_id)</argsstring>
+        <argsstring>(GalaxyInstance $galaxy, string $workflow_id)</argsstring>
         <name>tripal_galaxy_get_workflow_defaults</name>
         <param>
           <type>GalaxyInstance</type>
           <declname>$galaxy</declname>
         </param>
         <param>
-          <type>int</type>
+          <type>string</type>
           <declname>$workflow_id</declname>
         </param>
         <briefdescription>
@@ -701,18 +595,18 @@
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametertype>int</parametertype>
+<parametertype>string</parametertype>
 <parametername>$workflow_id</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>The ID of the workflow to retrieve settings for. This is the Galaxy ID for the workflow.</para></parameterdescription>
+<para>The ID of the workflow to retrieve settings for. This is the Galaxy ID for the workflow not Tripal&apos;s internal workflow ID.</para></parameterdescription>
 </parameteritem>
 </parameterlist>
 <simplesect kind="return"><para>bool|array An array compatible with the $parameters argument for the tripal_galaxy_invoke_wokflow(). Values are populatd with appropriate defaults. Returns FALSE if the workflow settings could not be retrieved. </para></simplesect>
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="691" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="691" bodyend="715"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="771" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="771" bodyend="796"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga8abde38e7305740399ad8559def04c62" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -740,7 +634,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="237" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="237" bodyend="268"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="233" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="233" bodyend="264"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga402915ec024f4de2df5d437c901e69da" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -777,7 +671,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="286" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="286" bodyend="308"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="282" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="282" bodyend="304"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gad26f04e74dc76a75413530315ff8ffb2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -865,7 +759,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="829" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="829" bodyend="878"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="908" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="908" bodyend="980"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1ga59906aa5301eccfee60f1ac153f02f92" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -892,7 +786,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1046" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1046" bodyend="1087"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1148" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1148" bodyend="1189"/>
       </memberdef>
       <memberdef kind="function" id="de/db0/group__tripal__galaxy__api_1gafd57170f587e9a82dd233b0723d34b12" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -962,7 +856,7 @@
 </para>        </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="904" column="1" bodyfile="/local/home/ficklin/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="904" bodyend="955"/>
+        <location file="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" line="1006" column="1" bodyfile="/local/Projects/tripal_galaxy/api/tripal_galaxy.api.inc" bodystart="1006" bodyend="1057"/>
       </memberdef>
       </sectiondef>
     <briefdescription>

@@ -16,4 +16,4 @@ You can change the text of the subject line and the body of the email by alterin
 
 .. image:: workflow_settings.3.png
 
-For example, if you want to include the submission time of the workflow in the body of the email that gets sent when the workflow is invoked, you should add the token ``[submission_init]``.  When the email is sent this token will be replaced with the submission time.  Be sure to clicke the ``Submit`` button after making any changes.
+For example, if you want to include the submission time of the workflow in the body of the email that gets sent when the workflow is invoked, you should add the token ``[submission_init]``.  When the email is sent this token will be replaced with the submission time.  Be sure to click the ``Submit`` button after making any changes.
