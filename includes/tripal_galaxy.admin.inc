@@ -206,7 +206,7 @@ function tripal_galaxy_admin_confirm_remove_workflow_form($form, &$form_state, $
 function tripal_galaxy_admin_test_server(int $galaxy_id) {
   $status = tripal_galaxy_test_connection(array(
     'galaxy_id' => $galaxy_id,
-  ));
+  ), TRUE);
   if ($status === FALSE) {
     // Update status in the db.
     db_update('tripal_galaxy')->fields(array(

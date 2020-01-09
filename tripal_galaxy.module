@@ -930,7 +930,7 @@ function tripal_galaxy_check_servers() {
   $results = db_query($sql);
 
   while ($result = $results->fetchObject()) {
-    $server_status = tripal_galaxy_test_connection(['galaxy_id' => $result->galaxy_id,]);
+    $server_status = tripal_galaxy_test_connection(['galaxy_id' => $result->galaxy_id]);
     if ($server_status === FALSE) {
 
       // Update status in the db.

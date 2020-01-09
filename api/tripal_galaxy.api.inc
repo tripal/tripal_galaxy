@@ -1156,16 +1156,22 @@ function tripal_galaxy_create_history(GalaxyInstance $galaxy, string $history_na
  *   port and use_https arguments if testing connection to a server that
  *   has not yet been added.
  *
+ * @report
+ *   Set to TRUE to have a drupal message appear indicating the success
+ *   of the connection.  Default is FALSE.
+ *
  * @return bool
  *   Returns TRUE if accessible. FALSE otherwise. A Drupal message is
  *   also provided that indicates if the test was successful.
  *
  * @ingroup tripal_galaxy_api
  */
-function tripal_galaxy_test_connection(array $connect) {
+function tripal_galaxy_test_connection(array $connect, $report = FALSE) {
   $library = libraries_load('blend4php');
   if (array_key_exists('error', $library)) {
-    drupal_set_message($library['error message'], 'error');
+    if ($report) {
+      drupal_set_message($library['error message'], 'error');
+    }
     return FALSE;
   }
 
@@ -1174,7 +1180,9 @@ function tripal_galaxy_test_connection(array $connect) {
     $galaxy = tripal_galaxy_get_connection($galaxy_id);
     $error = $galaxy->getError();
     if ($error['message']) {
-      drupal_set_message('Could not connect: ' . $error['message'], 'error');
+      if ($report) {
+        drupal_set_message('Could not connect: ' . $error['message'], 'error');
+      }
       return FALSE;
     }
   }
@@ -1184,7 +1192,9 @@ function tripal_galaxy_test_connection(array $connect) {
     $galaxy = new GalaxyInstance($connect['host'], $connect['port'], $connect['use_https']);
     $error = $galaxy->getError();
     if ($error['message']) {
-      drupal_set_message('Could not connect: ' . $error['message'], 'error');
+      if ($report) {
+        drupal_set_message('Could not connect: ' . $error['message'], 'error');
+      }
       return FALSE;
     }
   }
@@ -1194,13 +1204,17 @@ function tripal_galaxy_test_connection(array $connect) {
   $version = $galaxy->getVersion();
   if ($version == NULL) {
     $error = $galaxy->getError();
-    drupal_set_message('Could not connect: ' . $error['message'], 'error');
+    if ($report) {
+      drupal_set_message('Could not connect: ' . $error['message'], 'error');
+    }
     return FALSE;
   }
   else {
-    drupal_set_message(t('Successful connection to the Galaxy server (version %version)', [
-      '%version' => $version['version_major'],
-    ]));
+    if ($report) {
+      drupal_set_message(t('Successful connection to the Galaxy server (version %version)', [
+        '%version' => $version['version_major'],
+      ]));
+    }
   }
   return TRUE;
 }
