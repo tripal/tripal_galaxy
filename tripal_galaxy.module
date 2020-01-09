@@ -1059,7 +1059,7 @@ function tripal_galaxy_untokenize_email_text($submission, $type) {
 function tripal_galaxy_untokenize_email_line($submission, $line) {
   $user = user_load($submission->uid);
   $line = preg_replace('/\[site_name\]/', variable_get('site_name'), $line);
-  $line = preg_replace('/\[workflow_title\]/', $submission->node_title ? $submission->node_title : $submission->workflow->workflow_name, $line);
+  $line = preg_replace('/\[workflow_title\]/', property_exists($submission, 'node_title') ? $submission->node_title : $submission->workflow->workflow_name, $line);
   $line = preg_replace('/\[submission_init\]/', $submission->submit_date ? format_date($submission->submit_date) : '', $line);
   $line = preg_replace('/\[submission_start\]/', $submission->start_time ? format_date($submission->start_time) : '', $line);
   $line = preg_replace('/\[submission_end\]/', $submission->end_time ? format_date($submission->end_time) : '', $line);
