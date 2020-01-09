@@ -61,17 +61,17 @@ For example:
 
   // Connect to the Galaxy instance using a galaxy ID we retrieved in an
   // earlier step.
-  $galaxy_conn = tripal_galaxy_get_connection($galaxy_id);
+  $galaxy = tripal_galaxy_get_connection($galaxy_id);
   
   // It is always good to make sure we got a valid connection. If we didn't
   // then we can retreive any connection errors using the getError() member
   // function.
-  if (!$galaxy_conn) {
+  if (!$galaxy) {
     $error = $galaxy->getError();
     drupal_set_message('Could not connect to Galaxy server. ' . $error['message'], 'error');
   }
 
-In the example code above above, the ``tripal_galaxy_get_connection`` function returns an instance of the blend4php_ ``GalaxyInstance`` class that we named ``$galaxy_conn``. This instance is used by all other functions used by blend4php to interact with Galaxy.  To learn more about this object and the functionality it provides please see the blend4php_docs_.
+In the example code above above, the ``tripal_galaxy_get_connection`` function returns an instance of the blend4php_ ``GalaxyInstance`` class that we named ``$galaxy``. This instance is used by all other functions used by blend4php to interact with Galaxy.  To learn more about this object and the functionality it provides please see the blend4php_docs_.
 
 Test if a Galaxy server is accessible.
 --------------------------------------
