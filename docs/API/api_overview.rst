@@ -211,7 +211,7 @@ Next, we need the current contents of the history.  If the history did not exist
   // in the event that this invocation occurs more than once.
   $ghistory_contents = new GalaxyHistoryContents($galaxy);
   $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
-  if ($error['message']) {
+  if (!$history_contents) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);
   } 
