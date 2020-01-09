@@ -1053,12 +1053,7 @@ function tripal_galaxy_upload_file($galaxy, int $fid, string $history_id, array 
     ];
     // Now upload the files.
     $report = "Uploading $file->filename...";
-    if (is_object($job)) {
-      $job->logMessage($report);
-    }
-    else {
-      print $report . "\n";
-    }
+    print $report . "\n";
     $gtool = new GalaxyTools($galaxy);
     $tool = $gtool->create([
       'tool_id' => 'upload1',
@@ -1073,12 +1068,7 @@ function tripal_galaxy_upload_file($galaxy, int $fid, string $history_id, array 
   }
   else {
     $report = "File already exists in history: $file->filename...";
-    if (is_object($job)) {
-      $job->logMessage($report);
-    }
-    else {
-      print $report . "\n";
-    }
+    print $report . "\n";
     return $uploaded_file;
   }
 }
