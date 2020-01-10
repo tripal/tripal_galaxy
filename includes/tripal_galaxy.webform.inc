@@ -1296,11 +1296,11 @@ function tripal_galaxy_invoke_webform_submission($sid, $job = NULL) {
         foreach ($history_contents as $hcontent) {
           if ($hcontent['name'] == $file['name']) {
             $value = [
-              'id' => $hcontent['dataset_id'],
+              'id' => $hcontent['id'],
               'src' => 'hda',
             ];
             $input_datasets[$step_index] = [
-              'id' => $hcontent['dataset_id'],
+              'id' => $hcontent['id'],
               'src' => 'hda',
             ];
           }
