@@ -197,7 +197,7 @@ Now that Drupal is aware of the file there are a few additional steps before we 
   // Get the history name.
   $history_name = tripal_galaxy_get_history_name($submission);
   $history = tripal_galaxy_create_history($galaxy, $history_name);
-  if (!$history) {
+  if ($history === FALSE) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);
   }
@@ -211,7 +211,7 @@ Next, we need the current contents of the history.  If the history did not exist
   // in the event that this invocation occurs more than once.
   $ghistory_contents = new GalaxyHistoryContents($galaxy);
   $history_contents = $ghistory_contents->index(['history_id' => $history['id']]);
-  if (!$history_contents) {
+  if ($history_contents === FALSE) {
     $error = $galaxy->getError();
     throw new Exception($error['message']);
   } 
