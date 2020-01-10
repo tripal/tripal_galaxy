@@ -79,7 +79,7 @@ If a Galaxy server is not accessible no actions can be performed including workf
 
 .. code-block:: php
 
-  $is_connected = tripal_galaxy_test_connection(['galaxy_id' => galaxy_id]);
+  $is_connected = tripal_galaxy_test_connection(['galaxy_id' => $galaxy_id]);
   if (!$is_connected) {
     // Do something here.
   }
@@ -469,7 +469,7 @@ Once the workflow has completed you may want to provide links for the end-user t
     
     // Now get the Proxy URL and create the link.
     $proxy_url = tripal_galaxy_get_proxy_url($submission, $dataset, $uid, 'download');
-    $link = l($dataset['name'], $proxy_url) . ' (' . $dataset[file_size] . ')';
+    $link = l($dataset['name'], $proxy_url) . ' (' . $dataset['file_size'] . ')';
 
 The ``$link`` variable now contains an HTML formatted link for downloading the file. It also lists the file size next to the link.  You can use this variable anywhere that you create content for a page in your application. Notice that the last argument to the ``tripal_galaxy_get_proxy_url()`` function is the string ``download``.  This is the action that the proxy URL should perform.
  
