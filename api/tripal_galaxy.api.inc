@@ -1369,26 +1369,20 @@ function tripal_galaxy_get_datasets(stdClass $submission) {
   $galaxy_id = $submission->workflow->galaxy_id;
   $galaxy = tripal_galaxy_get_connection($galaxy_id);
   $history_name = $submission->errors['history']['name'];
-  $history = tripal_galaxy_get_history($galaxy, $history_name);
-  if (!$history) {
-    $error = $galaxy->getError();
-    throw new Exception("Cannot find history, $history_name :" . $error['message']);
+
+  if (array_key_exists('history_contents', $submission->errors)) {
+    $history_contents = $submission->errors['history_contents'];
   }
 
-  // Get the history contents
-  $ghistory_contents = new GalaxyHistoryContents($galaxy);
-  $history_contents = $ghistory_contents->index([
-    'history_id' => $history['id'],
-  ]);
-  if (!$history_contents) {
+  if ($history_contents === FALSE) {
     $error = $galaxy->getError();
     throw new Exception("Cannot find the history contents with name '$history_name' :" . $error['message']);
   }
 
   // Iterate through the history contents and get a list of datasets.
   $datasets = [];
-  foreach ($history_contents as $entry) {
-    $dataset_id = $entry['dataset_id'];
+  foreach ($history_contents as $history_content) {
+    $dataset_id = $history_content['dataset_id'];
 
     // Get the record for the dataset.
     $gdataset = new GalaxyDatasets($galaxy);
@@ -1397,9 +1391,6 @@ function tripal_galaxy_get_datasets(stdClass $submission) {
       $error = $galaxy->getError();
       throw new Exception("Cannot find the dataset with ID '$dataset_id' :" . $error['message']);
     }
-
-    // Generate a filename for this file.
-    $file_name = preg_replace('/[^\w]/', '_', $dataset['name']) . '.' . $dataset['file_ext'];
     $datasets[] = $dataset;
   }
 

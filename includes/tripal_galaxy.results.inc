@@ -709,7 +709,7 @@ function tripal_galaxy_stream_url_proxy_url(string $url) {
  *
  * @ingroup tripal_galaxy_api
  */
-function tripal_galaxy_get_proxy_url(stdClass $submission, array $dataset, int $uid, string $action) {
+function tripal_galaxy_get_proxy_url(stdClass $submission, array $dataset, int $uid, string $action = 'download') {
 
   if (!in_array($action, ['viewer', 'viewer-full', 'download'])) {
     throw new Exception('Please indicate the action as: "viewer" or "download".');
