@@ -1382,7 +1382,7 @@ function tripal_galaxy_get_datasets(stdClass $submission) {
   // Iterate through the history contents and get a list of datasets.
   $datasets = [];
   foreach ($history_contents as $history_content) {
-    $dataset_id = $history_content['dataset_id'];
+    $dataset_id = $history_content['id'];
 
     // Get the record for the dataset.
     $gdataset = new GalaxyDatasets($galaxy);
