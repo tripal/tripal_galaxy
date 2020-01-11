@@ -3,6 +3,8 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/d96b8ae3505c31c48d31/maintainability)](https://codeclimate.com/github/tripal/tripal_galaxy/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/d96b8ae3505c31c48d31/test_coverage)](https://codeclimate.com/github/tripal/tripal_galaxy/test_coverage)
 [![DOI](https://zenodo.org/badge/56126128.svg)](https://zenodo.org/badge/latestdoi/56126128)
+[![Tripal Rating Gold Status](https://tripal.readthedocs.io/en/7.x-3.x/_images/Tripal-Gold.png)](https://tripal.readthedocs.io/en/7.x-3.x/extensions/module_rating.html#Bronze)
+
 
 ![alt tag](https://raw.githubusercontent.com/tripal/tripal/7.x-3.x/tripal/theme/images/tripal_logo.png)
 ![alt_tag](https://galaxyproject.org/images/galaxy-logos/galaxy_logo_25percent.png)
