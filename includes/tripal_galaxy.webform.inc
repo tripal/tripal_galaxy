@@ -585,7 +585,7 @@ function tripal_galaxy_build_webform_add_component($webform, $workflow, $step, $
       // workflow creator. So, we want to show the selected option, and not
       // let the change it.
       $webform_type = 'fixed_value';
-      $extra['description'] = 'This option has been preset for this workfow and cannot be changed.';
+      $extra['description'] = 'This option has been preset for this workflow and cannot be changed.';
 
       // For the 'fixed_value' content type we want to set a human-readable
       // value.

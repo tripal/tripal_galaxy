@@ -763,8 +763,8 @@ function tripal_galaxy_webform_component_info() {
     'file' => 'includes/components/tripal_galaxy.galaxy_sflist.inc',
   ];
   $components['galaxy_pflist'] = [
-    'label' => t('List of Paired Files'),
-    'description' => t('Provides a list of paired files for a Galaxy input.'),
+    'label' => t('List of Paired End Files'),
+    'description' => t('Provides a list of paired end files for a Galaxy input.'),
     'features' => [
       'csv' => TRUE,
       'email' => FALSE,

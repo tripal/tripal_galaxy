@@ -139,7 +139,7 @@ function _webform_csv_data_galaxy_sflist($component, $export_options, $value) {
 }
 
 /**
- * Theme hook for displaying the paired files.
+ * Theme hook for displaying the paired end files.
  */
 function theme_webform_display_galaxy_sflist($variables) {
   $element = $variables['element'];

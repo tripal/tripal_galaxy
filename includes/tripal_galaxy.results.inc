@@ -78,7 +78,7 @@ function tripal_galaxy_workflow_report(int $sid) {
   if ($submission->status == 'Error') {
     $content['status_message'] = [
       '#type' => 'markup',
-      '#markup' => '<div class="messages error">' . t('This analysis failed. Check for errors in the subission details or in the error section if result files are present.') . '</div>',
+      '#markup' => '<div class="messages error">' . t('This analysis failed. Check for errors in the submission details or in the error section if result files are present.') . '</div>',
     ];
   }
 
