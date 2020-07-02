@@ -38,7 +38,7 @@ function _webform_theme_galaxy_pflist() {
 /**
  * The webform display function for the webform component.
  *
- * Theme hook for displaying the paired files.
+ * Theme hook for displaying the paired end files.
  */
 function theme_webform_display_galaxy_pflist($variables) {
   $element = $variables['element'];

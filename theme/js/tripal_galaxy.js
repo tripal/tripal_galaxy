@@ -79,7 +79,7 @@
       });
 
       /**
-       * Rebuilds the table where the paired file list is displayed.
+       * Rebuilds the table where the paired end file list is displayed.
        *
        * The values stored in the tripal_galaxy_pfile_values array
        * are displayed in a table for the user.  This function
@@ -133,7 +133,7 @@
           table_rows += '</tr>';
         }
 
-        // If we have no rows of paired files then add back in the empty row.
+        // If we have no rows of paired end files then add back in the empty row.
         if (num_pairs == 0) {
           table_rows += '<tr class="' + trclass + '">';
           table_rows +=   '<td colspan="4">There are no files.</td>';
@@ -280,7 +280,7 @@
         $('#' + target_id).val(fids);
       }
       /**
-       * OnChange function for the paired file select boxes.
+       * OnChange function for the paired end file select boxes.
        *
        * When the user selects a file in the select box it needs to add
        * the selected value to the tripal_galaxy_pfile_values array.
@@ -307,7 +307,7 @@
           }
         }
 
-        // Rebuild the paired file table.
+        // Rebuild the paired end file table.
         tripal_galaxy_rebuild_pflist_table(target_id, table_id);
       });
 
@@ -338,7 +338,7 @@
           }
         }
 
-        // Rebuild the paired file table.
+        // Rebuild the paired end file table.
         tripal_galaxy_rebuild_sflist_table(target_id, table_id);
       });
     }

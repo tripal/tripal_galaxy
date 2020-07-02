@@ -60,7 +60,7 @@ function tripal_galaxy_element_info() {
     ),
     '#value_callback' => 'tripal_galaxy_pfile_value',
   );
-  // A form element for uploading/selecting a list of paired files.
+  // A form element for uploading/selecting a list of paired end files.
   $elements['galaxy_pflist'] = array(
     '#input' => 'TRUE',
     '#process' => array(
@@ -125,7 +125,7 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
   $element['description'] = array(
     '#type' => 'item',
     '#title' => $element['#title'] ? '' : 'Data Files List',
-    '#markup' => $element['#description'] . ' Please provide a list of files. You may select from files you have already uploaded and also upload additional files. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+    '#markup' => $element['#description'] . ' Please provide a list of files. You may select from previously uploaded files, or upload new files. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
 
@@ -220,7 +220,7 @@ function tripal_galaxy_sflist_process($element, $form_state, $complete_form) {
     '#weight' => -5,
     '#description' => t('Please click the files in the boxes above to add
         them to this table.  Only files that appear in this table will
-        be used for the analysis.  Paired files should appear on the same
+        be used for the analysis.  Paired end files should appear on the same
         row of the table.'),
   );
 
@@ -642,14 +642,14 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
 
   $element['description'] = array(
     '#type' => 'item',
-    '#title' => $element['#title'] ? '' : 'Paired Data Files',
-    '#markup' => $element['#description'] . 'Please provide a list of paired data files. You may select from files you have already uploaded and also upload additional files. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
+    '#title' => $element['#title'] ? '' : 'Paired End Data Files',
+    '#markup' => $element['#description'] . 'Please provide a list of paired end data files. You may select from files you have already uploaded and also upload additional files. Note: you have currently used ' . $usage . ' of your ' . $quota . ' quota.',
     '#weight' => -15,
   );
 
   $element['uploader_fset'] = array(
     '#type' => 'fieldset',
-    '#title' => 'Upload New Paired Files',
+    '#title' => 'Upload New Paired End Files',
     '#group' => 'files_vset',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
@@ -659,7 +659,7 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
   // We want to "inherit" the html5_file widget.
   $uploader = tripal_html5_file_process($element, $form_state, $complete_form);
   $uploader['html5_file_table']['#title'] = t('File Upload');
-  $uploader['html5_file_table']['#description'] = t('Upload one more sets of paired files. Each file must have a compatible file extension: !allowed_types.',
+  $uploader['html5_file_table']['#description'] = t('Upload a set of paired end files. Each file must have a compatible file extension: !allowed_types.',
       ['!allowed_types' => implode(', ', $allowed_types)]);
   $name = $element['#name'];
   $name = preg_replace('/[^\w]/', '_', $name);
@@ -689,7 +689,7 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
   $existing_2_select_id = $existing_value_id . '-2';
 
   $element['existing_fset'] = array(
-    '#title' => 'Use Uploaded Paired Files',
+    '#title' => 'Use Uploaded Paired End Files',
     '#type' => 'fieldset',
     '#group' => 'files_vset',
     '#collapsible' => TRUE,
@@ -757,7 +757,7 @@ function tripal_galaxy_pflist_process($element, $form_state, $complete_form) {
     '#weight' => -5,
     '#description' => t('Please click the files in the boxes above to add
         them to this table.  Only files that appear in this table will
-        be used for the analysis.  Paired files should appear on the same
+        be used for the analysis.  Paired end files should appear on the same
         row of the table.'),
   );
 
@@ -788,7 +788,7 @@ function tripal_galaxy_pflist_validate($element, &$form_state) {
   }
 
   if (count($set1) != count($set2)) {
-    form_error($element, t('There are an uneven number of paired files. .'));
+    form_error($element, t('There are an uneven number of paired end files. .'));
   }
 
   if (count(array_unique(array_merge($set1, $set2))) != count($set1) + count($set2)) {
