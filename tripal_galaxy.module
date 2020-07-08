@@ -670,7 +670,8 @@ function tripal_galaxy_webform_client_form_submit($form, &$form_state) {
           $fids = explode('|', $component[$uploaded_key]);
         }
         if ($fids) {
-          foreach ($fids as $fid) {
+          $fids_list = explode(",",$fids[0]);
+          foreach ($fids_list as $fid) {
             $file = file_load($fid);
             file_usage_add($file, 'tripal_galaxy', 'submission', $tg_workflow);
           }
