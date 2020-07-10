@@ -871,13 +871,33 @@ function tripal_galaxy_build_webform_set_input_extensions(array $workflow, array
   // Add some additional allowances.
   // TODO: we need to allow site admins to set these via the web form
   // by implementing the _webform_edit_component. This is a quick fix.
-  if (in_array('fastq', $input['extensions'])) {
-    $input['extensions'][] = 'fq';
-  }
-  if (in_array('fasta', $input['extensions'])) {
-    $input['extensions'][] = 'fa';
-    $input['extensions'][] = 'fna';
-    $input['extensions'][] = 'faa';
+  // Adding to the quick fix, admin form not warranted yet as list of
+  // files that require aliases is so small (fa, fq). For now, if 
+  // additional aliases are needed, add a new array as below 
+  // ($filetype_aliases). The entire array is added if even one of 
+  // the aliases is found, which may be a naive approach.
+  
+  // fasta aliases (includes compressed versions just in case)
+  $fasta_aliases = ['fasta','fasta.gz','fa','fa.gz','fna','fna.gz','faa','faa.gz'];
+  // fastq aliases (includes compressed versions just in case)
+  $fastq_aliases = ['fq','fq.gz','fastqsanger','fastqsanger.gz','fastqillumina','fastqillumina.gz','fastqsolexa','fastqsolexa.gz'];
+  // combined for loopiness
+  $alias_lists = array($fasta_aliases,$fastq_aliases);
+
+  // Loop through all arrays of aliases first, check if we're dealing with any types that require aliases
+  foreach ($alias_lists as $alias_list) { 
+    foreach ($alias_list as $alias) {
+      if (in_array($alias, $input['extensions'])) {
+        // Loop through the rest of the aliases and add them if they don't already exist
+        foreach ($alias_list as $alias_to_add) {
+          if (!in_array($alias_to_add,$input['extensions'])) {
+            $input['extensions'][] = $alias_to_add;
+          }
+        }
+        // No need to keep checking for aliases in this list, proceed
+        break;
+      }
+    }
   }
 
   $found_upstream_input = FALSE;
