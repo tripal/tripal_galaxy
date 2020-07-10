@@ -880,7 +880,7 @@ function tripal_galaxy_build_webform_set_input_extensions(array $workflow, array
   // fasta aliases (includes compressed versions just in case)
   $fasta_aliases = ['fasta','fasta.gz','fa','fa.gz','fna','fna.gz','faa','faa.gz'];
   // fastq aliases (includes compressed versions just in case)
-  $fastq_aliases = ['fq','fq.gz','fastqsanger','fastqsanger.gz','fastqillumina','fastqillumina.gz','fastqsolexa','fastqsolexa.gz'];
+  $fastq_aliases = ['fastq','fastq.gz','fq','fq.gz','fastqsanger','fastqsanger.gz','fastqillumina','fastqillumina.gz','fastqsolexa','fastqsolexa.gz'];
   // combined for loopiness
   $alias_lists = array($fasta_aliases,$fastq_aliases);
 
