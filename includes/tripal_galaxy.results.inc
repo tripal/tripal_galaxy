@@ -380,10 +380,28 @@ function tripal_galaxy_workflow_report_build_result_dataset_collection($history_
       ],
     ],
   ];
-
   foreach ($history_content['elements'] as $element) {
-    $step_content[$element['element_identifier']] = tripal_galaxy_workflow_report_build_result_dataset(
+    // Dig down through dataset_collections to find the real dataset
+    if ($element['element_type'] == 'dataset_collection')
+    {
+      foreach ($element['object']['elements'] as $inner_elements) {
+
+        // Get the $history_content for each of the dataset ids we just dug up. These can be found by examining
+        // $submission and matching dataset ids and where visible == FALSE
+        foreach ($submission->errors['history_contents'] as $dc_history_content)
+        {
+          if ($dc_history_content['id'] == $inner_elements['object']['id'])
+          {
+            $step_content[$inner_elements['element_identifier']] = tripal_galaxy_workflow_report_build_result_dataset(
+              $dc_history_content, $submission, $node, $galaxy);
+          }
+        }
+      }
+    }
+    else {
+      $step_content[$element['element_identifier']] = tripal_galaxy_workflow_report_build_result_dataset(
         $element['contents'], $submission, $node, $galaxy);
+    }
   }
   return $step_content;
 }
@@ -410,9 +428,6 @@ function tripal_galaxy_workflow_report_build_result_dataset($history_content, $s
 
   // If this is a file add viewing and download links
   if ($history_content['type'] == 'file') {
-//     if (!isset($history_content['content_link'])) {
-//       continue;
-//     }
 
     // If this is an HTML file then add a view link.
     if ($history_content['extension'] == 'html') {
