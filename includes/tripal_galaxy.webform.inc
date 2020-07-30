@@ -881,8 +881,11 @@ function tripal_galaxy_build_webform_set_input_extensions(array $workflow, array
   $fasta_aliases = ['fasta','fasta.gz','fa','fa.gz','fna','fna.gz','faa','faa.gz'];
   // fastq aliases (includes compressed versions just in case)
   $fastq_aliases = ['fastq','fastq.gz','fq','fq.gz','fastqsanger','fastqsanger.gz','fastqillumina','fastqillumina.gz','fastqsolexa','fastqsolexa.gz'];
+  // gff aliases
+  $gff_aliases = ['gff','gff3','gff.gz','gff3.gz'];
+  
   // combined for loopiness
-  $alias_lists = array($fasta_aliases,$fastq_aliases);
+  $alias_lists = array($fasta_aliases,$fastq_aliases,$gff_aliases);
 
   // Loop through all arrays of aliases first, check if we're dealing with any types that require aliases
   foreach ($alias_lists as $alias_list) { 
@@ -892,6 +895,7 @@ function tripal_galaxy_build_webform_set_input_extensions(array $workflow, array
         foreach ($alias_list as $alias_to_add) {
           if (!in_array($alias_to_add,$input['extensions'])) {
             $input['extensions'][] = $alias_to_add;
+            echo "Added ". $alias_to_add . " to a list\n<br />";
           }
         }
         // No need to keep checking for aliases in this list, proceed
@@ -899,6 +903,7 @@ function tripal_galaxy_build_webform_set_input_extensions(array $workflow, array
       }
     }
   }
+  dpm($input['extensions']);
 
   $found_upstream_input = FALSE;
   foreach ($workflow['steps'] as $step_id => $step_details) {
