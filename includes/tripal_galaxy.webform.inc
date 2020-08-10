@@ -53,7 +53,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
   // Iterate through each step of the workflow.
   $tool_list = [];
   $steps = $workflow['steps'];
-  //dpm($steps);
 
   foreach ($steps as $step_index => $step) {
     if (isset($step['annotation'])) {
@@ -205,7 +204,6 @@ function tripal_galaxy_build_webform($galaxy_id, $workflow_id) {
           drupal_set_message('Error building tool: ' . $tool_id . '. Galaxy Server response: ' . $error['message'], 'error');
           return FALSE;
         }
-        //dpm($tool);
 
         $tool_list[] = '<b>' . $tool['name'] . ' (version ' . $tool['version'] . ')</b>: ' . $tool['description'];
         // We want to change the name of the fieldset to have the name of
@@ -903,7 +901,6 @@ function tripal_galaxy_build_webform_set_input_extensions(array $workflow, array
       }
     }
   }
-  dpm($input['extensions']);
 
   $found_upstream_input = FALSE;
   foreach ($workflow['steps'] as $step_id => $step_details) {
