@@ -876,11 +876,11 @@ function tripal_galaxy_build_webform_set_input_extensions(array $workflow, array
   // the aliases is found, which may be a naive approach.
   
   // fasta aliases (includes compressed versions just in case)
-  $fasta_aliases = ['fasta','fasta.gz','fa','fa.gz','fna','fna.gz','faa','faa.gz'];
+  $fasta_aliases = ['fasta','fa','fna','faa','gz'];
   // fastq aliases (includes compressed versions just in case)
-  $fastq_aliases = ['fastq','fastq.gz','fq','fq.gz','fastqsanger','fastqsanger.gz','fastqillumina','fastqillumina.gz','fastqsolexa','fastqsolexa.gz'];
+  $fastq_aliases = ['fastq','fq','fastqsanger','fastqillumina','fastqsolexa','gz'];
   // gff aliases
-  $gff_aliases = ['gff','gff3','gff.gz','gff3.gz'];
+  $gff_aliases = ['gff','gff3', 'gz'];
   
   // combined for loopiness
   $alias_lists = array($fasta_aliases,$fastq_aliases,$gff_aliases);
