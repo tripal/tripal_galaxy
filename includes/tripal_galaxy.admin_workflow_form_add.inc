@@ -34,7 +34,7 @@ function tripal_galaxy_admin_add_workflow_form($form, &$form_state) {
     '#type' => 'select',
     '#options' => $galaxies,
     '#title' => t('Galaxy Servers'),
-    '#description' => t("Please select a galaxy instance to view it's workflows"),
+    '#description' => t("Please select a galaxy instance to view its workflows"),
     '#ajax' => array(
       'callback' => 'tripal_galaxy_admin_add_workflow_form_ajax_callback',
       'wrapper' => 'tripal-galaxy-admin-wf-available-form-rows',
