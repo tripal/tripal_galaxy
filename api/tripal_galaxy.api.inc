@@ -155,34 +155,38 @@ function tripal_galaxy_add_workflow(int $galaxy_id, array $values, bool $create_
     }
 
     // Now let's check to see if this workflow exists in the database, If it
-    // exists then just return it.
+    // exists then try to refresh it, else just return it.
     $workflow = db_select('tripal_galaxy_workflow', 'tgw')->fields('tgw')
       ->condition('tgw.workflow_id', $found_workflow['id'])
       ->condition('tgw.galaxy_id', $galaxy_id)
       ->execute()
       ->fetchObject();
     if ($workflow) {
-      return $workflow;
-    }
-
-    // Insert the workflow.
-    $data = [
-      'workflow_name' => $found_workflow['name'],
-      'workflow_id' => $found_workflow['id'],
-      'galaxy_id' => $galaxy_id,
-      'workflow_uuid' => $found_workflow['latest_workflow_uuid'],
-    ];
-    $success = drupal_write_record('tripal_galaxy_workflow', $data);
-    if ($success) {
-      $workflows = tripal_galaxy_get_workflows([
-        'workflow_id' => $found_workflow['id'],
-        'galaxy_id' => $galaxy_id,
-      ]);
-      $workflow = $workflows[0];
+      // We already know about it, but does this need to be updated?
+      // Galaxy ID, workflow id, workflow UUID should all be the same. the only difference we care about
+      //  exists in whatever will populate the 'extra' field in the webform_component table
+      //return $workflow;
     }
     else {
-      drupal_set_message('Could not add the workflow.', 'error');
-      return FALSE;
+      // Insert the workflow.
+      $data = [
+        'workflow_name' => $found_workflow['name'],
+        'workflow_id' => $found_workflow['id'],
+        'galaxy_id' => $galaxy_id,
+        'workflow_uuid' => $found_workflow['latest_workflow_uuid'],
+      ];
+      $success = drupal_write_record('tripal_galaxy_workflow', $data);
+      if ($success) {
+        $workflows = tripal_galaxy_get_workflows([
+          'workflow_id' => $found_workflow['id'],
+          'galaxy_id' => $galaxy_id,
+        ]);
+        $workflow = $workflows[0];
+      }
+      else {
+        drupal_set_message('Could not add the workflow.', 'error');
+        return FALSE;
+      }
     }
 
     // If the user wants to create the webform for end-users to submit.
@@ -1521,3 +1525,32 @@ function tripal_galaxy_download_file(stdClass $submission, array $dataset, int $
   return $file;
 }
 
+
+/**
+ * Updates the "local data" for a given workflow without changing
+ * any other aspects of the workflow (particularly the UUID).
+ * The science remains the same, only the list of available files
+ * gets refreshed.
+ * 
+ * This is independend of any submissions. Its only function is to
+ * refresh an existing workflow.
+ * 
+ * @param int $galaxy_workflow_id
+ *   The galaxy_workflow_id for the workflow. This is the ID given
+ *   by Tripal, and not the galaxy_id or galaxy_uuid from Galaxy
+ *   itself. We use this to get the other details.
+ */
+function tripal_galaxy_refresh_workflow_data($galaxy_workflow_id) {
+  // Get the workflow object
+  $workflow = tripal_galaxy_get_workflows(array('id'=>$galaxy_workflow_id));
+
+  // Get the Galaxy object
+  $galaxy_connection = tripal_galaxy_get_connection($workflow[0]->galaxy_id);
+
+  // Eventually we are going to call tripal_galaxy_add_workflow(). We can utilize
+  //  existing mechanisms in that function to simply update/refresh if the specified
+  //  workflow already exists in the database but has different 'extra' bits.
+
+  //tripal_galaxy_add_workflow()
+
+}
