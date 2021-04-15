@@ -1584,15 +1584,4 @@ function tripal_galaxy_refresh_workflow_data($galaxy_workflow_id = FALSE) {
       }
     }
   }
-
-
-  // Get the Galaxy object
-    //$galaxy_connection = tripal_galaxy_get_connection($workflow[0]->galaxy_id);
-
-  // Eventually we are going to call tripal_galaxy_add_workflow(). We can utilize
-  //  existing mechanisms in that function to simply update/refresh if the specified
-  //  workflow already exists in the database but has different 'extra' bits.
-
-  //tripal_galaxy_add_workflow()
-
 }
