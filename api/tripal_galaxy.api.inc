@@ -1539,13 +1539,55 @@ function tripal_galaxy_download_file(stdClass $submission, array $dataset, int $
  *   The galaxy_workflow_id for the workflow. This is the ID given
  *   by Tripal, and not the galaxy_id or galaxy_uuid from Galaxy
  *   itself. We use this to get the other details.
+ * 
+ *  @return int 
+ *   Number of workflow (webforms) updated, FALSE on error
  */
-function tripal_galaxy_refresh_workflow_data($galaxy_workflow_id) {
-  // Get the workflow object
-  $workflow = tripal_galaxy_get_workflows(array('id'=>$galaxy_workflow_id));
+function tripal_galaxy_refresh_workflow_data($galaxy_workflow_id = FALSE) {
+  // If given a workflow ID, only refresh that one, otherwise, refresh
+  //  all Galaxy workflows
+  if ($galaxy_workflow_id) {
+    // Refresh by calling tripal_galaxy_add_workflow(). For this, we need the
+    //  galaxy_id and the workflow_id (e.g. 5a1cff6882ddb5b2)
+    $galaxy_info = db_select('tripal_galaxy_workflow', 'tgw')
+      ->fields('tgw',array('workflow_id','galaxy_id'))
+      ->condition('status', 'Active','=')
+      ->condition('galaxy_workflow_id',$galaxy_workflow_id,'=')
+      ->execute()
+      ->fetch();
+
+    if($galaxy_info) {
+      $success = tripal_galaxy_add_workflow($galaxy_info->galaxy_id, array("workflow_id"=>$galaxy_info->workflow_id));
+    }
+    else {
+      drupal_set_message('No matching workflows were found, therefore no workflows were updated.','error');
+    }
+    
+  }
+  // Else, refresh ALL the workflows
+  // @todo If this take a while, set it as a job to be run.
+  // @todo Wrap this in a transaction or try/catch to be safe
+  else {
+    // Get a list of all workflows (select galaxy_workflow_id from tripal_galaxy_workflow)
+    // tripal_galaxy_get_workflows() doesn't do exactly what we need
+    $workflows = db_select('tripal_galaxy_workflow', 'tgw')
+      ->fields('tgw',array('workflow_id','nid','galaxy_id'))
+      ->condition('status', 'Active','=')
+      ->execute()
+      ->fetchAllAssoc('workflow_id');
+
+    foreach ($workflows as $workflow)
+    {
+      $success = tripal_galaxy_add_workflow($workflow->galaxy_id,array("workflow_id"=>$workflow->workflow_id));
+      if (!$success) {
+        drupal_set_message('Could not add workflow, ID: ' . $workflow->galaxy_workflow_id);
+      }
+    }
+  }
+
 
   // Get the Galaxy object
-  $galaxy_connection = tripal_galaxy_get_connection($workflow[0]->galaxy_id);
+    //$galaxy_connection = tripal_galaxy_get_connection($workflow[0]->galaxy_id);
 
   // Eventually we are going to call tripal_galaxy_add_workflow(). We can utilize
   //  existing mechanisms in that function to simply update/refresh if the specified
